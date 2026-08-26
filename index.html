@@ -3,74 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#f5f0e8">
+  <meta name="theme-color" content="#05060f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Нонограмма">
   <title>Японский кроссворд — Нонограмма</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f5f0e8'/%3E%3Crect x='20' y='20' width='60' height='60' fill='none' stroke='%23333' stroke-width='8'/%3E%3Crect x='35' y='35' width='30' height='30' fill='%23333'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2305060f'/%3E%3Crect x='20' y='20' width='60' height='60' fill='none' stroke='%23663af3' stroke-width='8'/%3E%3Crect x='35' y='35' width='30' height='30' fill='%23663af3'/%3E%3C/svg%3E">
   <style>
     :root {
-      --bg: #f5f0e8;
-      --surface: #ffffff;
-      --cell-bg: #ffffff;
-      --cell-filled: #3a3a3a;
-      --cell-x: #c44;
-      --text: #2c2c2c;
-      --accent: #7fa99b;
-      --border: #ddd8ce;
-      --shadow: rgba(0,0,0,0.08);
-      --btn-bg: #ffffff;
-      --btn-active: #e0d6c8;
-      --modal-bg: #f5f0e8;
-      --highlight: #fff9c4;
-      --error-highlight: #ffcdd2;
-      --solved: #a5d6a7;
-      --radius: 12px;
-      --btn-h: 60px;
-      --transition: 0.25s ease;
+      --color-midnight-canvas: #05060f;
+      --color-steel-plate: #2f343e;
+      --color-fog-veil: #9da7ba;
+      --color-moon-mist: #c7d3ea;
+      --color-frost-glow: #d1e4fa;
+      --color-ice-highlight: #d8ecf8;
+      --color-pure-white: #ffffff;
+      --color-void-violet: #663af3;
+      --color-blueprint-blue: #b6d9fc;
+      --color-glass-edge: #bad7f71f;
+      --color-luminous-fill: #c7d3ea1f;
+      --shadow-sm: rgba(186, 207, 247, 0.32) 0px 0px 6px 0px;
+      --shadow-md: rgba(238, 186, 247, 0.24) 0px 0px 12px 0px;
+      --shadow-subtle: rgba(186, 215, 247, 0.12) 0px 0px 0px 1px inset;
+      --shadow-subtle-6: rgba(216, 236, 248, 0.2) 0px 1px 1px 0px inset, rgba(168, 216, 245, 0.06) 0px 24px 48px 0px inset, rgba(0, 0, 0, 0.3) 0px 16px 32px 0px;
+      --radius-cards: 16px;
+      --radius-badges: 6px;
+      --radius-inputs: 6px;
+      --radius-modals: 16px;
+      --radius-buttons: 999px;
+      --radius-iconcontainers: 9999px;
     }
-    
-    /* Тёмная тема через data-атрибут */
-    [data-theme="dark"] {
-      --bg: #1e1e1e;
-      --surface: #2d2d2d;
-      --cell-bg: #2d2d2d;
-      --cell-filled: #e8e8e8;
-      --cell-x: #ff8a80;
-      --text: #f0f0f0;
-      --accent: #8bb3a5;
-      --border: #444;
-      --shadow: rgba(255,255,255,0.05);
-      --btn-bg: #3a3a3a;
-      --btn-active: #4a4a4a;
-      --modal-bg: #2a2a2a;
-      --highlight: #6b5b00;
-      --error-highlight: #5c2b2b;
-      --solved: #2e7d32;
-    }
-    
-    /* Системная тема по умолчанию */
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg: #1e1e1e;
-        --surface: #2d2d2d;
-        --cell-bg: #2d2d2d;
-        --cell-filled: #e8e8e8;
-        --cell-x: #ff8a80;
-        --text: #f0f0f0;
-        --accent: #8bb3a5;
-        --border: #444;
-        --shadow: rgba(255,255,255,0.05);
-        --btn-bg: #3a3a3a;
-        --btn-active: #4a4a4a;
-        --modal-bg: #2a2a2a;
-        --highlight: #6b5b00;
-        --error-highlight: #5c2b2b;
-        --solved: #2e7d32;
-      }
-    }
-    
+
     * { 
       box-sizing: border-box; 
       margin: 0; 
@@ -85,10 +48,11 @@
       overflow: hidden; 
       position: fixed; 
       overscroll-behavior: none; 
-      background: var(--bg); 
-      color: var(--text); 
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; 
-      transition: background var(--transition), color var(--transition); 
+      background: var(--color-midnight-canvas); 
+      color: var(--color-frost-glow); 
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; 
+      transition: background 0.25s ease, color 0.25s ease; 
+      touch-action: none;
     }
     
     body { 
@@ -105,7 +69,8 @@
       display: flex; 
       flex-direction: column; 
       max-width: 800px; 
-      padding: 8px 8px 0; 
+      padding: 8px; 
+      position: relative;
     }
 
     /* Верхняя панель */
@@ -113,56 +78,60 @@
       display: flex; 
       align-items: center; 
       justify-content: space-between; 
-      gap: 6px; 
-      padding: 4px 4px 8px; 
+      gap: 8px; 
+      padding: 4px 0 8px; 
       flex-shrink: 0; 
     }
     
     .top-btn { 
-      background: var(--btn-bg); 
+      background: var(--color-luminous-fill); 
       border: none; 
-      border-radius: var(--radius); 
-      box-shadow: 0 2px 6px var(--shadow); 
-      width: 48px; 
-      height: 48px; 
-      font-size: 24px; 
+      border-radius: var(--radius-buttons); 
+      box-shadow: var(--shadow-subtle); 
+      width: 44px; 
+      height: 44px; 
+      font-size: 20px; 
       cursor: pointer; 
-      color: var(--text); 
+      color: var(--color-frost-glow); 
       display: flex; 
       align-items: center; 
       justify-content: center; 
       transition: all 0.2s; 
+      backdrop-filter: blur(10px);
     }
     
     .top-btn:active { 
       transform: scale(0.94); 
-      background: var(--btn-active); 
+      background: var(--color-steel-plate); 
     }
     
     #puzzle-title { 
-      font-weight: 600; 
+      font-weight: 500; 
       font-size: 16px; 
       text-align: center; 
       flex: 1; 
       white-space: nowrap; 
       overflow: hidden; 
       text-overflow: ellipsis; 
+      color: var(--color-ice-highlight);
+      letter-spacing: -0.01em;
     }
     
     #stats { 
       display: flex; 
       align-items: center; 
-      gap: 12px; 
+      gap: 8px; 
       font-size: 14px; 
     }
     
     #error-count { 
-      color: #e53935; 
-      font-weight: 600; 
+      color: #e46d4c; 
+      font-weight: 500; 
     }
     
     #timer { 
       font-variant-numeric: tabular-nums; 
+      color: var(--color-moon-mist);
     }
 
     /* Канвас контейнер */
@@ -173,52 +142,55 @@
       align-items: center; 
       justify-content: center; 
       overflow: hidden; 
-      border-radius: var(--radius); 
-      background: var(--surface); 
-      box-shadow: 0 4px 20px var(--shadow); 
+      border-radius: var(--radius-cards); 
+      background: rgba(186, 214, 247, 0.03); 
+      box-shadow: var(--shadow-subtle-6); 
       margin-bottom: 8px; 
       touch-action: none; 
       min-height: 0;
+      backdrop-filter: blur(10px);
     }
     
     canvas { 
       display: block; 
       touch-action: none; 
-      border-radius: 6px; 
+      border-radius: 8px; 
     }
 
     /* Нижняя панель */
     #bottom-bar { 
       display: flex; 
-      gap: 8px; 
-      padding: 8px 0 12px; 
+      gap: 6px; 
+      padding: 8px 0; 
       flex-shrink: 0; 
       flex-wrap: wrap; 
       justify-content: center; 
+      align-items: center;
     }
     
     .bottom-btn { 
-      flex: 1 1 60px; 
-      min-width: 60px; 
-      height: var(--btn-h); 
-      background: var(--btn-bg); 
+      background: var(--color-luminous-fill); 
       border: none; 
-      border-radius: var(--radius); 
-      box-shadow: 0 2px 6px var(--shadow); 
-      font-size: 16px; 
+      border-radius: var(--radius-buttons); 
+      box-shadow: var(--shadow-subtle); 
+      font-size: 14px; 
       cursor: pointer; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
       gap: 4px; 
-      color: var(--text); 
+      color: var(--color-frost-glow); 
       transition: all 0.2s; 
       font-weight: 500; 
+      padding: 8px 12px;
+      height: 44px;
+      backdrop-filter: blur(10px);
     }
     
     .bottom-btn.active { 
-      background: var(--accent); 
+      background: var(--color-void-violet); 
       color: white; 
+      box-shadow: 0 0 12px rgba(102, 58, 243, 0.5);
     }
     
     .bottom-btn:active { 
@@ -226,16 +198,17 @@
     }
     
     .bottom-btn.small { 
-      flex: 0 0 56px; 
-      font-size: 20px; 
+      width: 44px;
+      padding: 8px;
+      font-size: 18px; 
     }
 
     /* Модальные окна */
     .modal-overlay { 
       position: fixed; 
       inset: 0; 
-      background: rgba(0,0,0,0.4); 
-      backdrop-filter: blur(3px); 
+      background: rgba(5, 6, 15, 0.8); 
+      backdrop-filter: blur(8px); 
       z-index: 100; 
       display: flex; 
       align-items: center; 
@@ -251,16 +224,17 @@
     }
     
     .modal { 
-      background: var(--modal-bg); 
+      background: rgba(5, 6, 15, 0.97); 
       width: 90%; 
       max-width: 720px; 
       max-height: 85%; 
       overflow-y: auto; 
-      border-radius: 24px; 
-      padding: 20px; 
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+      border-radius: var(--radius-modals); 
+      padding: 24px; 
+      box-shadow: var(--shadow-subtle-6); 
       transform: translateY(30px); 
       transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2); 
+      border: 1px solid var(--color-glass-edge);
     }
     
     .modal-overlay.show .modal { 
@@ -268,7 +242,10 @@
     }
     
     .modal h2, .modal h3 { 
-      margin-bottom: 12px; 
+      margin-bottom: 16px; 
+      color: var(--color-ice-highlight);
+      font-weight: 500;
+      letter-spacing: -0.01em;
     }
     
     .modal-close { 
@@ -277,7 +254,7 @@
       border: none; 
       font-size: 28px; 
       cursor: pointer; 
-      color: var(--text); 
+      color: var(--color-frost-glow); 
     }
 
     /* Список уровней */
@@ -288,7 +265,8 @@
     .level-group h3 { 
       font-size: 16px; 
       margin-bottom: 8px; 
-      color: var(--accent); 
+      color: var(--color-blueprint-blue); 
+      font-weight: 500;
     }
     
     .cards { 
@@ -298,13 +276,14 @@
     }
     
     .level-card { 
-      background: var(--surface); 
-      border-radius: 14px; 
+      background: rgba(186, 214, 247, 0.03); 
+      border-radius: var(--radius-cards); 
       padding: 8px; 
-      box-shadow: 0 2px 8px var(--shadow); 
+      box-shadow: var(--shadow-subtle); 
       cursor: pointer; 
       transition: all 0.15s; 
       text-align: center; 
+      border: 1px solid var(--color-glass-edge);
     }
     
     .level-card:active { 
@@ -314,25 +293,28 @@
     .level-card canvas { 
       width: 100%; 
       border-radius: 8px; 
+      background: rgba(199, 211, 234, 0.06);
     }
     
     .level-card .name { 
       font-size: 13px; 
-      font-weight: 600; 
+      font-weight: 500; 
       margin-top: 4px; 
+      color: var(--color-frost-glow);
     }
     
     .level-card .meta { 
       font-size: 11px; 
       opacity: 0.8; 
+      color: var(--color-moon-mist);
     }
     
     .level-card.solved { 
-      border: 2px solid var(--solved); 
+      border: 2px solid #269684; 
     }
     
     .checkmark { 
-      color: var(--solved); 
+      color: #269684; 
       font-size: 18px; 
     }
 
@@ -345,23 +327,25 @@
     }
     
     .action-btn { 
-      background: var(--btn-bg); 
-      border: none; 
+      background: var(--color-luminous-fill); 
+      border: 1px solid var(--color-glass-edge); 
       padding: 12px 18px; 
-      border-radius: 10px; 
+      border-radius: var(--radius-buttons); 
       font-size: 15px; 
       cursor: pointer; 
-      box-shadow: 0 2px 6px var(--shadow); 
+      box-shadow: var(--shadow-subtle); 
       display: flex; 
       align-items: center; 
       gap: 6px; 
-      color: var(--text); 
+      color: var(--color-frost-glow); 
       transition: all 0.2s; 
+      backdrop-filter: blur(10px);
     }
     
     .action-btn.primary { 
-      background: var(--accent); 
+      background: var(--color-void-violet); 
       color: white; 
+      box-shadow: 0 0 12px rgba(102, 58, 243, 0.5);
     }
     
     .action-btn:active { 
@@ -376,7 +360,7 @@
     }
     
     .editor-canvas { 
-      border: 2px solid var(--border); 
+      border: 1px solid var(--color-glass-edge); 
       border-radius: 10px; 
       image-rendering: pixelated; 
     }
@@ -388,16 +372,17 @@
     }
     
     .tool-btn { 
-      background: var(--btn-bg); 
-      border: 1px solid var(--border); 
-      border-radius: 8px; 
+      background: var(--color-luminous-fill); 
+      border: 1px solid var(--color-glass-edge); 
+      border-radius: var(--radius-badges); 
       padding: 8px 14px; 
       cursor: pointer; 
       font-size: 14px; 
+      color: var(--color-frost-glow);
     }
     
     .tool-btn.active { 
-      background: var(--accent); 
+      background: var(--color-void-violet); 
       color: white; 
     }
     
@@ -405,23 +390,45 @@
       display: flex; 
       flex-direction: column; 
       align-items: center; 
+      color: var(--color-moon-mist);
+    }
+
+    /* Превью в модальном окне */
+    #preview-container {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(186, 214, 247, 0.03);
+      border-radius: var(--radius-cards);
+      border: 1px solid var(--color-glass-edge);
+    }
+    
+    #preview-container h3 {
+      margin-bottom: 12px;
+      color: var(--color-blueprint-blue);
+    }
+    
+    #preview-canvas {
+      display: block;
+      margin: 0 auto;
+      background: rgba(199, 211, 234, 0.06);
+      border-radius: 8px;
     }
 
     /* Адаптивность */
     @media (max-width: 600px) {
       .bottom-btn { 
         font-size: 13px; 
-        height: 52px; 
-        min-width: 44px; 
+        height: 40px; 
+        padding: 8px 10px;
       }
       .bottom-btn.small { 
-        flex: 0 0 44px; 
-        font-size: 18px; 
+        width: 40px;
+        font-size: 16px; 
       }
-      #top-bar .top-btn { 
+      .top-btn { 
         width: 40px; 
         height: 40px; 
-        font-size: 20px; 
+        font-size: 18px; 
       }
     }
   </style>
@@ -434,25 +441,21 @@
     <div id="stats">
       <span id="error-count">✕ 0</span>
       <span id="timer">⏱ 00:00</span>
-      <button class="top-btn" id="btn-sound" aria-label="Звук">🔊</button>
-      <button class="top-btn" id="btn-theme" aria-label="Тема">🌓</button>
-      <button class="top-btn" id="btn-zoom-in" aria-label="Увеличить">+</button>
-      <button class="top-btn" id="btn-zoom-out" aria-label="Уменьшить">−</button>
-      <button class="top-btn" id="btn-zoom-reset" aria-label="Сбросить зум">⟲</button>
+      <button class="top-btn" id="btn-settings" aria-label="Настройки">⚙</button>
     </div>
   </div>
   <div id="canvas-wrap">
     <canvas id="game-canvas"></canvas>
   </div>
   <div id="bottom-bar">
-    <button class="bottom-btn active" data-mode="paint">✏️ Закрасить</button>
+    <button class="bottom-btn active" data-mode="paint">⬛ Закрасить</button>
     <button class="bottom-btn" data-mode="x">✕ Крестик</button>
+    <button class="bottom-btn" data-mode="memo">🔺 Memo</button>
     <button class="bottom-btn small" id="btn-undo" aria-label="Отменить">↺</button>
     <button class="bottom-btn small" id="btn-redo" aria-label="Повторить">↻</button>
-    <button class="bottom-btn small" id="btn-clear" aria-label="Очистить">🗑</button>
-    <button class="bottom-btn small" id="btn-check" aria-label="Проверить">👁</button>
+    <button class="bottom-btn small" id="btn-clear-memo" aria-label="Удалить memo" style="display:none;">🗑</button>
+    <button class="bottom-btn small" id="btn-clear" aria-label="Очистить всё">✕</button>
     <button class="bottom-btn small" id="btn-hint" aria-label="Подсказка">💡</button>
-    <button class="bottom-btn" id="btn-hand" data-mode="hand">✋</button>
   </div>
 </div>
 
@@ -474,6 +477,10 @@
     <h2>Уровни</h2>
     <button class="action-btn" id="btn-random-level">🎲 Случайный уровень</button>
     <div id="levels-list"></div>
+    <div id="preview-container" style="display:none;">
+      <h3>Превью</h3>
+      <canvas id="preview-canvas"></canvas>
+    </div>
   </div>
 </div>
 
@@ -484,7 +491,7 @@
     <div class="editor-grid">
       <div>
         <canvas id="editor-canvas" width="300" height="300" class="editor-canvas"></canvas>
-        <div>Размер: <select id="editor-size"><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option></select></div>
+        <div style="margin-top:8px; color:var(--color-moon-mist);">Размер: <select id="editor-size" style="background:var(--color-steel-plate);color:var(--color-frost-glow);border:1px solid var(--color-glass-edge);border-radius:6px;padding:4px;"><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option></select></div>
       </div>
       <div class="editor-tools">
         <button class="tool-btn active" data-tool="pencil">✏️ Карандаш</button>
@@ -492,10 +499,10 @@
         <button class="tool-btn" data-tool="fill">🪣 Заливка</button>
         <button class="tool-btn" data-tool="line">📏 Линия</button>
         <button class="tool-btn" data-tool="rect">⬜ Прямоугольник</button>
-        <label>Симметрия: <select id="editor-symmetry"><option value="none">Выключено</option><option value="v">Вертикальная</option><option value="h">Горизонтальная</option><option value="both">Обе</option></select></label>
-        <button class="action-btn" id="editor-save">💾 Сохранить в мои пазлы</button>
-        <button class="action-btn" id="editor-export">📤 Экспорт JSON</button>
-        <button class="action-btn" id="editor-import">📥 Импорт JSON</button>
+        <label style="color:var(--color-moon-mist);">Симметрия: <select id="editor-symmetry" style="background:var(--color-steel-plate);color:var(--color-frost-glow);border:1px solid var(--color-glass-edge);border-radius:6px;padding:4px;"><option value="none">Выключено</option><option value="v">Вертикальная</option><option value="h">Горизонтальная</option><option value="both">Обе</option></select></label>
+        <button class="action-btn" id="editor-save">💾 Сохранить</button>
+        <button class="action-btn" id="editor-export">📤 Экспорт</button>
+        <button class="action-btn" id="editor-import">📥 Импорт</button>
         <button class="action-btn primary" id="editor-play">▶ Играть</button>
       </div>
       <div class="editor-preview">
@@ -510,9 +517,10 @@
   <div class="modal">
     <button class="modal-close" data-close="modal-settings">×</button>
     <h2>Настройки</h2>
-    <label><input type="checkbox" id="setting-timer"> Показывать таймер</label><br>
-    <label><input type="checkbox" id="setting-sound"> Звук</label><br>
-    <label><input type="checkbox" id="setting-haptics"> Вибрация</label><br>
+    <label style="color:var(--color-moon-mist);"><input type="checkbox" id="setting-timer"> Показывать таймер</label><br>
+    <label style="color:var(--color-moon-mist);"><input type="checkbox" id="setting-sound"> Звук</label><br>
+    <label style="color:var(--color-moon-mist);"><input type="checkbox" id="setting-haptics"> Вибрация</label><br>
+    <label style="color:var(--color-moon-mist);"><input type="checkbox" id="setting-protection"> Защита от случайных касаний</label><br>
     <button class="action-btn" id="btn-reset-stats">🗑 Сбросить статистику</button>
   </div>
 </div>
@@ -533,7 +541,7 @@
   <div class="modal">
     <button class="modal-close" data-close="modal-generate">×</button>
     <h2>Генератор уровней</h2>
-    <canvas id="gen-preview" width="300" height="300" style="background:var(--surface); border-radius:8px;"></canvas>
+    <canvas id="gen-preview" width="300" height="300" style="background:rgba(199,211,234,0.06); border-radius:8px; display:block; margin:0 auto;"></canvas>
     <div class="action-row">
       <button class="action-btn primary" id="gen-play">Играть</button>
       <button class="action-btn" id="gen-regenerate">Сгенерировать другую</button>
@@ -563,12 +571,11 @@
       { name: "Смайлик", size: 20, difficulty: 3, rows: ["00011111111111100000","00111111111111111000","01111111111111111100","11111111111111111110","11111111111111111110","11100011111110001110","11100011111110001110","11111111111111111110","11111111111111111110","11111111111111111110","11111111111111111110","11011111111111110110","11101111111111101110","11110000000000011110","11111111111111111110","01111111111111111100","00111111111111111000","00011111111111100000","00000000000000000000","00000000000000000000"] }
     ];
     
-    // Добавляем более детальный 30x30 пазл
+    // Добавляем 30x30 пазл "Замок"
     (function() {
       const size = 30;
       const grid = Array(size).fill().map(() => Array(size).fill(0));
       
-      // Создаём детальный рисунок - замок
       // Башни
       for (let i = 2; i < 28; i++) {
         for (let j = 2; j < 8; j++) {
@@ -626,7 +633,7 @@
         grid[3][j] = 1;
       }
       
-      // Добавляем больше деталей
+      // Нижняя часть
       for (let i = 20; i < 28; i++) {
         for (let j = 10; j < 20; j++) {
           if (i >= 21 && j >= 11 && j <= 18) grid[i][j] = 1;
@@ -637,14 +644,6 @@
       grid[24][13] = 1; grid[24][14] = 1; grid[24][15] = 1; grid[24][16] = 1;
       grid[25][13] = 1; grid[25][16] = 1;
       grid[26][13] = 1; grid[26][14] = 1; grid[26][15] = 1; grid[26][16] = 1;
-      
-      // Флаг на крыше
-      grid[1][4] = 0; grid[0][4] = 0;
-      grid[1][25] = 0; grid[0][25] = 0;
-      
-      // Добавляем кресты на флагах
-      grid[1][3] = 1; grid[1][5] = 1;
-      grid[1][23] = 1; grid[1][27] = 1;
       
       PUZZLES.push({ name: "Замок", size: 30, difficulty: 4, rows: grid.map(r => r.join('')) });
     })();
@@ -673,6 +672,7 @@
         this.rows = rows.map(r => r.split('').map(Number));
         this.size = this.rows.length;
         this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+        this.memoGrid = Array(this.size).fill().map(() => Array(this.size).fill(false));
         this.errors = 0;
         this.hintsLeft = 3;
         this.history = [];
@@ -681,12 +681,24 @@
         this.timerInterval = null;
         this.solved = false;
       }
-      getCell(r,c) { 
+      
+      getCell(r, c) { 
         return this.grid[r][c]; 
       }
-      setCell(r,c,val, record=true) {
+      
+      getMemo(r, c) { 
+        return this.memoGrid[r][c]; 
+      }
+      
+      setCell(r, c, val, record = true) {
         if (record) {
-          this.history.push({r,c,prev:this.grid[r][c], next:val});
+          this.history.push({
+            r, c, 
+            prev: this.grid[r][c], 
+            next: val,
+            prevMemo: this.memoGrid[r][c],
+            nextMemo: this.memoGrid[r][c]
+          });
           if (this.history.length > 200) this.history.shift();
           this.redoStack = [];
         }
@@ -694,7 +706,40 @@
         this.autoFillLine(r, c);
       }
       
-      // Автозаполнение строки и столбца
+      setMemo(r, c, val, record = true) {
+        if (record) {
+          this.history.push({
+            r, c, 
+            prev: this.grid[r][c], 
+            next: this.grid[r][c],
+            prevMemo: this.memoGrid[r][c],
+            nextMemo: val
+          });
+          if (this.history.length > 200) this.history.shift();
+          this.redoStack = [];
+        }
+        this.memoGrid[r][c] = val;
+      }
+      
+      clearAllMemos() {
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            if (this.memoGrid[r][c]) {
+              this.memoGrid[r][c] = false;
+            }
+          }
+        }
+      }
+      
+      hasMemos() {
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            if (this.memoGrid[r][c]) return true;
+          }
+        }
+        return false;
+      }
+      
       autoFillLine(r, c) {
         // Проверяем строку
         const rowHints = this.getLineHints(this.rows[r]);
@@ -745,6 +790,7 @@
         if (this.history.length) { 
           const last = this.history.pop(); 
           this.grid[last.r][last.c] = last.prev; 
+          this.memoGrid[last.r][last.c] = last.prevMemo;
           this.redoStack.push(last); 
           return true; 
         } 
@@ -755,6 +801,7 @@
         if (this.redoStack.length) { 
           const last = this.redoStack.pop(); 
           this.grid[last.r][last.c] = last.next; 
+          this.memoGrid[last.r][last.c] = last.nextMemo;
           this.history.push(last); 
           return true; 
         } 
@@ -782,7 +829,7 @@
         this.enabled = !this.enabled; 
         return this.enabled; 
       },
-      play(freq, dur, vol=0.3) {
+      play(freq, dur, vol = 0.3) {
         if (!this.enabled || !this.ctx) return;
         const osc = this.ctx.createOscillator(); 
         const gain = this.ctx.createGain();
@@ -824,7 +871,6 @@
         this.offsetY = 0;
         this.cellSize = 30; 
         this.state = null;
-        this.animations = [];
       }
       
       setState(state) { 
@@ -836,15 +882,14 @@
       
       computeSizes() {
         const wrap = document.getElementById('canvas-wrap');
-        const w = wrap.clientWidth - 20; // Учитываем отступы
+        const w = wrap.clientWidth - 20;
         const h = wrap.clientHeight - 20;
         const size = this.state.size;
-        // Учитываем место для подсказок
         const hintSpace = 80;
         const availableW = w - hintSpace;
         const availableH = h - hintSpace;
         this.cellSize = Math.min(availableW / size, availableH / size);
-        this.cellSize = Math.max(10, Math.min(40, this.cellSize)); // Ограничиваем размер
+        this.cellSize = Math.max(10, Math.min(40, this.cellSize));
         this.canvas.width = w;
         this.canvas.height = h;
       }
@@ -853,24 +898,9 @@
         const size = this.state.size;
         const boardW = size * this.cellSize;
         const boardH = size * this.cellSize;
-        // Центрируем с учётом подсказок
         this.offsetX = (this.canvas.width - boardW) / 2 + 40;
         this.offsetY = (this.canvas.height - boardH) / 2 + 40;
         this.zoom = 1;
-      }
-      
-      applyZoom(newZoom, cx, cy) {
-        const oldZoom = this.zoom;
-        const minZ = 0.5, maxZ = 8;
-        newZoom = Math.max(minZ, Math.min(maxZ, newZoom));
-        if (cx === undefined) cx = this.canvas.width / 2;
-        if (cy === undefined) cy = this.canvas.height / 2;
-        const worldX = (cx - this.offsetX) / oldZoom;
-        const worldY = (cy - this.offsetY) / oldZoom;
-        this.offsetX = cx - worldX * newZoom;
-        this.offsetY = cy - worldY * newZoom;
-        this.zoom = newZoom;
-        this.draw();
       }
       
       screenToCell(x, y) {
@@ -888,31 +918,35 @@
         const cell = this.cellSize * this.zoom;
         const size = this.state.size;
         
-        // Рисуем фон
-        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#fff';
+        // Фон
+        ctx.fillStyle = 'rgba(186, 214, 247, 0.03)';
         ctx.fillRect(0, 0, w, h);
         
-        // Рисуем подсказки
+        // Подсказки
         this.drawHints(ctx, cell, size);
         
-        // Рисуем клетки
+        // Клетки
         for (let r = 0; r < size; r++) {
           for (let c = 0; c < size; c++) {
             const x = c * cell + this.offsetX;
             const y = r * cell + this.offsetY;
             
-            // Пропускаем невидимые клетки
             if (x + cell < 0 || x > w || y + cell < 0 || y > h) continue;
             
             const val = this.state.grid[r][c];
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--cell-bg').trim() || '#fff';
+            const hasMemo = this.state.memoGrid[r][c];
+            
+            // Фон клетки
+            ctx.fillStyle = 'rgba(199, 211, 234, 0.06)';
             ctx.fillRect(x, y, cell, cell);
             
             if (val === 1) {
-              ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--cell-filled').trim() || '#3a3a3a';
+              // Закрашенная клетка - чёрная
+              ctx.fillStyle = '#000000';
               ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
             } else if (val === 2) {
-              ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--cell-x').trim() || '#c44';
+              // Крестик - серый
+              ctx.strokeStyle = '#9da7ba';
               ctx.lineWidth = Math.max(1, cell / 6);
               ctx.beginPath(); 
               ctx.moveTo(x + cell * 0.2, y + cell * 0.2); 
@@ -924,31 +958,55 @@
               ctx.stroke();
             }
             
-            if (cell > 8) {
-              ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#ddd';
-              ctx.lineWidth = 1;
-              ctx.strokeRect(x + 0.5, y + 0.5, cell, cell);
+            // Memo - ярко-красный треугольник
+            if (hasMemo) {
+              ctx.fillStyle = '#ff0000';
+              ctx.beginPath();
+              ctx.moveTo(x + cell * 0.5, y + cell * 0.1);
+              ctx.lineTo(x + cell * 0.1, y + cell * 0.9);
+              ctx.lineTo(x + cell * 0.9, y + cell * 0.9);
+              ctx.closePath();
+              ctx.fill();
+            }
+            
+            // Границы клеток - голубые
+            if (cell > 6) {
+              ctx.strokeStyle = 'rgba(182, 217, 252, 0.3)';
+              ctx.lineWidth = 0.5;
+              ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
+            }
+            
+            // Жирные синие линии каждые 5 клеток
+            if ((r + 1) % 5 === 0 || (c + 1) % 5 === 0) {
+              ctx.strokeStyle = '#027dea';
+              ctx.lineWidth = 2;
+              if ((c + 1) % 5 === 0) {
+                ctx.beginPath();
+                ctx.moveTo(x + cell, y);
+                ctx.lineTo(x + cell, y + cell);
+                ctx.stroke();
+              }
+              if ((r + 1) % 5 === 0) {
+                ctx.beginPath();
+                ctx.moveTo(x, y + cell);
+                ctx.lineTo(x + cell, y + cell);
+                ctx.stroke();
+              }
             }
           }
         }
         
-        // Рисуем линии сетки для больших клеток
-        if (cell > 15) {
-          ctx.strokeStyle = '#888'; 
-          ctx.lineWidth = 1;
-          for (let i = 0; i <= size; i++) {
-            ctx.beginPath(); 
-            ctx.moveTo(i * cell + this.offsetX, this.offsetY); 
-            ctx.lineTo(i * cell + this.offsetX, size * cell + this.offsetY); 
-            ctx.stroke();
-            ctx.beginPath(); 
-            ctx.moveTo(this.offsetX, i * cell + this.offsetY); 
-            ctx.lineTo(size * cell + this.offsetX, i * cell + this.offsetY); 
-            ctx.stroke();
-          }
-        }
+        // Внешняя граница
+        ctx.strokeStyle = '#027dea';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(
+          this.offsetX, 
+          this.offsetY, 
+          size * cell, 
+          size * cell
+        );
         
-        // Рисуем выделение ошибок
+        // Выделение ошибок
         if (this.errorCells) {
           this.errorCells.forEach(([r,c]) => {
             const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
@@ -957,18 +1015,18 @@
           });
         }
         
-        // Рисуем подсказку
+        // Подсказка
         if (this.hintCell) {
           const [r,c] = this.hintCell;
           const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
-          ctx.fillStyle = 'rgba(255,235,59,0.6)'; 
+          ctx.fillStyle = 'rgba(102, 58, 243, 0.6)'; 
           ctx.fillRect(x, y, cell, cell);
         }
       }
       
       drawHints(ctx, cell, size) {
-        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#333';
-        ctx.font = `${Math.max(8, cell * 0.6)}px system-ui`;
+        ctx.fillStyle = '#d1e4fa';
+        ctx.font = `${Math.max(8, cell * 0.6)}px 'Inter', system-ui`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
@@ -1006,13 +1064,14 @@
         this.cb = callbacks;
         this.canvas = renderer.canvas;
         this.mode = 'paint';
+        this.protectionEnabled = false;
         this.pointerDown = false;
         this.startX = 0; 
         this.startY = 0;
-        this.lastCell = null; 
+        this.startTime = 0;
+        this.lastCell = null;
         this.isPan = false;
-        this.activePointers = new Map();
-        this.pinchDist = 0;
+        this.hasMoved = false;
         
         this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
@@ -1026,58 +1085,35 @@
         this.mode = mode; 
       }
       
+      setProtection(enabled) {
+        this.protectionEnabled = enabled;
+      }
+      
       onPointerDown(e) {
         e.preventDefault();
         this.pointerDown = true;
+        this.hasMoved = false;
         this.startX = e.clientX; 
         this.startY = e.clientY;
-        this.activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        this.startTime = Date.now();
         
-        if (this.activePointers.size === 2) {
-          this.isPan = true; 
-          this.pinchDist = this.getPinchDist();
-        } else {
-          this.isPan = (this.mode === 'hand') || (this.renderer.zoom > 1.5);
-          const rect = this.canvas.getBoundingClientRect();
-          const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-          const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-          this.lastCell = this.renderer.screenToCell(x, y);
-          
-          if (this.lastCell && this.lastCell.r >= 0 && this.lastCell.c >= 0 && 
-              this.lastCell.r < this.game.size && this.lastCell.c < this.game.size) {
-            this.applyAction(this.lastCell.r, this.lastCell.c);
-          }
-        }
+        const rect = this.canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+        this.lastCell = this.renderer.screenToCell(x, y);
       }
       
       onPointerMove(e) {
         if (!this.pointerDown) return;
         e.preventDefault();
         
-        if (this.activePointers.has(e.pointerId)) {
-          this.activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        const dx = e.clientX - this.startX;
+        const dy = e.clientY - this.startY;
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+          this.hasMoved = true;
         }
         
-        if (this.activePointers.size === 2) {
-          const newDist = this.getPinchDist();
-          if (this.pinchDist > 0) {
-            const scale = newDist / this.pinchDist;
-            this.pinchDist = newDist;
-            const rect = this.canvas.getBoundingClientRect();
-            const pointers = Array.from(this.activePointers.values());
-            const cx = ((pointers[0].x + pointers[1].x) / 2 - rect.left) * (this.canvas.width / rect.width);
-            const cy = ((pointers[0].y + pointers[1].y) / 2 - rect.top) * (this.canvas.height / rect.height);
-            this.renderer.applyZoom(this.renderer.zoom * scale, cx, cy);
-          }
-        } else if (this.isPan) {
-          const dx = (e.clientX - this.startX) * (this.canvas.width / this.canvas.getBoundingClientRect().width);
-          const dy = (e.clientY - this.startY) * (this.canvas.height / this.canvas.getBoundingClientRect().height);
-          this.renderer.offsetX += dx; 
-          this.renderer.offsetY += dy;
-          this.startX = e.clientX; 
-          this.startY = e.clientY;
-          this.renderer.draw();
-        } else {
+        if (this.hasMoved) {
           const rect = this.canvas.getBoundingClientRect();
           const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
           const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
@@ -1095,19 +1131,25 @@
       
       onPointerUp(e) {
         e.preventDefault();
-        this.activePointers.delete(e.pointerId);
-        if (this.activePointers.size < 2) this.pinchDist = 0;
-        if (this.activePointers.size === 0) {
-          this.pointerDown = false;
-          this.isPan = false;
-          this.lastCell = null;
+        
+        if (!this.hasMoved && this.pointerDown) {
+          const elapsed = Date.now() - this.startTime;
+          const rect = this.canvas.getBoundingClientRect();
+          const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+          const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+          const cell = this.renderer.screenToCell(x, y);
+          
+          if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
+            // Защита от случайных касаний - требуем удержание 150мс
+            if (!this.protectionEnabled || elapsed > 150) {
+              this.applyAction(cell.r, cell.c);
+            }
+          }
         }
-      }
-      
-      getPinchDist() {
-        const pts = Array.from(this.activePointers.values());
-        if (pts.length < 2) return 0;
-        return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        
+        this.pointerDown = false;
+        this.hasMoved = false;
+        this.lastCell = null;
       }
       
       interpolateCells(from, to) {
@@ -1147,6 +1189,13 @@
           Haptics.mode(); 
           SoundManager.mode();
           this.cb.onUpdate();
+        } else if (this.mode === 'memo') {
+          const cur = this.game.getMemo(r, c);
+          this.game.setMemo(r, c, !cur);
+          Haptics.mode(); 
+          SoundManager.mode();
+          this.cb.onUpdate();
+          this.cb.onMemoChange();
         }
         
         this.renderer.draw();
@@ -1223,7 +1272,6 @@
             }
           }
         }
-        // Удаляем изолированные клетки
         for (let i = 1; i < size-1; i++) {
           for (let j = 1; j < size-1; j++) {
             if (grid[i][j] && !grid[i-1][j] && !grid[i+1][j] && !grid[i][j-1] && !grid[i][j+1]) {
@@ -1328,19 +1376,18 @@
         
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
-            this.ctx.fillStyle = this.grid[r][c] ? '#3a3a3a' : '#fff';
+            this.ctx.fillStyle = this.grid[r][c] ? '#000000' : 'rgba(199, 211, 234, 0.06)';
             this.ctx.fillRect(c * cell, r * cell, cell, cell);
-            this.ctx.strokeStyle = '#ccc'; 
+            this.ctx.strokeStyle = 'rgba(182, 217, 252, 0.3)'; 
             this.ctx.strokeRect(c * cell, r * cell, cell, cell);
           }
         }
         
-        // Превью
         const pcell = this.preview.width / this.size;
         this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height);
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
-            this.previewCtx.fillStyle = this.grid[r][c] ? '#3a3a3a' : '#f0f0f0';
+            this.previewCtx.fillStyle = this.grid[r][c] ? '#000000' : 'rgba(199, 211, 234, 0.06)';
             this.previewCtx.fillRect(c * pcell, r * pcell, pcell, pcell);
           }
         }
@@ -1377,6 +1424,7 @@
       renderer: null, 
       inputHandler: null, 
       editor: null,
+      currentPreviewPuzzle: null,
       
       init() {
         SoundManager.init();
@@ -1392,46 +1440,45 @@
       },
       
       loadSettings() {
-        const s = Storage.get('settings', {sound: true, haptics: true, timer: true, theme: 'light'});
+        const s = Storage.get('settings', {
+          sound: true, 
+          haptics: true, 
+          timer: true,
+          protection: false
+        });
         SoundManager.enabled = s.sound; 
         Haptics.enabled = s.haptics;
         document.getElementById('setting-sound').checked = s.sound;
         document.getElementById('setting-haptics').checked = s.haptics;
         document.getElementById('setting-timer').checked = s.timer;
-        
-        // Устанавливаем тему
-        document.documentElement.setAttribute('data-theme', s.theme);
+        document.getElementById('setting-protection').checked = s.protection;
       },
       
       bindEvents() {
-        // Кнопки меню
+        // Меню
         document.getElementById('btn-menu').onclick = () => this.showModal('modal-menu');
-        document.getElementById('btn-sound').onclick = () => { 
-          SoundManager.toggle(); 
-          document.getElementById('btn-sound').textContent = SoundManager.enabled ? '🔊' : '🔇';
+        document.getElementById('btn-settings').onclick = () => {
+          this.showModal('modal-menu');
         };
         
-        // Кнопка темы
-        document.getElementById('btn-theme').onclick = () => {
-          const current = document.documentElement.getAttribute('data-theme');
-          const newTheme = current === 'dark' ? 'light' : 'dark';
-          document.documentElement.setAttribute('data-theme', newTheme);
-          this.saveSettings();
-          this.renderer.draw();
+        // Настройки
+        document.getElementById('setting-sound').onchange = e => { 
+          SoundManager.enabled = e.target.checked; 
+          this.saveSettings(); 
         };
-        
-        // Кнопки зума
-        document.getElementById('btn-zoom-in').onclick = () => this.renderer.applyZoom(this.renderer.zoom * 1.2);
-        document.getElementById('btn-zoom-out').onclick = () => this.renderer.applyZoom(this.renderer.zoom / 1.2);
-        document.getElementById('btn-zoom-reset').onclick = () => {
-          this.renderer.fitBoard();
-          this.renderer.draw();
+        document.getElementById('setting-haptics').onchange = e => { 
+          Haptics.enabled = e.target.checked; 
+          this.saveSettings(); 
         };
-        
-        // Закрытие модальных окон
-        document.querySelectorAll('[data-close]').forEach(btn => 
-          btn.onclick = () => this.hideModal(btn.dataset.close)
-        );
+        document.getElementById('setting-timer').onchange = e => { 
+          this.saveSettings(); 
+        };
+        document.getElementById('setting-protection').onchange = e => { 
+          if (this.inputHandler) {
+            this.inputHandler.setProtection(e.target.checked);
+          }
+          this.saveSettings(); 
+        };
         
         // Навигация
         document.getElementById('btn-levels').onclick = () => { 
@@ -1447,30 +1494,6 @@
           this.hideModal('modal-menu'); 
           this.generateLevel(); 
         };
-        document.getElementById('btn-settings').onclick = () => { 
-          this.hideModal('modal-menu'); 
-          this.showModal('modal-settings'); 
-        };
-        
-        // Настройки
-        document.getElementById('setting-sound').onchange = e => { 
-          SoundManager.enabled = e.target.checked; 
-          this.saveSettings(); 
-        };
-        document.getElementById('setting-haptics').onchange = e => { 
-          Haptics.enabled = e.target.checked; 
-          this.saveSettings(); 
-        };
-        document.getElementById('setting-timer').onchange = e => { 
-          this.saveSettings(); 
-        };
-        document.getElementById('btn-reset-stats').onclick = () => { 
-          Storage.remove('stats'); 
-          alert('Статистика сброшена'); 
-        };
-        
-        // Уровни
-        document.getElementById('btn-random-level').onclick = () => this.randomLevel();
         
         // Игровые кнопки
         document.getElementById('btn-undo').onclick = () => this.undo();
@@ -1478,13 +1501,21 @@
         document.getElementById('btn-clear').onclick = () => { 
           if (this.game) { 
             this.game.grid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0)); 
+            this.game.memoGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(false));
             this.renderer.draw(); 
+            this.updateMemoButton();
           } 
         };
-        document.getElementById('btn-check').onclick = () => this.checkErrors();
+        document.getElementById('btn-clear-memo').onclick = () => {
+          if (this.game) {
+            this.game.clearAllMemos();
+            this.renderer.draw();
+            this.updateMemoButton();
+          }
+        };
         document.getElementById('btn-hint').onclick = () => this.giveHint();
         
-        // Режимы ввода
+        // Режимы
         document.querySelectorAll('[data-mode]').forEach(btn => 
           btn.onclick = e => {
             const mode = e.target.dataset.mode;
@@ -1515,7 +1546,7 @@
           }
         );
         
-        // Кнопки победы
+        // Победа
         document.getElementById('btn-next').onclick = () => this.nextLevel();
         document.getElementById('btn-restart').onclick = () => this.restartLevel();
         document.getElementById('btn-menu-win').onclick = () => { 
@@ -1532,15 +1563,19 @@
         document.getElementById('gen-save').onclick = () => { 
           this.saveGenerated(); 
         };
+        
+        // Закрытие модальных окон
+        document.querySelectorAll('[data-close]').forEach(btn => 
+          btn.onclick = () => this.hideModal(btn.dataset.close)
+        );
       },
       
       saveSettings() {
-        const theme = document.documentElement.getAttribute('data-theme') || 'light';
         Storage.set('settings', {
           sound: SoundManager.enabled, 
           haptics: Haptics.enabled, 
-          timer: document.getElementById('setting-timer').checked, 
-          theme: theme
+          timer: document.getElementById('setting-timer').checked,
+          protection: document.getElementById('setting-protection').checked
         });
       },
       
@@ -1552,6 +1587,15 @@
         document.getElementById(id).classList.remove('show'); 
       },
       
+      updateMemoButton() {
+        const btn = document.getElementById('btn-clear-memo');
+        if (this.game && this.game.hasMemos()) {
+          btn.style.display = 'flex';
+        } else {
+          btn.style.display = 'none';
+        }
+      },
+      
       loadPuzzle(puzzle) {
         if (!puzzle) return;
         this.game = new GameState(puzzle.rows);
@@ -1559,7 +1603,10 @@
         this.renderer.setState(this.game);
         
         this.inputHandler = new InputHandler(this.renderer, this.game, {
-          onUpdate: () => this.renderer.draw(),
+          onUpdate: () => {
+            this.renderer.draw();
+            this.updateMemoButton();
+          },
           onError: (r, c) => { 
             this.renderer.errorCells = [[r, c]]; 
             setTimeout(() => {
@@ -1569,13 +1616,19 @@
             Haptics.error(); 
             SoundManager.error(); 
           },
-          onWin: () => this.winGame()
+          onWin: () => this.winGame(),
+          onMemoChange: () => this.updateMemoButton()
         });
+        
+        // Применяем настройку защиты
+        const protectionEnabled = Storage.get('settings', {}).protection || false;
+        this.inputHandler.setProtection(protectionEnabled);
         
         this.renderer.draw();
         this.updateTitle();
         this.startTimer();
         this.updateStats();
+        this.updateMemoButton();
       },
       
       winGame() {
@@ -1588,7 +1641,6 @@
           `Ошибки: ${this.game.errors}<br>` +
           `Размер: ${this.game.size}x${this.game.size}`;
         
-        // Сохраняем статистику
         const stats = Storage.get('stats', {});
         const key = this.game.puzzleName;
         if (!stats[key] || stats[key].bestTime > (Date.now() - this.game.startTime)) {
@@ -1599,41 +1651,6 @@
           };
           Storage.set('stats', stats);
         }
-        
-        this.spawnConfetti();
-      },
-      
-      spawnConfetti() {
-        const canvas = this.renderer.canvas; 
-        const ctx = canvas.getContext('2d');
-        const particles = []; 
-        for (let i = 0; i < 80; i++) {
-          particles.push({
-            x: Math.random() * canvas.width, 
-            y: -20, 
-            vy: Math.random() * 3 + 2, 
-            vx: Math.random() * 2 - 1, 
-            color: `hsl(${Math.random() * 360}, 80%, 60%)`
-          });
-        }
-        
-        let start = performance.now();
-        const animate = (now) => {
-          const elapsed = now - start;
-          if (elapsed > 3000) {
-            this.renderer.draw();
-            return;
-          }
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          particles.forEach(p => { 
-            p.x += p.vx; 
-            p.y += p.vy; 
-            ctx.fillStyle = p.color; 
-            ctx.fillRect(p.x, p.y, 4, 4); 
-          });
-          requestAnimationFrame(animate);
-        };
-        requestAnimationFrame(animate);
       },
       
       updateTitle() { 
@@ -1663,6 +1680,7 @@
       undo() { 
         if (this.game.undo()) { 
           this.renderer.draw(); 
+          this.updateMemoButton();
           SoundManager.mode(); 
         } 
       },
@@ -1670,24 +1688,9 @@
       redo() { 
         if (this.game.redo()) { 
           this.renderer.draw(); 
+          this.updateMemoButton();
           SoundManager.mode(); 
         } 
-      },
-      
-      checkErrors() {
-        if (!this.game) return;
-        const wrong = [];
-        for (let r = 0; r < this.game.size; r++) 
-          for (let c = 0; c < this.game.size; c++) 
-            if (this.game.grid[r][c] === 1 && this.game.rows[r][c] !== 1) 
-              wrong.push([r, c]);
-        
-        this.renderer.errorCells = wrong;
-        this.renderer.draw();
-        setTimeout(() => { 
-          this.renderer.errorCells = null; 
-          this.renderer.draw(); 
-        }, 2000);
       },
       
       giveHint() {
@@ -1739,7 +1742,7 @@
             const cell = 100 / p.size;
             p.rows.forEach((row, r) => 
               row.split('').forEach((v, c) => { 
-                ctx.fillStyle = v === '1' ? '#3a3a3a' : '#fff'; 
+                ctx.fillStyle = v === '1' ? '#000000' : 'rgba(199, 211, 234, 0.06)'; 
                 ctx.fillRect(c * cell, r * cell, cell, cell); 
               })
             );
@@ -1748,10 +1751,20 @@
             card.innerHTML += 
               `<div class="name">${p.name}</div>` +
               `<div class="meta">${'★'.repeat(p.difficulty)} ${stats?.solved ? '✅' : ''}</div>`;
+            
+            // Показ превью при наведении/касании
             card.onclick = () => { 
               this.hideModal('modal-levels'); 
               this.loadPuzzle(p); 
             };
+            card.onmouseenter = () => this.showPreview(p);
+            card.onmouseleave = () => this.hidePreview();
+            card.ontouchstart = (e) => {
+              e.preventDefault();
+              this.showPreview(p);
+            };
+            card.ontouchend = () => this.hidePreview();
+            
             cards.appendChild(card);
           });
           
@@ -1759,7 +1772,6 @@
           container.appendChild(div);
         });
         
-        // Пользовательские пазлы
         const custom = Storage.get('customPuzzles', []);
         if (custom.length) {
           const div = document.createElement('div'); 
@@ -1778,7 +1790,7 @@
             const cell = 100 / p.size;
             p.rows.forEach((row, r) => 
               row.split('').forEach((v, c) => { 
-                ctx.fillStyle = v === '1' ? '#3a3a3a' : '#fff'; 
+                ctx.fillStyle = v === '1' ? '#000000' : 'rgba(199, 211, 234, 0.06)'; 
                 ctx.fillRect(c * cell, r * cell, cell, cell); 
               })
             );
@@ -1790,12 +1802,42 @@
               this.hideModal('modal-levels'); 
               this.loadPuzzle(p); 
             };
+            card.onmouseenter = () => this.showPreview(p);
+            card.onmouseleave = () => this.hidePreview();
             cards.appendChild(card);
           });
           
           div.appendChild(cards); 
           container.appendChild(div);
         }
+      },
+      
+      showPreview(puzzle) {
+        const container = document.getElementById('preview-container');
+        const canvas = document.getElementById('preview-canvas');
+        container.style.display = 'block';
+        
+        const size = puzzle.size;
+        const maxPreviewSize = 300;
+        const cellSize = Math.floor(maxPreviewSize / size);
+        canvas.width = size * cellSize;
+        canvas.height = size * cellSize;
+        
+        const ctx = canvas.getContext('2d');
+        puzzle.rows.forEach((row, r) => {
+          row.split('').forEach((v, c) => {
+            ctx.fillStyle = v === '1' ? '#000000' : 'rgba(199, 211, 234, 0.06)';
+            ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+          });
+        });
+        
+        // Перемещаем превью вниз списка
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      },
+      
+      hidePreview() {
+        const container = document.getElementById('preview-container');
+        container.style.display = 'none';
       },
       
       randomLevel() {
@@ -1851,7 +1893,7 @@
         const cell = 300 / size;
         for (let r = 0; r < size; r++) 
           for (let c = 0; c < size; c++) { 
-            ctx.fillStyle = grid[r][c] ? '#3a3a3a' : '#fff'; 
+            ctx.fillStyle = grid[r][c] ? '#000000' : 'rgba(199, 211, 234, 0.06)'; 
             ctx.fillRect(c * cell, r * cell, cell, cell); 
           }
         
