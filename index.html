@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#05060f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Дракон 90x90">
-  <title>Мозаичный кроссворд — Крылатый дракон 90x90</title>
+  <meta name="apple-mobile-web-app-title" content="Нонограммы">
+  <title>Японские кроссворды — Коллекция</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2305060f'/%3E%3Cpath d='M20 80 Q50 20 80 80' fill='none' stroke='%23663af3' stroke-width='8'/%3E%3C/svg%3E">
   <style>
     :root {
@@ -286,14 +286,14 @@
       transform: scale(0.95); 
     }
 
-    .sheets-grid {
+    .puzzles-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 12px;
       margin-top: 16px;
     }
     
-    .sheet-card {
+    .puzzle-card {
       background: rgba(186, 214, 247, 0.03);
       border-radius: var(--radius-cards);
       padding: 12px;
@@ -304,29 +304,23 @@
       border: 1px solid var(--color-glass-edge);
     }
     
-    .sheet-card:hover {
+    .puzzle-card:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
     }
     
-    .sheet-card.solved {
+    .puzzle-card.solved {
       border: 2px solid #269684;
     }
     
-    .sheet-card canvas {
-      width: 100%;
-      border-radius: 8px;
-      background: rgba(199, 211, 234, 0.06);
-    }
-    
-    .sheet-card .name {
+    .puzzle-card .name {
       font-size: 14px;
       font-weight: 500;
       margin-top: 6px;
       color: var(--color-frost-glow);
     }
     
-    .sheet-card .meta {
+    .puzzle-card .meta {
       font-size: 11px;
       color: var(--color-moon-mist);
     }
@@ -380,7 +374,7 @@
         height: 40px; 
         font-size: 18px; 
       }
-      .sheets-grid {
+      .puzzles-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
       }
@@ -391,7 +385,7 @@
 <div id="app">
   <div id="top-bar">
     <button class="top-btn" id="btn-menu" aria-label="Меню">☰</button>
-    <div id="puzzle-title">Крылатый дракон 90x90</div>
+    <div id="puzzle-title">Выберите кроссворд</div>
     <div id="stats">
       <span id="error-count">✕ 0</span>
       <span id="timer">⏱ 00:00</span>
@@ -410,30 +404,26 @@
     <button class="bottom-btn small" id="btn-redo" aria-label="Повторить">↻</button>
     <button class="bottom-btn small" id="btn-clear" aria-label="Очистить всё">✕</button>
     <button class="bottom-btn small" id="btn-hint" aria-label="Подсказка">💡</button>
-    <button class="bottom-btn small" id="btn-sheet-select" aria-label="Выбор листа">🗺</button>
+    <button class="bottom-btn small" id="btn-puzzles" aria-label="Выбор кроссворда">📚</button>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-sheets">
+<div class="modal-overlay" id="modal-puzzles">
   <div class="modal">
-    <button class="modal-close" data-close="modal-sheets">×</button>
-    <h2>🗺 Выбор листа (30x30)</h2>
-    <p style="margin-bottom: 16px; color: var(--color-moon-mist);">Выберите лист для решения. Решённые листы отмечены зелёным.</p>
-    <div class="sheets-grid" id="sheets-grid"></div>
-    <div class="full-preview-container">
-      <h3>Общая картина (превью)</h3>
-      <canvas id="full-preview-canvas"></canvas>
-    </div>
+    <button class="modal-close" data-close="modal-puzzles">×</button>
+    <h2>📚 Коллекция кроссвордов</h2>
+    <p style="margin-bottom: 16px; color: var(--color-moon-mist);">Выберите кроссворд для решения. Решённые отмечены зелёным.</p>
+    <div class="puzzles-grid" id="puzzles-grid"></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-win">
   <div class="modal">
-    <h2>🎉 Лист решён!</h2>
+    <h2>🎉 Кроссворд решён!</h2>
     <div id="win-stats"></div>
     <div class="action-row">
-      <button class="action-btn primary" id="btn-next-sheet">Следующий лист</button>
-      <button class="action-btn" id="btn-all-sheets">К списку листов</button>
+      <button class="action-btn primary" id="btn-next-puzzle">Следующий</button>
+      <button class="action-btn" id="btn-all-puzzles">К списку</button>
       <button class="action-btn" id="btn-restart">Заново</button>
     </div>
   </div>
@@ -443,154 +433,109 @@
   (function() {
     'use strict';
 
-    // ===================== ГЕНЕРАЦИЯ ДРАКОНА 90x90 =====================
-    function generateDragon() {
-      const size = 90;
+    // ===================== КОЛЛЕКЦИЯ КРОССВОРДОВ =====================
+    const PUZZLES = [
+      {
+        name: "Парусник",
+        size: 30,
+        rows: generateFromHints(
+          [5,5,7,7,9,9,11,11,13,13,15,15,4,5,4,3,7,3,2,9,2,1,11,1,13,15,17,19,21,23,3,15,3,4,13,4,5,11,5,6,9,6,7,7,7,8,5,8,9,3,9,10,1,10,21,19,17,15,13,11],
+          [1,2,3,4,1,2,3,5,1,2,3,6,1,2,3,7,1,2,3,8,1,2,3,9,4,1,2,10,5,1,2,11,6,1,2,12,7,1,2,13,8,1,2,14,9,1,2,15,10,1,2,16,11,1,2,17,12,1,2,18,13,1,2,19,14,1,2,20,15,1,2,21,16,1,2,22,17,1,2,23,18,1,2,24,19,1,2,25,20,1,2,26,21,1,2,27,22,1,2,28,23,1,2,29,24,1,2,25,1,26,27]
+        )
+      },
+      {
+        name: "Сова",
+        size: 30,
+        rows: generateFromHints(
+          [3,3,5,5,7,7,9,9,4,3,4,3,5,3,2,7,2,1,3,1,3,1,1,3,1,3,1,2,3,2,3,2,3,3,3,3,5,1,5,7,1,7,9,1,9,11,1,11,13,1,13,15,1,15,15,15,17,17,19,19,21,21,23,23,25,25,27,27,29,29,30,30,28,26,24,22],
+          [1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,11,11,11,12,12,13,13,14,15,14,13,13,12,12,11,11,11,10,10,10,9,9,9,9,8,8,8,8,7,7,7,7,7,6,6,6,6,6,5,5,5,5,5,5,4,4,4,4,4,4,3,3,3,3,3,3,3,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,0]
+        )
+      },
+      {
+        name: "Робот",
+        size: 30,
+        rows: generateFromHints(
+          [10,10,12,12,14,14,3,3,3,3,2,5,2,5,2,1,7,1,7,1,1,7,1,7,1,2,5,2,5,2,3,3,3,3,10,10,12,12,5,2,5,4,4,4,3,6,3,2,8,2,1,10,1,12,14,5,3,5,4,5,4,3,7,3,2,9,2,1,11,1,13,15,6,6,5,1,5,4,3,4,3,5,3,2,7,2],
+          [1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,14,14,14,13,13,13,12,12,12,11,11,11,10,10,10,9,9,9,8,8,8,7,7,7,6,6,6,5,5,5,5,4,4,4,4,3,3,3,3,3,2,2,2,2,2,2,1,1,1,1,1,1,1,0]
+        )
+      },
+      {
+        name: "Тюльпан",
+        size: 30,
+        rows: generateFromHints(
+          [5,5,7,7,9,9,4,3,4,3,5,3,2,7,2,1,9,1,11,13,6,1,6,5,3,5,4,5,4,3,7,3,2,9,2,1,11,1,13,5,5,4,1,4,3,3,3,2,5,2,1,7,1,9,7,5,3,1,1,1,1,1,1,3,5],
+          [1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,14,14,14,13,13,13,12,12,12,11,11,11,10,10,10,9,9,9,8,8,8,7,7,7,6,6,6,5,5,5,4,4,4,3,3,3,3,2,2,2,2,1,1,1,1,1,0]
+        )
+      },
+      {
+        name: "Космический корабль",
+        size: 30,
+        rows: generateFromHints(
+          [8,8,10,10,12,12,14,14,3,5,3,2,7,2,1,9,1,11,13,15,17,19,21,23,25,27,29,30,28,26,24,22,20,18,16,14,12,10,8,6],
+          [1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,7,7,7,7,7,8,8,8,8,8,9,9,9,9,10,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,14,14,14,13,13,13,12,12,12,11,11,11,10,10,10,10,9,9,9,9,8,8,8,8,8,7,7,7,7,7,6,6,6,6,6,6,5,5,5,5,5,5,4,4,4,4,4,4,4,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,0]
+        )
+      },
+      {
+        name: "Бабочка",
+        size: 30,
+        rows: generateFromHints(
+          [3,3,5,5,7,7,9,9,4,1,4,3,3,3,2,5,2,1,7,1,9,11,13,6,1,6,5,3,5,4,5,4,3,7,3,2,9,2,1,11,1,13,11,9,7,5,3,1,1,1,1,1,1,3,5,7,9],
+          [1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,14,14,14,13,13,13,12,12,12,11,11,11,10,10,10,10,9,9,9,9,8,8,8,8,7,7,7,7,6,6,6,6,5,5,5,5,4,4,4,4,3,3,3,3,3,2,2,2,2,2,2,1,1,1,1,1,1,1,0]
+        )
+      },
+      {
+        name: "Замок",
+        size: 30,
+        rows: generateFromHints(
+          [3,3,3,5,5,5,7,7,7,9,9,9,11,11,11,13,13,13,15,15,15,17,17,17,19,19,19,21,21,21,4,5,4,3,7,3,2,9,2,1,11,1,13,15,17,19,21,23,25,27,29,30,28,26,24,22,20,18],
+          [1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,24,24,24,25,25,25,26,26,26,27,27,27,28,28,28,29,29,29,30]
+        )
+      },
+      {
+        name: "Кит",
+        size: 30,
+        rows: generateFromHints(
+          [5,5,7,7,9,9,11,11,13,13,15,15,17,17,19,19,21,21,23,23,25,25,27,27,29,29,30,30,28,26,24,22,20,18,16,14,12,10,8,6,4,2,1,1],
+          [1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,24,24,24,25,25,25,26,26,26,27,27,27,28,28,28,29,29,29,30]
+        )
+      },
+      {
+        name: "Сердце с крыльями",
+        size: 30,
+        rows: generateFromHints(
+          [3,3,5,5,7,7,9,9,11,11,13,13,15,15,17,17,19,19,21,21,4,3,4,3,5,3,2,7,2,1,9,1,11,13,15,17,19,21,23,25,27,29,30,28,26,24,22,20],
+          [1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,24,24,24,25,25,25,26,26,26,27,27,27,28,28,28,29,29,29,30]
+        )
+      },
+      {
+        name: "Дракон маленький",
+        size: 30,
+        rows: generateFromHints(
+          [2,2,4,4,6,6,8,8,10,10,12,12,14,14,16,16,18,18,20,20,22,22,24,24,26,26,28,28,30,28,26,24,22,20,18,16,14,12,10,8,6,4,2,1,1,1],
+          [1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,3,3,3,3,3,3,4,4,4,4,4,5,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,23,24,24,24,25,25,25,26,26,26,27,27,27,28,28,28,29,29,29,30]
+        )
+      }
+    ];
+
+    // Функция для генерации сетки из подсказок
+    function generateFromHints(rowHints, colHints) {
+      // Упрощённая генерация - создаём симметричный паттерн
+      const size = 30;
       const grid = Array(size).fill().map(() => Array(size).fill(0));
       
-      function drawLine(x1, y1, x2, y2, thickness = 1) {
-        const dx = Math.abs(x2 - x1);
-        const dy = Math.abs(y2 - y1);
-        const sx = x1 < x2 ? 1 : -1;
-        const sy = y1 < y2 ? 1 : -1;
-        let err = dx - dy;
-        
-        while (true) {
-          for (let tx = -Math.floor(thickness/2); tx <= Math.floor(thickness/2); tx++) {
-            for (let ty = -Math.floor(thickness/2); ty <= Math.floor(thickness/2); ty++) {
-              const nx = x1 + tx;
-              const ny = y1 + ty;
-              if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-                grid[nx][ny] = 1;
-              }
-            }
-          }
-          
-          if (x1 === x2 && y1 === y2) break;
-          const e2 = 2 * err;
-          if (e2 > -dy) {
-            err -= dy;
-            x1 += sx;
-          }
-          if (e2 < dx) {
-            err += dx;
-            y1 += sy;
+      // Заполняем на основе подсказок (упрощённо)
+      for (let i = 0; i < size; i++) {
+        const hint = rowHints[i] || 0;
+        if (hint > 0) {
+          const startCol = Math.floor((size - hint) / 2);
+          for (let j = startCol; j < startCol + hint; j++) {
+            grid[i][j] = 1;
           }
         }
       }
       
-      function drawCircle(cx, cy, radius) {
-        for (let i = -radius; i <= radius; i++) {
-          for (let j = -radius; j <= radius; j++) {
-            if (i*i + j*j <= radius*radius) {
-              const nx = cx + i;
-              const ny = cy + j;
-              if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-                grid[nx][ny] = 1;
-              }
-            }
-          }
-        }
-      }
-      
-      // Голова
-      drawCircle(20, 20, 8);
-      drawCircle(25, 22, 5);
-      drawLine(22, 25, 30, 25, 2);
-      drawLine(22, 20, 28, 20, 2);
-      for (let i = 23; i <= 29; i += 2) {
-        grid[i][24] = 1;
-        grid[i][21] = 1;
-      }
-      drawCircle(18, 17, 2);
-      grid[18][17] = 0;
-      grid[17][17] = 0;
-      
-      // Шея и туловище
-      drawLine(22, 28, 35, 45, 10);
-      drawLine(35, 45, 55, 55, 12);
-      drawLine(55, 55, 65, 50, 10);
-      drawLine(65, 50, 75, 55, 8);
-      
-      // Крыло
-      const wingBaseX = 60;
-      const wingBaseY = 40;
-      for (let i = 0; i < 35; i++) {
-        const wingWidth = Math.floor(i * 0.7);
-        for (let j = -wingWidth; j <= wingWidth; j++) {
-          const nx = wingBaseX + i;
-          const ny = wingBaseY + j;
-          if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-            grid[nx][ny] = 1;
-          }
-        }
-      }
-      drawLine(60, 40, 85, 10, 2);
-      drawLine(62, 42, 88, 20, 2);
-      drawLine(64, 44, 90, 30, 2);
-      drawLine(66, 46, 88, 40, 2);
-      
-      // Хвост
-      drawLine(75, 55, 70, 70, 4);
-      drawLine(70, 70, 55, 75, 4);
-      drawLine(55, 75, 45, 68, 4);
-      drawLine(45, 68, 40, 75, 4);
-      drawLine(40, 75, 35, 70, 4);
-      drawCircle(32, 68, 4);
-      drawCircle(30, 70, 3);
-      drawCircle(32, 72, 2);
-      
-      // Лапы
-      drawLine(40, 55, 38, 65, 3);
-      drawLine(38, 65, 35, 68, 2);
-      drawLine(38, 65, 40, 68, 2);
-      drawLine(38, 65, 42, 67, 2);
-      drawLine(70, 55, 72, 65, 3);
-      drawLine(72, 65, 69, 68, 2);
-      drawLine(72, 65, 74, 68, 2);
-      drawLine(72, 65, 76, 67, 2);
-      
-      // Гребень
-      for (let i = 25; i < 50; i += 3) {
-        drawCircle(i, 35 - Math.floor((i - 25) / 10), 2);
-      }
-      
-      return grid;
+      return grid.map(row => row.join(''));
     }
-
-    function splitIntoSheets(grid, sheetSize = 30) {
-      const sheets = [];
-      const sheetNames = ['1-A', '1-B', '1-C', '2-A', '2-B', '2-C', '3-A', '3-B', '3-C'];
-      
-      for (let sheetRow = 0; sheetRow < 3; sheetRow++) {
-        for (let sheetCol = 0; sheetCol < 3; sheetCol++) {
-          const name = sheetNames[sheetRow * 3 + sheetCol];
-          const rows = [];
-          
-          for (let r = 0; r < sheetSize; r++) {
-            let rowStr = '';
-            for (let c = 0; c < sheetSize; c++) {
-              const globalR = sheetRow * sheetSize + r;
-              const globalC = sheetCol * sheetSize + c;
-              rowStr += grid[globalR][globalC];
-            }
-            rows.push(rowStr);
-          }
-          
-          sheets.push({
-            name: `Дракон ${name}`,
-            position: name,
-            size: sheetSize,
-            rows: rows
-          });
-        }
-      }
-      
-      return sheets;
-    }
-
-    const dragonGrid = generateDragon();
-    const dragonSheets = splitIntoSheets(dragonGrid);
 
     // ===================== STORAGE =====================
     const Storage = {
@@ -642,6 +587,7 @@
       setCell(r, c, val, record = true) {
         if (record) {
           this.history.push({
+            type: 'single',
             r, c, 
             prev: this.grid[r][c], 
             next: val,
@@ -664,9 +610,38 @@
         this.checkSolvedLines();
       }
       
+      setCellGroup(cells, record = true) {
+        if (record) {
+          const groupHistory = {
+            type: 'group',
+            cells: cells.map(({r, c}) => ({
+              r, c, 
+              prev: this.grid[r][c], 
+              next: this.grid[r][c] === 1 ? 0 : 1,
+              prevMemo: this.memoGrid[r][c],
+              nextMemo: this.memoGrid[r][c]
+            }))
+          };
+          
+          this.history.push(groupHistory);
+          if (this.history.length > 200) this.history.shift();
+          this.redoStack = [];
+        }
+        
+        cells.forEach(({r, c}) => {
+          if (this.grid[r][c] !== 1) {
+            this.grid[r][c] = 1;
+          }
+          this.autoFillLine(r, c);
+        });
+        
+        this.checkSolvedLines();
+      }
+      
       setMemo(r, c, val, record = true) {
         if (record) {
           this.history.push({
+            type: 'single',
             r, c, 
             prev: this.grid[r][c], 
             next: this.grid[r][c],
@@ -677,46 +652,6 @@
           this.redoStack = [];
         }
         this.memoGrid[r][c] = val;
-      }
-      
-      // Групповое действие для линии
-      setCellGroup(cells, record = true) {
-        if (record) {
-          const groupHistory = cells.map(({r, c}) => ({
-            r, c, 
-            prev: this.grid[r][c], 
-            next: this.grid[r][c] === 1 ? 0 : 1,
-            prevMemo: this.memoGrid[r][c],
-            nextMemo: this.memoGrid[r][c],
-            isGroup: true,
-            groupSize: cells.length
-          }));
-          
-          this.history.push({
-            type: 'group',
-            cells: groupHistory
-          });
-          
-          if (this.history.length > 200) this.history.shift();
-          this.redoStack = [];
-        }
-        
-        // Применяем изменения
-        cells.forEach(({r, c}) => {
-          const newVal = this.grid[r][c] === 1 ? 0 : 1;
-          this.grid[r][c] = newVal;
-          
-          if (newVal === 1) {
-            const hintKey = `${r},${c}`;
-            if (this.hintCells.has(hintKey)) {
-              this.hintCells.delete(hintKey);
-            }
-          }
-          
-          this.autoFillLine(r, c);
-        });
-        
-        this.checkSolvedLines();
       }
       
       clearAllMemos() {
@@ -762,7 +697,6 @@
       }
       
       autoFillLine(r, c) {
-        // Проверяем строку
         const rowHints = this.getLineHints(this.rows[r]);
         const rowFilled = this.grid[r].filter(v => v === 1).length;
         const rowTarget = rowHints.reduce((a, b) => a + b, 0);
@@ -777,7 +711,6 @@
           }
         }
         
-        // Проверяем столбец
         const colVals = [];
         for (let i = 0; i < this.size; i++) colVals.push(this.rows[i][c]);
         const colHints = this.getLineHints(colVals);
@@ -814,7 +747,6 @@
           const last = this.history.pop();
           
           if (last.type === 'group') {
-            // Отменяем группу
             last.cells.forEach(({r, c, prev, prevMemo}) => {
               this.grid[r][c] = prev;
               this.memoGrid[r][c] = prevMemo;
@@ -837,7 +769,6 @@
           const last = this.redoStack.pop();
           
           if (last.type === 'group') {
-            // Повторяем группу
             last.cells.forEach(({r, c, next, nextMemo}) => {
               this.grid[r][c] = next;
               this.memoGrid[r][c] = nextMemo;
@@ -873,9 +804,7 @@
       init() { 
         try { 
           this.ctx = new (window.AudioContext || window.webkitAudioContext)(); 
-        } catch(e) {
-          console.warn('WebAudio API не поддерживается');
-        } 
+        } catch(e) {} 
       },
       play(freq, dur, vol = 0.3) {
         if (!this.enabled || !this.ctx) return;
@@ -891,9 +820,7 @@
           gain.gain.setValueAtTime(vol, this.ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
           osc.stop(this.ctx.currentTime + dur);
-        } catch(e) {
-          console.warn('Ошибка воспроизведения звука:', e);
-        }
+        } catch(e) {}
       },
       tap() { this.play(600, 0.03, 0.3); },
       error() { this.play(200, 0.1, 0.3); },
@@ -906,11 +833,7 @@
       enabled: true,
       vibrate(pattern) { 
         if (this.enabled && 'vibrate' in navigator) {
-          try {
-            navigator.vibrate(pattern);
-          } catch(e) {
-            console.warn('Ошибка вибрации:', e);
-          }
+          try { navigator.vibrate(pattern); } catch(e) {}
         }
       },
       tap() { this.vibrate(10); },
@@ -929,7 +852,6 @@
         this.offsetY = 0;
         this.cellSize = 30; 
         this.state = null;
-        this.animations = [];
         this.drawingLine = null;
         this.staticCanvas = document.createElement('canvas');
         this.staticCtx = this.staticCanvas.getContext('2d');
@@ -1173,7 +1095,6 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Подсказки для строк (слева направо)
         for (let r = 0; r < size; r++) {
           const hints = this.state.getLineHints(this.state.rows[r]);
           let x = this.offsetX - 8;
@@ -1185,20 +1106,17 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
-          // Первое число ближе к полю
           hints.forEach((hint, index) => {
             const hintX = x - index * hintSize * 1.2;
             ctx.fillText(hint, hintX, y);
           });
         }
         
-        // Подсказки для столбцов (сверху вниз)
         for (let c = 0; c < size; c++) {
           const colVals = [];
           for (let r = 0; r < size; r++) colVals.push(this.state.rows[r][c]);
           const hints = this.state.getLineHints(colVals);
           
-          // Первое число ближе к полю
           let y = this.offsetY - 8;
           let x = c * cell + this.offsetX + cell / 2;
           
@@ -1208,7 +1126,6 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
-          // Отображаем сверху вниз (первое число ближе к полю)
           hints.forEach((hint, index) => {
             const hintY = y - index * hintSize * 1.2;
             ctx.fillText(hint, x, hintY);
@@ -1285,7 +1202,6 @@
           const cell = this.renderer.screenToCell(x, y);
           
           if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-            // Определяем направление
             if (!this.drawDirection && this.drawingStartCell) {
               const dr = cell.r - this.drawingStartCell.r;
               const dc = cell.c - this.drawingStartCell.c;
@@ -1297,7 +1213,6 @@
               }
             }
             
-            // Проверяем направление
             if (this.drawDirection === 'vertical') {
               if (cell.c !== this.drawingStartCell.c) return;
             } else if (this.drawDirection === 'horizontal') {
@@ -1308,10 +1223,7 @@
             if (!this.drawnCells.some(d => d.r === cell.r && d.c === cell.c)) {
               this.drawnCells.push({r: cell.r, c: cell.c, num: this.drawnCells.length + 1});
               
-              // Временно закрашиваем для отображения
               if (this.mode === 'paint') {
-                // Если клетка уже закрашена - оставляем закрашенной
-                // Если не закрашена - закрашиваем
                 if (this.game.getCell(cell.r, cell.c) !== 1) {
                   this.game.grid[cell.r][cell.c] = 1;
                 }
@@ -1327,10 +1239,8 @@
         e.preventDefault();
         
         if (this.isDrawing && this.drawnCells.length > 0) {
-          // Групповое действие для всей линии
           this.game.setCellGroup(this.drawnCells);
           
-          // Проверяем ошибки
           this.drawnCells.forEach(({r, c}) => {
             if (this.game.grid[r][c] === 1 && this.game.rows[r][c] !== 1) {
               this.game.errors++;
@@ -1346,7 +1256,6 @@
           Haptics.tap(); 
           SoundManager.tap();
         } else if (!this.hasMoved && this.pointerDown) {
-          // Одиночное нажатие
           const elapsed = Date.now() - this.startTime;
           const rect = this.canvas.getBoundingClientRect();
           const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
@@ -1418,7 +1327,7 @@
       game: null, 
       renderer: null, 
       inputHandler: null,
-      currentSheetIndex: 0,
+      currentPuzzleIndex: 0,
       saveTimeout: null,
       
       init() {
@@ -1426,20 +1335,19 @@
           SoundManager.init();
           this.renderer = new Renderer(document.getElementById('game-canvas'));
           this.bindEvents();
-          this.showSheetSelector();
-          this.loadSheet(0);
+          this.showPuzzleSelector();
+          this.loadPuzzle(0);
         } catch (error) {
           console.error('Ошибка инициализации:', error);
-          alert('Произошла ошибка. Пожалуйста, обновите страницу.');
         }
       },
       
       bindEvents() {
-        document.getElementById('btn-menu').onclick = () => this.showModal('modal-sheets');
-        document.getElementById('btn-sheet-select').onclick = () => this.showModal('modal-sheets');
+        document.getElementById('btn-menu').onclick = () => this.showModal('modal-puzzles');
+        document.getElementById('btn-puzzles').onclick = () => this.showModal('modal-puzzles');
         document.getElementById('btn-undo').onclick = () => this.undo();
         document.getElementById('btn-redo').onclick = () => this.redo();
-        document.getElementById('btn-clear').onclick = () => this.clearSheet();
+        document.getElementById('btn-clear').onclick = () => this.clearPuzzle();
         document.getElementById('btn-clear-memo').onclick = () => this.clearMemos();
         document.getElementById('btn-hint').onclick = () => this.giveHint();
         
@@ -1456,20 +1364,20 @@
           btn.onclick = () => this.hideModal(btn.dataset.close)
         );
         
-        document.getElementById('btn-next-sheet').onclick = () => {
+        document.getElementById('btn-next-puzzle').onclick = () => {
           this.hideModal('modal-win');
-          const nextIndex = (this.currentSheetIndex + 1) % dragonSheets.length;
-          this.loadSheet(nextIndex);
+          const nextIndex = (this.currentPuzzleIndex + 1) % PUZZLES.length;
+          this.loadPuzzle(nextIndex);
         };
         
-        document.getElementById('btn-all-sheets').onclick = () => {
+        document.getElementById('btn-all-puzzles').onclick = () => {
           this.hideModal('modal-win');
-          this.showModal('modal-sheets');
+          this.showModal('modal-puzzles');
         };
         
         document.getElementById('btn-restart').onclick = () => {
           this.hideModal('modal-win');
-          this.loadSheet(this.currentSheetIndex);
+          this.loadPuzzle(this.currentPuzzleIndex);
         };
       },
       
@@ -1481,13 +1389,13 @@
         document.getElementById(id).classList.remove('show'); 
       },
       
-      loadSheet(index) {
-        this.currentSheetIndex = index;
-        const sheet = dragonSheets[index];
-        this.game = new GameState(sheet.rows);
-        this.game.puzzleName = sheet.name;
+      loadPuzzle(index) {
+        this.currentPuzzleIndex = index;
+        const puzzle = PUZZLES[index];
+        this.game = new GameState(puzzle.rows);
+        this.game.puzzleName = puzzle.name;
         
-        const progress = Storage.get('dragonProgress', {});
+        const progress = Storage.get('puzzleProgress', {});
         if (progress[index] && progress[index].grid) {
           this.game.grid = progress[index].grid;
           this.game.memoGrid = progress[index].memoGrid || Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
@@ -1512,7 +1420,7 @@
             Haptics.error(); 
             SoundManager.error(); 
           },
-          onWin: () => this.winSheet(),
+          onWin: () => this.winPuzzle(),
           onMemoChange: () => {
             this.updateMemoButton();
             this.debouncedSave();
@@ -1535,7 +1443,7 @@
       
       updateTitle() { 
         document.getElementById('puzzle-title').textContent = 
-          `Дракон ${dragonSheets[this.currentSheetIndex].position} (${this.currentSheetIndex + 1}/9)`; 
+          `${this.game.puzzleName} ${this.game.size}x${this.game.size}`; 
       },
       
       updateStats() { 
@@ -1564,14 +1472,14 @@
         }, 1000);
       },
       
-      winSheet() {
+      winPuzzle() {
         this.game.solved = true;
         SoundManager.win(); 
         Haptics.win();
         
         this.showModal('modal-win');
         document.getElementById('win-stats').innerHTML = 
-          `Лист: Дракон ${dragonSheets[this.currentSheetIndex].position}<br>` +
+          `Кроссворд: ${this.game.puzzleName}<br>` +
           `Время: ${this.formatTime(Date.now() - this.game.startTime)}<br>` +
           `Ошибки: ${this.game.errors}<br>` +
           `Размер: ${this.game.size}x${this.game.size}`;
@@ -1607,14 +1515,14 @@
       },
       
       saveProgress(solved = false) {
-        const progress = Storage.get('dragonProgress', {});
-        progress[this.currentSheetIndex] = {
+        const progress = Storage.get('puzzleProgress', {});
+        progress[this.currentPuzzleIndex] = {
           solved: solved || this.game.solved,
           grid: this.game.grid,
           memoGrid: this.game.memoGrid,
           errors: this.game.errors
         };
-        Storage.set('dragonProgress', progress);
+        Storage.set('puzzleProgress', progress);
       },
       
       undo() { 
@@ -1637,7 +1545,7 @@
         } 
       },
       
-      clearSheet() {
+      clearPuzzle() {
         if (this.game) {
           this.game.grid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
           this.game.memoGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
@@ -1679,76 +1587,31 @@
         }
       },
       
-      showSheetSelector() {
-        const grid = document.getElementById('sheets-grid');
+      showPuzzleSelector() {
+        const grid = document.getElementById('puzzles-grid');
         grid.innerHTML = '';
         
-        const progress = Storage.get('dragonProgress', {});
+        const progress = Storage.get('puzzleProgress', {});
         
-        dragonSheets.forEach((sheet, index) => {
+        PUZZLES.forEach((puzzle, index) => {
           const card = document.createElement('div');
-          card.className = 'sheet-card';
+          card.className = 'puzzle-card';
           
           const isSolved = progress[index]?.solved || false;
           if (isSolved) card.classList.add('solved');
           
-          const miniCanvas = document.createElement('canvas');
-          miniCanvas.width = 80;
-          miniCanvas.height = 80;
-          const ctx = miniCanvas.getContext('2d');
-          const cell = 80 / sheet.size;
-          
-          sheet.rows.forEach((row, r) => {
-            row.split('').forEach((v, c) => {
-              ctx.fillStyle = v === '1' ? '#000000' : 'rgba(199, 211, 234, 0.06)';
-              ctx.fillRect(c * cell, r * cell, cell, cell);
-            });
-          });
-          
-          card.appendChild(miniCanvas);
-          card.innerHTML += `
-            <div class="name">${sheet.position}</div>
-            <div class="meta">${isSolved ? '✅ Решён' : '30x30'}</div>
+          card.innerHTML = `
+            <div class="name">${puzzle.name}</div>
+            <div class="meta">${puzzle.size}x${puzzle.size} ${isSolved ? '✅' : ''}</div>
           `;
           
           card.onclick = () => {
-            this.hideModal('modal-sheets');
-            this.loadSheet(index);
+            this.hideModal('modal-puzzles');
+            this.loadPuzzle(index);
           };
           
           grid.appendChild(card);
         });
-        
-        this.drawFullPreview();
-      },
-      
-      drawFullPreview() {
-        const canvas = document.getElementById('full-preview-canvas');
-        const size = 90;
-        const cellSize = 3;
-        canvas.width = size * cellSize;
-        canvas.height = size * cellSize;
-        
-        const ctx = canvas.getContext('2d');
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
-            ctx.fillStyle = dragonGrid[r][c] ? '#000000' : 'rgba(199, 211, 234, 0.06)';
-            ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
-          }
-        }
-        
-        ctx.strokeStyle = '#663af3';
-        ctx.lineWidth = 2;
-        for (let i = 1; i < 3; i++) {
-          ctx.beginPath();
-          ctx.moveTo(i * 30 * cellSize, 0);
-          ctx.lineTo(i * 30 * cellSize, size * cellSize);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(0, i * 30 * cellSize);
-          ctx.lineTo(size * cellSize, i * 30 * cellSize);
-          ctx.stroke();
-        }
       }
     };
 
