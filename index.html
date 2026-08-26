@@ -405,7 +405,6 @@
     <button class="bottom-btn active" data-mode="paint">⬛ Закрасить</button>
     <button class="bottom-btn" data-mode="x">✕ Крестик</button>
     <button class="bottom-btn" data-mode="memo">🔺 Memo</button>
-    <button class="bottom-btn" data-mode="memo-fraction">½ Дробь</button>
     <button class="bottom-btn small" id="btn-clear-memo" aria-label="Удалить memo" style="display:none;">🗑</button>
     <button class="bottom-btn small" id="btn-undo" aria-label="Отменить">↺</button>
     <button class="bottom-btn small" id="btn-redo" aria-label="Повторить">↻</button>
@@ -626,7 +625,6 @@
         this.size = this.rows.length;
         this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
         this.memoGrid = Array(this.size).fill().map(() => Array(this.size).fill(0));
-        this.fractionGrid = Array(this.size).fill().map(() => Array(this.size).fill(false));
         this.hintCells = new Set();
         this.solvedLines = { rows: new Set(), cols: new Set() };
         this.errors = 0;
@@ -640,7 +638,6 @@
       
       getCell(r, c) { return this.grid[r][c]; }
       getMemo(r, c) { return this.memoGrid[r][c]; }
-      getFraction(r, c) { return this.fractionGrid[r][c]; }
       
       setCell(r, c, val, record = true) {
         if (record) {
@@ -649,9 +646,7 @@
             prev: this.grid[r][c], 
             next: val,
             prevMemo: this.memoGrid[r][c],
-            nextMemo: this.memoGrid[r][c],
-            prevFraction: this.fractionGrid[r][c],
-            nextFraction: this.fractionGrid[r][c]
+            nextMemo: this.memoGrid[r][c]
           });
           if (this.history.length > 200) this.history.shift();
           this.redoStack = [];
@@ -676,9 +671,7 @@
             prev: this.grid[r][c], 
             next: this.grid[r][c],
             prevMemo: this.memoGrid[r][c],
-            nextMemo: val,
-            prevFraction: this.fractionGrid[r][c],
-            nextFraction: this.fractionGrid[r][c]
+            nextMemo: val
           });
           if (this.history.length > 200) this.history.shift();
           this.redoStack = [];
@@ -686,28 +679,10 @@
         this.memoGrid[r][c] = val;
       }
       
-      setFraction(r, c, val, record = true) {
-        if (record) {
-          this.history.push({
-            r, c, 
-            prev: this.grid[r][c], 
-            next: this.grid[r][c],
-            prevMemo: this.memoGrid[r][c],
-            nextMemo: this.memoGrid[r][c],
-            prevFraction: this.fractionGrid[r][c],
-            nextFraction: val
-          });
-          if (this.history.length > 200) this.history.shift();
-          this.redoStack = [];
-        }
-        this.fractionGrid[r][c] = val;
-      }
-      
       clearAllMemos() {
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
             this.memoGrid[r][c] = 0;
-            this.fractionGrid[r][c] = false;
           }
         }
       }
@@ -715,7 +690,7 @@
       hasMemos() {
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
-            if (this.memoGrid[r][c] > 0 || this.fractionGrid[r][c]) return true;
+            if (this.memoGrid[r][c] > 0) return true;
           }
         }
         return false;
@@ -752,7 +727,6 @@
         const rowFilled = this.grid[r].filter(v => v === 1).length;
         const rowTarget = rowHints.reduce((a, b) => a + b, 0);
         
-        // Проверяем, что все закрашенные клетки правильные
         const allRowCorrect = this.grid[r].every((v, i) => 
           v !== 1 || this.rows[r][i] === 1
         );
@@ -770,7 +744,6 @@
         const colFilled = this.grid.filter(row => row[c] === 1).length;
         const colTarget = colHints.reduce((a, b) => a + b, 0);
         
-        // Проверяем, что все закрашенные клетки правильные
         const allColCorrect = this.grid.every((row, i) => 
           row[c] !== 1 || this.rows[i][c] === 1
         );
@@ -801,7 +774,6 @@
           const last = this.history.pop(); 
           this.grid[last.r][last.c] = last.prev; 
           this.memoGrid[last.r][last.c] = last.prevMemo;
-          this.fractionGrid[last.r][last.c] = last.prevFraction;
           this.redoStack.push(last);
           this.checkSolvedLines();
           return true; 
@@ -814,7 +786,6 @@
           const last = this.redoStack.pop(); 
           this.grid[last.r][last.c] = last.next; 
           this.memoGrid[last.r][last.c] = last.nextMemo;
-          this.fractionGrid[last.r][last.c] = last.nextFraction;
           this.history.push(last);
           this.checkSolvedLines();
           return true; 
@@ -825,9 +796,7 @@
       isSolved() { 
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
-            // Клетка должна быть закрашена ТОЛЬКО если в эталоне 1
             if (this.rows[r][c] === 1 && this.grid[r][c] !== 1) return false;
-            // Клетка не должна быть закрашена если в эталоне 0
             if (this.rows[r][c] === 0 && this.grid[r][c] === 1) return false;
           }
         }
@@ -919,7 +888,6 @@
         const h = wrap.clientHeight - 20;
         const size = this.state.size;
         
-        // Динамически вычисляем пространство для подсказок
         const maxHints = this.getMaxHints();
         const hintSpace = Math.max(40, maxHints * 15);
         
@@ -1037,17 +1005,14 @@
         
         if (!this.state) return;
         
-        // Рисуем статическую часть если нужно
         if (this.needsStaticRedraw) {
           this.drawStatic();
           this.needsStaticRedraw = false;
         }
         
-        // Копируем статическую часть
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(this.staticCanvas, 0, 0);
         
-        // Рисуем динамические элементы
         this.drawDynamic();
       }
       
@@ -1059,14 +1024,11 @@
         const cell = this.cellSize * this.zoom;
         const size = this.state.size;
         
-        // Фон
         ctx.fillStyle = 'rgba(186, 214, 247, 0.03)';
         ctx.fillRect(0, 0, w, h);
         
-        // Подсказки
         this.drawHints(ctx, cell, size);
         
-        // Клетки
         for (let r = 0; r < size; r++) {
           for (let c = 0; c < size; c++) {
             const x = c * cell + this.offsetX;
@@ -1076,34 +1038,27 @@
             
             const val = this.state.grid[r][c];
             const memoVal = this.state.memoGrid[r][c];
-            const fractionVal = this.state.fractionGrid[r][c];
             const hasHint = this.state.hasHint(r, c);
             const rowSolved = this.state.solvedLines.rows.has(r);
             const colSolved = this.state.solvedLines.cols.has(c);
             
-            // Фон клетки
             ctx.fillStyle = 'rgba(199, 211, 234, 0.06)';
             ctx.fillRect(x, y, cell, cell);
             
-            // Подсветка решённых линий
             if (rowSolved || colSolved) {
               ctx.fillStyle = 'rgba(38, 150, 132, 0.15)';
               ctx.fillRect(x, y, cell, cell);
             }
             
-            // Подсказка
             if (hasHint) {
               ctx.fillStyle = 'rgba(0, 200, 255, 0.7)';
               ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
             }
             
-            // Закрашенная клетка
             if (val === 1) {
               ctx.fillStyle = '#000000';
               ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
-            } 
-            // Крестик
-            else if (val === 2) {
+            } else if (val === 2) {
               ctx.strokeStyle = '#9da7ba';
               ctx.lineWidth = Math.max(1, cell / 6);
               ctx.beginPath(); 
@@ -1116,7 +1071,6 @@
               ctx.stroke();
             }
             
-            // Memo
             if (memoVal === 1) {
               ctx.fillStyle = '#ff0000';
               ctx.beginPath();
@@ -1127,25 +1081,12 @@
               ctx.fill();
             }
             
-            // Дробь
-            if (fractionVal) {
-              ctx.fillStyle = '#ff8c00';
-              ctx.beginPath();
-              ctx.arc(x + cell * 0.5, y + cell * 0.5, cell * 0.35, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.fillStyle = '#ffffff';
-              ctx.fillRect(x + cell * 0.45, y + cell * 0.3, cell * 0.1, cell * 0.4);
-              ctx.fillRect(x + cell * 0.3, y + cell * 0.45, cell * 0.4, cell * 0.1);
-            }
-            
-            // Границы клеток
             if (cell > 5) {
               ctx.strokeStyle = 'rgba(182, 217, 252, 0.3)';
               ctx.lineWidth = 0.5;
               ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
             }
             
-            // Жирные линии каждые 5 клеток
             if ((r + 1) % 5 === 0 || (c + 1) % 5 === 0) {
               ctx.strokeStyle = '#027dea';
               ctx.lineWidth = 2;
@@ -1165,7 +1106,6 @@
           }
         }
         
-        // Внешняя граница
         ctx.strokeStyle = '#027dea';
         ctx.lineWidth = 3;
         ctx.strokeRect(
@@ -1180,7 +1120,6 @@
         const ctx = this.ctx;
         const cell = this.cellSize * this.zoom;
         
-        // Отображение номеров при рисовании
         if (this.drawingLine) {
           this.drawingLine.forEach(({r, c, num}) => {
             const x = c * cell + this.offsetX;
@@ -1193,7 +1132,6 @@
           });
         }
         
-        // Выделение ошибок
         if (this.errorCells) {
           this.errorCells.forEach(([r,c]) => {
             const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
@@ -1204,7 +1142,6 @@
       }
       
       drawHints(ctx, cell, size) {
-        // Находим максимальное количество подсказок
         let maxRowHints = 0;
         let maxColHints = 0;
         
@@ -1227,7 +1164,6 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Подсказки для строк
         for (let r = 0; r < size; r++) {
           const hints = this.state.getLineHints(this.state.rows[r]);
           let x = this.offsetX - 8;
@@ -1239,20 +1175,17 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
-          // Отображаем слева направо
           hints.forEach((hint, index) => {
             const hintX = x - index * hintSize * 1.2;
             ctx.fillText(hint, hintX, y);
           });
         }
         
-        // Подсказки для столбцов (сверху вниз)
         for (let c = 0; c < size; c++) {
           const colVals = [];
           for (let r = 0; r < size; r++) colVals.push(this.state.rows[r][c]);
           const hints = this.state.getLineHints(colVals);
           
-          // Начинаем снизу, чтобы первая подсказка была ближе к полю
           let y = this.offsetY - 8 - (hints.length - 1) * hintSize * 1.2;
           let x = c * cell + this.offsetX + cell / 2;
           
@@ -1262,7 +1195,6 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
-          // Отображаем сверху вниз
           hints.forEach((hint, index) => {
             const hintY = y + index * hintSize * 1.2;
             ctx.fillText(hint, x, hintY);
@@ -1289,6 +1221,7 @@
         this.hasMoved = false;
         this.drawnCells = [];
         this.drawingStartCell = null;
+        this.drawDirection = null; // 'horizontal' или 'vertical'
         
         this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
@@ -1308,6 +1241,7 @@
         this.isDrawing = false;
         this.drawnCells = [];
         this.drawingStartCell = null;
+        this.drawDirection = null;
         this.startX = e.clientX; 
         this.startY = e.clientY;
         this.startTime = Date.now();
@@ -1337,11 +1271,29 @@
           const cell = this.renderer.screenToCell(x, y);
           
           if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-            // Проверяем, что двигаемся только по прямой
-            if (this.lastCell) {
-              const sameRow = cell.r === this.lastCell.r;
-              const sameCol = cell.c === this.lastCell.c;
-              if (!sameRow && !sameCol) return;
+            // Определяем направление движения при первом движении
+            if (!this.drawDirection && this.drawingStartCell) {
+              const dr = cell.r - this.drawingStartCell.r;
+              const dc = cell.c - this.drawingStartCell.c;
+              
+              if (Math.abs(dr) > Math.abs(dc)) {
+                this.drawDirection = 'vertical';
+              } else if (Math.abs(dc) > Math.abs(dr)) {
+                this.drawDirection = 'horizontal';
+              }
+            }
+            
+            // Проверяем, что двигаемся в правильном направлении
+            if (this.drawDirection === 'vertical') {
+              // Двигаемся только по вертикали
+              if (cell.c !== this.drawingStartCell.c) {
+                return; // Игнорируем движение в сторону
+              }
+            } else if (this.drawDirection === 'horizontal') {
+              // Двигаемся только по горизонтали
+              if (cell.r !== this.drawingStartCell.r) {
+                return; // Игнорируем движение в сторону
+              }
             }
             
             const cellKey = `${cell.r},${cell.c}`;
@@ -1349,7 +1301,6 @@
               this.drawnCells.push({r: cell.r, c: cell.c, num: this.drawnCells.length + 1});
               this.applyAction(cell.r, cell.c);
               
-              // Показываем номера только при закрашивании
               if (this.mode === 'paint') {
                 this.renderer.setDrawingLine(this.drawnCells);
               }
@@ -1376,8 +1327,9 @@
           }
         }
         
-        // Очищаем отображение номеров
         this.renderer.clearDrawingLine();
+        this.renderer.needsStaticRedraw = true;
+        this.renderer.draw();
         
         this.pointerDown = false;
         this.isDrawing = false;
@@ -1385,6 +1337,7 @@
         this.lastCell = null;
         this.drawnCells = [];
         this.drawingStartCell = null;
+        this.drawDirection = null;
       }
       
       applyAction(r, c) {
@@ -1421,15 +1374,9 @@
           SoundManager.mode();
           this.cb.onUpdate();
           this.cb.onMemoChange();
-        } else if (this.mode === 'memo-fraction') {
-          const cur = this.game.getFraction(r, c);
-          this.game.setFraction(r, c, !cur);
-          Haptics.mode(); 
-          SoundManager.mode();
-          this.cb.onUpdate();
-          this.cb.onMemoChange();
         }
         
+        this.renderer.needsStaticRedraw = true;
         this.renderer.draw();
       }
     }
@@ -1508,12 +1455,10 @@
         this.game = new GameState(sheet.rows);
         this.game.puzzleName = sheet.name;
         
-        // Восстанавливаем прогресс
         const progress = Storage.get('dragonProgress', {});
         if (progress[index] && progress[index].grid) {
           this.game.grid = progress[index].grid;
           this.game.memoGrid = progress[index].memoGrid || Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
-          this.game.fractionGrid = progress[index].fractionGrid || Array(this.game.size).fill().map(() => Array(this.game.size).fill(false));
           this.game.errors = progress[index].errors || 0;
           if (progress[index].solved) this.game.solved = true;
         }
@@ -1635,7 +1580,6 @@
           solved: solved || this.game.solved,
           grid: this.game.grid,
           memoGrid: this.game.memoGrid,
-          fractionGrid: this.game.fractionGrid,
           errors: this.game.errors
         };
         Storage.set('dragonProgress', progress);
@@ -1643,6 +1587,7 @@
       
       undo() { 
         if (this.game.undo()) { 
+          this.renderer.needsStaticRedraw = true;
           this.renderer.draw(); 
           this.updateMemoButton();
           this.debouncedSave();
@@ -1652,6 +1597,7 @@
       
       redo() { 
         if (this.game.redo()) { 
+          this.renderer.needsStaticRedraw = true;
           this.renderer.draw(); 
           this.updateMemoButton();
           this.debouncedSave();
@@ -1663,10 +1609,10 @@
         if (this.game) {
           this.game.grid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
           this.game.memoGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
-          this.game.fractionGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(false));
           this.game.hintCells.clear();
           this.game.solvedLines.rows.clear();
           this.game.solvedLines.cols.clear();
+          this.renderer.needsStaticRedraw = true;
           this.renderer.draw();
           this.updateMemoButton();
           this.debouncedSave();
@@ -1676,6 +1622,7 @@
       clearMemos() {
         if (this.game) {
           this.game.clearAllMemos();
+          this.renderer.needsStaticRedraw = true;
           this.renderer.draw();
           this.updateMemoButton();
           this.debouncedSave();
@@ -1693,6 +1640,7 @@
         if (unsolved.length) {
           const [r, c] = unsolved[Math.floor(Math.random() * unsolved.length)];
           this.game.addHint(r, c); 
+          this.renderer.needsStaticRedraw = true;
           this.renderer.draw();
           Haptics.tap(); 
           SoundManager.tap();
