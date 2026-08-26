@@ -1289,12 +1289,15 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     }
 
     applyAction(r, c) {
+          applyAction(r, c) {
       if (this.game.solved) return;
+
       if (this.mode === 'paint') {
         const cur = this.game.getCell(r, c);
         const newVal = cur === 1 ? 0 : 1;
         this.game.setCell(r, c, newVal);
         SoundManager.paint(); Haptics.paint();
+        
         if (newVal === 1 && this.game.solution[r][c] !== 1) {
           this.game.errors++;
           this.renderer.setErrorFlash([[r, c]]);
@@ -1307,6 +1310,9 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         const cur = this.game.getCell(r, c);
         const newVal = cur === 2 ? 0 : 2;
         this.game.setCell(r, c, newVal);
+        if (newVal === 2) {
+          this.game.memoGrid[r][c] = 0;
+        }
         SoundManager.x(); Haptics.x();
         this.cb.onUpdate();
       } else if (this.mode === 'memo') {
@@ -1317,6 +1323,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         this.cb.onUpdate();
         this.cb.onMemoChange();
       }
+      
       this.renderer.needsStaticRedraw = true;
       this.renderer.draw();
     }
