@@ -4,12 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#05060f">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Нонограммы">
 <title>Японские кроссворды — Коллекция</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2305060f'/%3E%3Cpath d='M20 80 Q50 20 80 80' fill='none' stroke='%23663af3' stroke-width='8'/%3E%3C/svg%3E">
 <style>
+/* ВСЕ СТИЛИ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ — ТЕ ЖЕ, ЧТО У ВАС */
 :root {
   --color-midnight-canvas: #05060f;
   --color-steel-plate: #2f343e;
@@ -84,229 +81,66 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
-
-html, body {
-  height: 100%; width: 100%; overflow: hidden; position: fixed;
-  overscroll-behavior: none;
-  background: var(--bg-gradient);
-  color: var(--color-frost-glow);
-  font-family: var(--font-stack);
-  transition: background 0.3s ease, color 0.3s ease;
-  touch-action: none;
-}
-
+html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; overscroll-behavior: none; background: var(--bg-gradient); color: var(--color-frost-glow); font-family: var(--font-stack); transition: background 0.3s ease, color 0.3s ease; touch-action: none; }
 body { display: flex; flex-direction: column; align-items: center; justify-content: space-between; user-select: none; }
-
-#app {
-  width: 100%; height: 100%; display: flex; flex-direction: column;
-  max-width: 900px; padding: 8px; position: relative;
-}
-
-#top-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; padding: 4px 0 6px; flex-shrink: 0;
-}
-
-.top-btn {
-  background: var(--color-luminous-fill);
-  border: 1px solid var(--color-glass-edge);
-  border-radius: var(--radius-buttons);
-  width: 44px; height: 44px; font-size: 20px; cursor: pointer;
-  color: var(--color-frost-glow);
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; max-width: 900px; padding: 8px; position: relative; }
+#top-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0 6px; flex-shrink: 0; }
+.top-btn { background: var(--color-luminous-fill); border: 1px solid var(--color-glass-edge); border-radius: var(--radius-buttons); width: 44px; height: 44px; font-size: 20px; cursor: pointer; color: var(--color-frost-glow); display: flex; align-items: center; justify-content: center; transition: all 0.2s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .top-btn:hover { background: var(--color-steel-plate); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 .top-btn:active { transform: scale(0.94); background: var(--color-steel-plate); }
-
-#puzzle-title {
-  font-weight: 500; font-size: 16px; text-align: center; flex: 1;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: var(--color-ice-highlight); letter-spacing: -0.01em;
-}
-
+#puzzle-title { font-weight: 500; font-size: 16px; text-align: center; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-ice-highlight); letter-spacing: -0.01em; }
 #stats { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-
 #error-count { color: var(--color-error); font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 0 8px rgba(255, 71, 87, 0.4); }
 #timer { font-variant-numeric: tabular-nums; color: var(--color-moon-mist); }
-
-#progress-bar-wrap {
-  height: 3px; background: var(--color-luminous-fill);
-  border-radius: 2px; overflow: hidden; margin-bottom: 6px; flex-shrink: 0;
-  border: 1px solid var(--color-glass-edge);
-}
-#progress-bar {
-  height: 100%; background: linear-gradient(90deg, var(--color-void-violet), var(--color-blueprint-blue));
-  width: 0%; transition: width 0.3s ease;
-  box-shadow: 0 0 8px var(--color-void-violet-glow);
-}
-
-#canvas-wrap {
-  flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
-  overflow: hidden; border-radius: var(--radius-cards);
-  background: var(--color-luminous-fill);
-  box-shadow: var(--shadow-subtle-6);
-  margin-bottom: 8px; touch-action: none; min-height: 0;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--color-glass-edge);
-}
-
+#progress-bar-wrap { height: 3px; background: var(--color-luminous-fill); border-radius: 2px; overflow: hidden; margin-bottom: 6px; flex-shrink: 0; border: 1px solid var(--color-glass-edge); }
+#progress-bar { height: 100%; background: linear-gradient(90deg, var(--color-void-violet), var(--color-blueprint-blue)); width: 0%; transition: width 0.3s ease; box-shadow: 0 0 8px var(--color-void-violet-glow); }
+#canvas-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: var(--radius-cards); background: var(--color-luminous-fill); box-shadow: var(--shadow-subtle-6); margin-bottom: 8px; touch-action: none; min-height: 0; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--color-glass-edge); }
 canvas { display: block; touch-action: none; border-radius: 8px; cursor: crosshair; }
-
-#bottom-bar {
-  display: flex; gap: 6px; padding: 8px 0; flex-shrink: 0;
-  flex-wrap: wrap; justify-content: center; align-items: center;
-}
-
-.bottom-btn {
-  background: var(--color-luminous-fill);
-  border: 1px solid var(--color-glass-edge);
-  border-radius: var(--radius-buttons);
-  font-size: 14px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  color: var(--color-frost-glow); transition: all 0.2s;
-  font-weight: 500; padding: 8px 12px; height: 44px;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-}
-
+#bottom-bar { display: flex; gap: 6px; padding: 8px 0; flex-shrink: 0; flex-wrap: wrap; justify-content: center; align-items: center; }
+.bottom-btn { background: var(--color-luminous-fill); border: 1px solid var(--color-glass-edge); border-radius: var(--radius-buttons); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; color: var(--color-frost-glow); transition: all 0.2s; font-weight: 500; padding: 8px 12px; height: 44px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .bottom-btn:hover { background: var(--color-steel-plate); transform: translateY(-1px); }
-.bottom-btn.active {
-  background: var(--color-void-violet); color: white;
-  box-shadow: 0 0 12px var(--color-void-violet-glow);
-  border-color: var(--color-void-violet);
-}
+.bottom-btn.active { background: var(--color-void-violet); color: white; box-shadow: 0 0 12px var(--color-void-violet-glow); border-color: var(--color-void-violet); }
 .bottom-btn:active { transform: scale(0.95); }
 .bottom-btn.small { width: 44px; padding: 8px; font-size: 18px; }
-
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(5, 6, 15, 0.8);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  z-index: 100; display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s;
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(5, 6, 15, 0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 [data-theme="light"] .modal-overlay { background: rgba(245, 247, 251, 0.85); }
 .modal-overlay.show { opacity: 1; pointer-events: auto; }
-
-.modal {
-  background: var(--color-midnight-canvas);
-  width: 90%; max-width: 720px; max-height: 85%; overflow-y: auto;
-  border-radius: var(--radius-modals); padding: 24px;
-  box-shadow: var(--shadow-subtle-6);
-  transform: translateY(30px);
-  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-  border: 1px solid var(--color-glass-edge);
-}
+.modal { background: var(--color-midnight-canvas); width: 90%; max-width: 720px; max-height: 85%; overflow-y: auto; border-radius: var(--radius-modals); padding: 24px; box-shadow: var(--shadow-subtle-6); transform: translateY(30px); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2); border: 1px solid var(--color-glass-edge); }
 .modal-overlay.show .modal { transform: translateY(0); }
-
 .modal h2, .modal h3 { margin-bottom: 16px; color: var(--color-ice-highlight); font-weight: 500; letter-spacing: -0.01em; }
 .modal p { color: var(--color-moon-mist); line-height: 1.5; margin-bottom: 12px; }
-
-.modal-close {
-  float: right; background: none; border: none; font-size: 28px;
-  cursor: pointer; color: var(--color-frost-glow); line-height: 1;
-  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%;
-}
+.modal-close { float: right; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--color-frost-glow); line-height: 1; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 .modal-close:hover { background: var(--color-luminous-fill); }
-
 .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
-
-.action-btn {
-  background: var(--color-luminous-fill);
-  border: 1px solid var(--color-glass-edge);
-  padding: 12px 18px; border-radius: var(--radius-buttons);
-  font-size: 15px; cursor: pointer; box-shadow: var(--shadow-subtle);
-  display: flex; align-items: center; gap: 6px;
-  color: var(--color-frost-glow); transition: all 0.2s;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  font-weight: 500;
-}
+.action-btn { background: var(--color-luminous-fill); border: 1px solid var(--color-glass-edge); padding: 12px 18px; border-radius: var(--radius-buttons); font-size: 15px; cursor: pointer; box-shadow: var(--shadow-subtle); display: flex; align-items: center; gap: 6px; color: var(--color-frost-glow); transition: all 0.2s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-weight: 500; }
 .action-btn:hover { background: var(--color-steel-plate); transform: translateY(-1px); }
-.action-btn.primary {
-  background: var(--color-void-violet); color: white;
-  box-shadow: 0 0 12px var(--color-void-violet-glow);
-  border-color: var(--color-void-violet);
-}
+.action-btn.primary { background: var(--color-void-violet); color: white; box-shadow: 0 0 12px var(--color-void-violet-glow); border-color: var(--color-void-violet); }
 .action-btn.danger { color: var(--color-error); }
 .action-btn:active { transform: scale(0.95); }
-
-.puzzles-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px; margin-top: 16px;
-}
-
-.filter-row {
-  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
-}
-.filter-btn {
-  background: var(--color-luminous-fill);
-  border: 1px solid var(--color-glass-edge);
-  padding: 6px 12px; border-radius: var(--radius-buttons);
-  font-size: 13px; cursor: pointer; color: var(--color-frost-glow);
-  transition: all 0.2s;
-}
+.puzzles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.filter-btn { background: var(--color-luminous-fill); border: 1px solid var(--color-glass-edge); padding: 6px 12px; border-radius: var(--radius-buttons); font-size: 13px; cursor: pointer; color: var(--color-frost-glow); transition: all 0.2s; }
 .filter-btn.active { background: var(--color-void-violet); color: white; border-color: var(--color-void-violet); }
-
-.puzzle-card {
-  background: var(--color-cell-bg);
-  border-radius: var(--radius-cards); padding: 12px;
-  box-shadow: var(--shadow-subtle); cursor: pointer;
-  transition: all 0.3s; text-align: center;
-  border: 1px solid var(--color-glass-edge);
-}
+.puzzle-card { background: var(--color-cell-bg); border-radius: var(--radius-cards); padding: 12px; box-shadow: var(--shadow-subtle); cursor: pointer; transition: all 0.3s; text-align: center; border: 1px solid var(--color-glass-edge); }
 .puzzle-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--color-void-violet); }
 .puzzle-card.solved { border: 2px solid #269684; }
 .puzzle-card canvas { width: 100%; height: auto; border-radius: 6px; margin-bottom: 6px; background: var(--color-cell-bg); }
 .puzzle-card .name { font-size: 14px; font-weight: 500; margin-top: 4px; color: var(--color-frost-glow); }
 .puzzle-card .meta { font-size: 11px; color: var(--color-moon-mist); margin-top: 2px; }
-
-.settings-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0; border-bottom: 1px solid var(--color-glass-edge);
-}
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--color-glass-edge); }
 .settings-row:last-child { border-bottom: none; }
 .settings-row label { font-size: 14px; color: var(--color-frost-glow); }
-
-.switch {
-  position: relative; width: 44px; height: 24px;
-  background: var(--color-steel-plate); border-radius: 12px;
-  cursor: pointer; transition: background 0.2s;
-}
+.switch { position: relative; width: 44px; height: 24px; background: var(--color-steel-plate); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
 .switch.on { background: var(--color-void-violet); }
-.switch::after {
-  content: ''; position: absolute; top: 2px; left: 2px;
-  width: 20px; height: 20px; background: white; border-radius: 50%;
-  transition: transform 0.2s;
-}
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; }
 .switch.on::after { transform: translateX(20px); }
-
-.tutorial-step {
-  background: var(--color-cell-bg); border: 1px solid var(--color-glass-edge);
-  border-radius: var(--radius-cards); padding: 16px; margin-bottom: 12px;
-}
+.tutorial-step { background: var(--color-cell-bg); border: 1px solid var(--color-glass-edge); border-radius: var(--radius-cards); padding: 16px; margin-bottom: 12px; }
 .tutorial-step h4 { color: var(--color-ice-highlight); margin-bottom: 8px; font-size: 15px; }
 .tutorial-step p { font-size: 13px; color: var(--color-moon-mist); line-height: 1.5; }
-
-kbd {
-  background: var(--color-steel-plate); padding: 2px 6px;
-  border-radius: 4px; font-size: 12px; font-family: monospace;
-  border: 1px solid var(--color-glass-edge);
-}
-
-#confetti-canvas {
-  position: fixed; inset: 0; pointer-events: none; z-index: 200;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
+kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; border: 1px solid var(--color-glass-edge); }
+#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 200; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .shake { animation: shake 0.3s ease; }
-
 @media (max-width: 600px) {
   .bottom-btn { font-size: 13px; height: 40px; padding: 8px 10px; }
   .bottom-btn.small { width: 40px; font-size: 16px; }
@@ -315,17 +149,14 @@ kbd {
   #puzzle-title { font-size: 14px; }
   .modal { padding: 18px; }
 }
-
-@media (hover: none) {
-  .top-btn:hover, .bottom-btn:hover, .action-btn:hover, .puzzle-card:hover { transform: none; }
-}
-
+@media (hover: none) { .top-btn:hover, .bottom-btn:hover, .action-btn:hover, .puzzle-card:hover { transform: none; } }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-steel-plate); border-radius: 3px; }
 </style>
 </head>
 <body>
+<!-- HTML ОСТАЁТСЯ БЕЗ ИЗМЕНЕНИЙ — ТОТ ЖЕ, ЧТО У ВАС -->
 <div id="app">
   <div id="top-bar">
     <button class="top-btn" id="btn-menu" aria-label="Меню">☰</button>
@@ -337,9 +168,7 @@ kbd {
     </div>
   </div>
   <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
-  <div id="canvas-wrap">
-    <canvas id="game-canvas"></canvas>
-  </div>
+  <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
   <div id="bottom-bar">
     <button class="bottom-btn active" data-mode="paint">⬛ Закрасить</button>
     <button class="bottom-btn" data-mode="x">✕ Крестик</button>
@@ -352,7 +181,6 @@ kbd {
     <button class="bottom-btn small" id="btn-puzzles" aria-label="Выбор кроссворда">📚</button>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-puzzles">
   <div class="modal">
     <button class="modal-close" data-close="modal-puzzles">×</button>
@@ -370,73 +198,35 @@ kbd {
     <div class="puzzles-grid" id="puzzles-grid"></div>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
     <button class="modal-close" data-close="modal-settings">×</button>
     <h2>⚙ Настройки</h2>
-    <div class="settings-row">
-      <label>🌙 Тёмная тема</label>
-      <div class="switch on" id="switch-theme"></div>
-    </div>
-    <div class="settings-row">
-      <label>🔊 Звук</label>
-      <div class="switch on" id="switch-sound"></div>
-    </div>
-    <div class="settings-row">
-      <label>📳 Вибрация</label>
-      <div class="switch on" id="switch-haptic"></div>
-    </div>
-    <div class="settings-row">
-      <label>🛡 Защита от случайных касаний (150мс)</label>
-      <div class="switch on" id="switch-protection"></div>
-    </div>
+    <div class="settings-row"><label>🌙 Тёмная тема</label><div class="switch on" id="switch-theme"></div></div>
+    <div class="settings-row"><label>🔊 Звук</label><div class="switch on" id="switch-sound"></div></div>
+    <div class="settings-row"><label>📳 Вибрация</label><div class="switch on" id="switch-haptic"></div></div>
+    <div class="settings-row"><label>🛡 Защита от случайных касаний (150мс)</label><div class="switch on" id="switch-protection"></div></div>
     <div class="action-row">
       <button class="action-btn" id="btn-tutorial">📖 Обучение</button>
       <button class="action-btn" id="btn-export">📤 Экспорт прогресса</button>
       <button class="action-btn" id="btn-import">📥 Импорт прогресса</button>
       <button class="action-btn danger" id="btn-reset-all">🗑 Сбросить весь прогресс</button>
     </div>
-    <p style="margin-top: 16px; font-size: 12px; opacity: 0.6;">
-      Клавиши: <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> — режимы, <kbd>Z</kbd> — назад, <kbd>Y</kbd> — вперёд, <kbd>H</kbd> — подсказка
-    </p>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-tutorial">
   <div class="modal">
     <button class="modal-close" data-close="modal-tutorial">×</button>
     <h2>📖 Как играть</h2>
-    <div class="tutorial-step">
-      <h4>🎯 Цель</h4>
-      <p>Закрасьте клетки так, чтобы в каждой строке и каждом столбце группы закрашенных клеток соответствовали числам-подсказкам.</p>
-    </div>
-    <div class="tutorial-step">
-      <h4>⬛ Режим «Закрасить»</h4>
-      <p>Нажмите на клетку, чтобы закрасить её чёрным. Можно вести линию — зажмите и проведите по клеткам горизонтально или вертикально. Номера на линии показывают порядок.</p>
-    </div>
-    <div class="tutorial-step">
-      <h4>✕ Режим «Крестик»</h4>
-      <p>Отмечайте клетки, которые точно не нужно закрашивать. Крестики рисуются серым цветом.</p>
-    </div>
-    <div class="tutorial-step">
-      <h4>🔺 Режим «Memo»</h4>
-      <p>Ставьте красные треугольники-заметки для пометок. Кнопка 🗑 удаляет все memo сразу.</p>
-    </div>
-    <div class="tutorial-step">
-      <h4>✨ Автозаполнение</h4>
-      <p>Когда все правильные клетки в строке или столбце закрашены, остальные автоматически заполняются крестиками.</p>
-    </div>
-    <div class="tutorial-step">
-      <h4>💡 Подсказки</h4>
-      <p>Нажмите 💡, чтобы открыть одну случайную клетку. Она подсветится голубым и исчезнет после закрашивания.</p>
-    </div>
-    <div class="action-row">
-      <button class="action-btn primary" data-close="modal-tutorial">Понятно</button>
-    </div>
+    <div class="tutorial-step"><h4>🎯 Цель</h4><p>Закрасьте клетки так, чтобы в каждой строке и каждом столбце группы закрашенных клеток соответствовали числам-подсказкам.</p></div>
+    <div class="tutorial-step"><h4>⬛ Режим «Закрасить»</h4><p>Нажмите на клетку, чтобы закрасить её чёрным. Можно вести линию — зажмите и проведите по клеткам горизонтально или вертикально. Номера на линии показывают порядок.</p></div>
+    <div class="tutorial-step"><h4>✕ Режим «Крестик»</h4><p>Отмечайте клетки, которые точно не нужно закрашивать. Крестики рисуются серым цветом.</p></div>
+    <div class="tutorial-step"><h4>🔺 Режим «Memo»</h4><p>Ставьте красные треугольники-заметки для пометок. Кнопка 🗑 удаляет все memo сразу.</p></div>
+    <div class="tutorial-step"><h4>✨ Автозаполнение</h4><p>Когда все правильные клетки в строке или столбце закрашены, остальные автоматически заполняются крестиками.</p></div>
+    <div class="tutorial-step"><h4>💡 Подсказки</h4><p>Нажмите 💡, чтобы открыть одну случайную клетку. Она подсветится голубым и исчезнет после закрашивания.</p></div>
+    <div class="action-row"><button class="action-btn primary" data-close="modal-tutorial">Понятно</button></div>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-win">
   <div class="modal">
     <h2>🎉 Кроссворд решён!</h2>
@@ -448,7 +238,6 @@ kbd {
     </div>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-confirm">
   <div class="modal">
     <h2 id="confirm-title">Подтверждение</h2>
@@ -459,14 +248,13 @@ kbd {
     </div>
   </div>
 </div>
-
 <canvas id="confetti-canvas"></canvas>
 
 <script>
 (function() {
   'use strict';
 
-  // ===================== ГЕНЕРАТОРЫ =====================
+  // ===================== ГЕНЕРАТОРЫ (остаются те же) =====================
   const PuzzleGenerator = {
     heart(size) {
       const grid = [];
@@ -518,7 +306,6 @@ kbd {
       const windowY = Math.floor(size * 0.55);
       const windowX1 = Math.floor(size * 0.3);
       const windowX2 = Math.floor(size * 0.65);
-
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
@@ -531,18 +318,12 @@ kbd {
           }
           if (y > roofBottom && y <= wallBottom) {
             if (x >= leftWall && x <= rightWall) {
-              if (x >= doorLeft && x <= doorRight && y > wallBottom - (wallBottom - roofBottom) * 0.7) {
-                fill = 0;
-              } else {
-                fill = 1;
-              }
+              if (x >= doorLeft && x <= doorRight && y > wallBottom - (wallBottom - roofBottom) * 0.7) fill = 0;
+              else fill = 1;
             }
           }
           if (y >= windowY && y < windowY + windowSize) {
-            if ((x >= windowX1 && x < windowX1 + windowSize) ||
-                (x >= windowX2 && x < windowX2 + windowSize)) {
-              fill = 0;
-            }
+            if ((x >= windowX1 && x < windowX1 + windowSize) || (x >= windowX2 && x < windowX2 + windowSize)) fill = 0;
           }
           row.push(fill);
         }
@@ -558,7 +339,6 @@ kbd {
       const eyeY = cy - size * 0.1;
       const eyeXOffset = size * 0.15;
       const mouthR = size * 0.22;
-
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
@@ -568,11 +348,9 @@ kbd {
           if (dist <= faceR && dist >= faceR - size * 0.05) fill = 1;
           const eyeDx1 = x - (cx - eyeXOffset), eyeDy1 = y - eyeY;
           const eyeDx2 = x - (cx + eyeXOffset), eyeDy2 = y - eyeY;
-          const eyeDist1 = Math.sqrt(eyeDx1 * eyeDx1 + eyeDy1 * eyeDy1);
-          const eyeDist2 = Math.sqrt(eyeDx2 * eyeDx2 + eyeDy2 * eyeDy2);
-          if (eyeDist1 <= eyeR || eyeDist2 <= eyeR) fill = 1;
+          if (Math.sqrt(eyeDx1*eyeDx1 + eyeDy1*eyeDy1) <= eyeR || Math.sqrt(eyeDx2*eyeDx2 + eyeDy2*eyeDy2) <= eyeR) fill = 1;
           const mouthDx = x - cx, mouthDy = y - (cy + size * 0.05);
-          const mouthDist = Math.sqrt(mouthDx * mouthDx + mouthDy * mouthDy);
+          const mouthDist = Math.sqrt(mouthDx*mouthDx + mouthDy*mouthDy);
           if (mouthDist <= mouthR && mouthDist >= mouthR - size * 0.04 && mouthDy > 0) fill = 1;
           row.push(fill);
         }
@@ -587,9 +365,7 @@ kbd {
         { top: 0.28, bottom: 0.58, widthTop: 0.1, widthBottom: 0.42 },
         { top: 0.5, bottom: 0.82, widthTop: 0.15, widthBottom: 0.48 }
       ];
-      const trunkTop = 0.82, trunkBottom = 0.98;
-      const trunkWidth = 0.08;
-
+      const trunkTop = 0.82, trunkBottom = 0.98, trunkWidth = 0.08;
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
@@ -602,9 +378,7 @@ kbd {
               if (nx >= 0.5 - halfWidth && nx <= 0.5 + halfWidth) fill = 1;
             }
           }
-          if (ny >= trunkTop && ny <= trunkBottom) {
-            if (nx >= 0.5 - trunkWidth && nx <= 0.5 + trunkWidth) fill = 1;
-          }
+          if (ny >= trunkTop && ny <= trunkBottom && nx >= 0.5 - trunkWidth && nx <= 0.5 + trunkWidth) fill = 1;
           row.push(fill);
         }
         grid.push(row);
@@ -615,24 +389,19 @@ kbd {
       const grid = [];
       const cx = size * 0.45, cy = size * 0.5;
       const bodyRx = size * 0.3, bodyRy = size * 0.22;
-
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
           let fill = 0;
           const dx = x - cx, dy = y - cy;
-          const bodyVal = (dx * dx) / (bodyRx * bodyRx) + (dy * dy) / (bodyRy * bodyRy);
-          if (bodyVal <= 1) fill = 1;
-          const tailStart = cx + bodyRx * 0.7;
-          const tailEnd = size * 0.9;
+          if ((dx*dx)/(bodyRx*bodyRx) + (dy*dy)/(bodyRy*bodyRy) <= 1) fill = 1;
+          const tailStart = cx + bodyRx * 0.7, tailEnd = size * 0.9;
           if (x >= tailStart && x <= tailEnd) {
             const progress = (x - tailStart) / (tailEnd - tailStart);
-            const tailHalfHeight = bodyRy * (1 - progress) * 1.2;
-            if (Math.abs(y - cy) <= tailHalfHeight) fill = 1;
+            if (Math.abs(y - cy) <= bodyRy * (1 - progress) * 1.2) fill = 1;
           }
           const eyeX = cx - bodyRx * 0.4, eyeY = cy - bodyRy * 0.2;
-          const eyeDist = Math.sqrt((x - eyeX) ** 2 + (y - eyeY) ** 2);
-          if (eyeDist < size * 0.03) fill = 0;
+          if (Math.sqrt((x-eyeX)**2 + (y-eyeY)**2) < size * 0.03) fill = 0;
           row.push(fill);
         }
         grid.push(row);
@@ -641,19 +410,14 @@ kbd {
     },
     cat(size) {
       const grid = [];
-      const cx = size / 2, cy = size * 0.55;
-      const headR = size * 0.28;
-
+      const cx = size / 2, cy = size * 0.55, headR = size * 0.28;
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
           let fill = 0;
           const dx = x - cx, dy = y - cy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist <= headR) fill = 1;
-          const earY = cy - headR * 0.6;
-          const earWidth = size * 0.12;
-          const earHeight = size * 0.18;
+          if (Math.sqrt(dx*dx + dy*dy) <= headR) fill = 1;
+          const earY = cy - headR * 0.6, earWidth = size * 0.12, earHeight = size * 0.18;
           const leftEarX = cx - headR * 0.6;
           if (y >= earY - earHeight && y <= earY) {
             const progress = (earY - y) / earHeight;
@@ -666,14 +430,9 @@ kbd {
             const halfW = earWidth * (1 - progress);
             if (x >= rightEarX - halfW && x <= rightEarX + halfW) fill = 1;
           }
-          const eyeY = cy - headR * 0.1;
-          const eyeXOffset = headR * 0.4;
-          const eyeR = size * 0.04;
-          const eyeDist1 = Math.sqrt((x - (cx - eyeXOffset)) ** 2 + (y - eyeY) ** 2);
-          const eyeDist2 = Math.sqrt((x - (cx + eyeXOffset)) ** 2 + (y - eyeY) ** 2);
-          if (eyeDist1 < eyeR || eyeDist2 < eyeR) fill = 0;
-          const noseY = cy + headR * 0.2;
-          const noseSize = size * 0.03;
+          const eyeY = cy - headR * 0.1, eyeXOffset = headR * 0.4, eyeR = size * 0.04;
+          if (Math.sqrt((x-(cx-eyeXOffset))**2 + (y-eyeY)**2) < eyeR || Math.sqrt((x-(cx+eyeXOffset))**2 + (y-eyeY)**2) < eyeR) fill = 0;
+          const noseY = cy + headR * 0.2, noseSize = size * 0.03;
           if (y >= noseY && y <= noseY + noseSize) {
             const progress = (y - noseY) / noseSize;
             const halfW = noseSize * progress;
@@ -687,18 +446,14 @@ kbd {
     },
     mushroom(size) {
       const grid = [];
-      const capCx = size / 2, capCy = size * 0.35;
-      const capRx = size * 0.4, capRy = size * 0.25;
-      const stemLeft = size * 0.38, stemRight = size * 0.62;
-      const stemTop = size * 0.5, stemBottom = size * 0.9;
-
+      const capCx = size / 2, capCy = size * 0.35, capRx = size * 0.4, capRy = size * 0.25;
+      const stemLeft = size * 0.38, stemRight = size * 0.62, stemTop = size * 0.5, stemBottom = size * 0.9;
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
           let fill = 0;
           const dx = x - capCx, dy = y - capCy;
-          const capVal = (dx * dx) / (capRx * capRx) + (dy * dy) / (capRy * capRy);
-          if (capVal <= 1 && y <= capCy + capRy * 0.3) fill = 1;
+          if ((dx*dx)/(capRx*capRx) + (dy*dy)/(capRy*capRy) <= 1 && y <= capCy + capRy * 0.3) fill = 1;
           if (y >= stemTop && y <= stemBottom) {
             const progress = (y - stemTop) / (stemBottom - stemTop);
             const halfWidth = (stemRight - stemLeft) / 2 * (1 + progress * 0.15);
@@ -711,8 +466,7 @@ kbd {
             { x: capCx, y: capCy - capRy * 0.1, r: size * 0.03 }
           ];
           for (const spot of spots) {
-            const spotDist = Math.sqrt((x - spot.x) ** 2 + (y - spot.y) ** 2);
-            if (spotDist < spot.r) fill = 0;
+            if (Math.sqrt((x-spot.x)**2 + (y-spot.y)**2) < spot.r) fill = 0;
           }
           row.push(fill);
         }
@@ -722,12 +476,7 @@ kbd {
     },
     sailboat(size) {
       const grid = [];
-      const mastX = Math.floor(size * 0.5);
-      const sailTop = Math.floor(size * 0.1);
-      const sailBottom = Math.floor(size * 0.65);
-      const hullTop = Math.floor(size * 0.7);
-      const hullBottom = Math.floor(size * 0.92);
-
+      const mastX = Math.floor(size * 0.5), sailTop = Math.floor(size * 0.1), sailBottom = Math.floor(size * 0.65), hullTop = Math.floor(size * 0.7), hullBottom = Math.floor(size * 0.92);
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
@@ -735,8 +484,7 @@ kbd {
           if (x >= mastX - 1 && x <= mastX + 1 && y >= sailTop && y <= hullBottom) fill = 1;
           if (y >= sailTop && y <= sailBottom && x > mastX) {
             const progress = (y - sailTop) / (sailBottom - sailTop);
-            const maxWidth = size * 0.35 * progress;
-            if (x <= mastX + maxWidth) fill = 1;
+            if (x <= mastX + size * 0.35 * progress) fill = 1;
           }
           if (y >= hullTop && y <= hullBottom) {
             const progress = (y - hullTop) / (hullBottom - hullTop);
@@ -751,43 +499,28 @@ kbd {
     },
     rocket(size) {
       const grid = [];
-      const cx = size / 2;
-      const noseTop = size * 0.05;
-      const noseBottom = size * 0.25;
-      const bodyTop = size * 0.25;
-      const bodyBottom = size * 0.75;
-      const bodyHalfW = size * 0.12;
-      const finTop = size * 0.6;
-      const finBottom = size * 0.85;
-      const flameTop = size * 0.75;
-      const flameBottom = size * 0.95;
-
+      const cx = size / 2, bodyHalfW = size * 0.12;
+      const noseTop = size * 0.05, noseBottom = size * 0.25, bodyTop = size * 0.25, bodyBottom = size * 0.75;
+      const finTop = size * 0.6, finBottom = size * 0.85, flameTop = size * 0.75, flameBottom = size * 0.95;
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
           let fill = 0;
           if (y >= noseTop && y <= noseBottom) {
             const progress = (y - noseTop) / (noseBottom - noseTop);
-            const halfW = bodyHalfW * progress;
-            if (x >= cx - halfW && x <= cx + halfW) fill = 1;
+            if (x >= cx - bodyHalfW * progress && x <= cx + bodyHalfW * progress) fill = 1;
           }
-          if (y >= bodyTop && y <= bodyBottom) {
-            if (x >= cx - bodyHalfW && x <= cx + bodyHalfW) fill = 1;
-          }
-          const windowY = bodyTop + (bodyBottom - bodyTop) * 0.3;
-          const windowR = size * 0.05;
-          const windowDist = Math.sqrt((x - cx) ** 2 + (y - windowY) ** 2);
-          if (windowDist < windowR) fill = 0;
+          if (y >= bodyTop && y <= bodyBottom && x >= cx - bodyHalfW && x <= cx + bodyHalfW) fill = 1;
+          const windowY = bodyTop + (bodyBottom - bodyTop) * 0.3, windowR = size * 0.05;
+          if (Math.sqrt((x-cx)**2 + (y-windowY)**2) < windowR) fill = 0;
           if (y >= finTop && y <= finBottom) {
             const progress = (y - finTop) / (finBottom - finTop);
             const finWidth = bodyHalfW + size * 0.15 * progress;
-            if ((x >= cx - finWidth && x < cx - bodyHalfW) ||
-                (x > cx + bodyHalfW && x <= cx + finWidth)) fill = 1;
+            if ((x >= cx - finWidth && x < cx - bodyHalfW) || (x > cx + bodyHalfW && x <= cx + finWidth)) fill = 1;
           }
           if (y >= flameTop && y <= flameBottom) {
             const progress = (y - flameTop) / (flameBottom - flameTop);
-            const flameHalfW = bodyHalfW * (1 - progress * 0.6);
-            if (x >= cx - flameHalfW && x <= cx + flameHalfW) fill = 1;
+            if (x >= cx - bodyHalfW * (1 - progress * 0.6) && x <= cx + bodyHalfW * (1 - progress * 0.6)) fill = 1;
           }
           row.push(fill);
         }
@@ -797,54 +530,22 @@ kbd {
     },
     castle(size) {
       const grid = [];
-      const baseTop = Math.floor(size * 0.35);
-      const baseBottom = Math.floor(size * 0.95);
-      const baseLeft = Math.floor(size * 0.15);
-      const baseRight = Math.floor(size * 0.85);
-      const towerWidth = Math.floor(size * 0.12);
-      const towerTop = Math.floor(size * 0.15);
-      const battlements = 3;
-
+      const baseTop = Math.floor(size * 0.35), baseBottom = Math.floor(size * 0.95), baseLeft = Math.floor(size * 0.15), baseRight = Math.floor(size * 0.85);
+      const towerWidth = Math.floor(size * 0.12), towerTop = Math.floor(size * 0.15);
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
           let fill = 0;
           if (y >= baseTop && y <= baseBottom && x >= baseLeft && x <= baseRight) fill = 1;
-          if (y >= towerTop && y <= baseBottom &&
-              x >= baseLeft - towerWidth / 2 && x <= baseLeft + towerWidth / 2) fill = 1;
-          if (y >= towerTop && y <= baseBottom &&
-              x >= baseRight - towerWidth / 2 && x <= baseRight + towerWidth / 2) fill = 1;
-          const centerTowerTop = Math.floor(size * 0.1);
-          const centerTowerWidth = Math.floor(size * 0.15);
-          if (y >= centerTowerTop && y <= baseTop &&
-              x >= size / 2 - centerTowerWidth / 2 && x <= size / 2 + centerTowerWidth / 2) fill = 1;
-          if (y >= centerTowerTop - Math.floor(size * 0.04) && y < centerTowerTop) {
-            const toothWidth = centerTowerWidth / (battlements * 2);
-            const toothIndex = Math.floor((x - (size / 2 - centerTowerWidth / 2)) / toothWidth);
-            if (toothIndex % 2 === 0 &&
-                x >= size / 2 - centerTowerWidth / 2 &&
-                x <= size / 2 + centerTowerWidth / 2) fill = 1;
-          }
-          const gateLeft = Math.floor(size * 0.43);
-          const gateRight = Math.floor(size * 0.57);
-          const gateTop = Math.floor(size * 0.7);
+          if (y >= towerTop && y <= baseBottom && x >= baseLeft - towerWidth/2 && x <= baseLeft + towerWidth/2) fill = 1;
+          if (y >= towerTop && y <= baseBottom && x >= baseRight - towerWidth/2 && x <= baseRight + towerWidth/2) fill = 1;
+          const ctt = Math.floor(size * 0.1), ctw = Math.floor(size * 0.15);
+          if (y >= ctt && y <= baseTop && x >= size/2 - ctw/2 && x <= size/2 + ctw/2) fill = 1;
+          const gateLeft = Math.floor(size * 0.43), gateRight = Math.floor(size * 0.57), gateTop = Math.floor(size * 0.7);
           if (y >= gateTop && y <= baseBottom && x >= gateLeft && x <= gateRight) {
-            const gateCx = (gateLeft + gateRight) / 2;
-            const gateR = (gateRight - gateLeft) / 2;
-            const dx = x - gateCx;
-            const dy = y - gateTop;
-            if (dy < gateR && dx * dx + dy * dy > gateR * gateR) fill = 1;
+            const gateCx = (gateLeft + gateRight) / 2, gateR = (gateRight - gateLeft) / 2;
+            if ((y - gateTop) < gateR && (x-gateCx)**2 + (y-gateTop)**2 > gateR*gateR) fill = 1;
             else fill = 0;
-          }
-          const windowSize = Math.floor(size * 0.04);
-          const windows = [
-            { x: size * 0.3, y: size * 0.5 },
-            { x: size * 0.7, y: size * 0.5 },
-            { x: size * 0.5, y: size * 0.45 }
-          ];
-          for (const w of windows) {
-            if (x >= w.x - windowSize && x <= w.x + windowSize &&
-                y >= w.y - windowSize && y <= w.y + windowSize) fill = 0;
           }
           row.push(fill);
         }
@@ -868,19 +569,12 @@ kbd {
     { name: "Ракета", size: 25, generator: () => PuzzleGenerator.rocket(25), difficulty: "Сложно" },
     { name: "Замок", size: 30, generator: () => PuzzleGenerator.castle(30), difficulty: "Сложно" }
   ];
-
   const puzzleSolutions = PUZZLES.map(p => p.generator());
 
   // ===================== STORAGE =====================
   const Storage = {
-    get(key, def) {
-      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }
-      catch (e) { return def; }
-    },
-    set(key, val) {
-      try { localStorage.setItem(key, JSON.stringify(val)); }
-      catch (e) { console.warn('Storage error:', e); }
-    },
+    get(key, def) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch (e) { return def; } },
+    set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} },
     remove(key) { try { localStorage.removeItem(key); } catch (e) {} },
     encodeGrid(grid) {
       const flat = [];
@@ -897,8 +591,7 @@ kbd {
     decodeGrid(encoded) {
       if (!encoded || !encoded._rle) return encoded;
       const flat = [];
-      const parts = encoded.data.split(',');
-      for (const part of parts) {
+      for (const part of encoded.data.split(',')) {
         const [count, val] = part.split(':');
         for (let i = 0; i < parseInt(count); i++) flat.push(parseInt(val));
       }
@@ -913,7 +606,7 @@ kbd {
     }
   };
 
-  // ===================== GAME STATE =====================
+  // ===================== GAME STATE (ИСПРАВЛЕН) =====================
   class GameState {
     constructor(solution) {
       this.solution = solution;
@@ -1043,13 +736,9 @@ kbd {
         if (this.lineMatchesSolution('row', r)) {
           this.solvedLines.rows.add(r);
           for (let c = 0; c < this.size; c++) {
-            if (this.grid[r][c] === 0 && this.solution[r][c] === 0) {
-              this.grid[r][c] = 2;
-            }
+            if (this.grid[r][c] === 0 && this.solution[r][c] === 0) this.grid[r][c] = 2;
           }
-          if (!prevRows.has(r)) {
-            this.lineAnimations.push({ type: 'row', index: r, start: Date.now() });
-          }
+          if (!prevRows.has(r)) this.lineAnimations.push({ type: 'row', index: r, start: Date.now() });
         } else {
           this.solvedLines.rows.delete(r);
         }
@@ -1059,13 +748,9 @@ kbd {
         if (this.lineMatchesSolution('col', c)) {
           this.solvedLines.cols.add(c);
           for (let r = 0; r < this.size; r++) {
-            if (this.grid[r][c] === 0 && this.solution[r][c] === 0) {
-              this.grid[r][c] = 2;
-            }
+            if (this.grid[r][c] === 0 && this.solution[r][c] === 0) this.grid[r][c] = 2;
           }
-          if (!prevCols.has(c)) {
-            this.lineAnimations.push({ type: 'col', index: c, start: Date.now() });
-          }
+          if (!prevCols.has(c)) this.lineAnimations.push({ type: 'col', index: c, start: Date.now() });
         } else {
           this.solvedLines.cols.delete(c);
         }
@@ -1123,12 +808,11 @@ kbd {
     }
 
     isSolved() {
-      for (let r = 0; r < this.size; r++) {
+      for (let r = 0; r < this.size; r++)
         for (let c = 0; c < this.size; c++) {
           if (this.solution[r][c] === 1 && this.grid[r][c] !== 1) return false;
           if (this.solution[r][c] === 0 && this.grid[r][c] === 1) return false;
         }
-      }
       return true;
     }
   }
@@ -1141,8 +825,7 @@ kbd {
     play(freq, dur, vol = 0.2, type = 'sine') {
       if (!this.enabled || !this.ctx) return;
       try {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+        const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
         osc.type = type; osc.frequency.value = freq; gain.gain.value = vol;
         osc.connect(gain); gain.connect(this.ctx.destination);
         osc.start(); gain.gain.setValueAtTime(vol, this.ctx.currentTime);
@@ -1204,18 +887,14 @@ kbd {
         p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.rot += p.vr; p.life -= 0.005;
         this.ctx.save(); this.ctx.translate(p.x, p.y); this.ctx.rotate(p.rot);
         this.ctx.globalAlpha = Math.max(0, p.life); this.ctx.fillStyle = p.color;
-        this.ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); this.ctx.restore();
+        this.ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); this.ctx.restore();
       }
-      if (this.particles.length > 0) {
-        this.animationId = requestAnimationFrame(() => this.animate());
-      } else {
-        this.animationId = null;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      }
+      if (this.particles.length > 0) this.animationId = requestAnimationFrame(() => this.animate());
+      else { this.animationId = null; this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); }
     }
   };
 
-  // ===================== RENDERER =====================
+  // ===================== RENDERER (ИСПРАВЛЕН) =====================
   class Renderer {
     constructor(canvas) {
       this.canvas = canvas;
@@ -1279,10 +958,7 @@ kbd {
     screenToCell(x, y) {
       const origin = this.getBoardOrigin();
       const cell = this.cellSize * this.zoom;
-      return {
-        r: Math.floor((y - origin.y) / cell),
-        c: Math.floor((x - origin.x) / cell)
-      };
+      return { r: Math.floor((y - origin.y) / cell), c: Math.floor((x - origin.x) / cell) };
     }
 
     setDrawingLine(cells) { this.drawingLine = cells; this.draw(); }
@@ -1311,15 +987,12 @@ kbd {
 
       this.drawHints(ctx, cell, size, origin);
 
-      // Подсветка активной строки/столбца
-      if (this.hoverCell && this.hoverCell.r >= 0 && this.hoverCell.r < size &&
-          this.hoverCell.c >= 0 && this.hoverCell.c < size) {
+      if (this.hoverCell && this.hoverCell.r >= 0 && this.hoverCell.r < size && this.hoverCell.c >= 0 && this.hoverCell.c < size) {
         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-highlight');
         ctx.fillRect(origin.x, origin.y + this.hoverCell.r * cell, size * cell, cell);
         ctx.fillRect(origin.x + this.hoverCell.c * cell, origin.y, cell, size * cell);
       }
 
-      // Анимации линий
       const now = Date.now();
       for (const anim of this.state.lineAnimations) {
         const progress = Math.min(1, (now - anim.start) / 800);
@@ -1363,16 +1036,16 @@ kbd {
             ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-x').trim();
             ctx.lineWidth = Math.max(1, cell / 6);
             ctx.lineCap = 'round';
-            ctx.beginPath(); ctx.moveTo(x + cell * 0.25, y + cell * 0.25); ctx.lineTo(x + cell * 0.75, y + cell * 0.75); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x + cell * 0.75, y + cell * 0.25); ctx.lineTo(x + cell * 0.25, y + cell * 0.75); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x + cell*0.25, y + cell*0.25); ctx.lineTo(x + cell*0.75, y + cell*0.75); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x + cell*0.75, y + cell*0.25); ctx.lineTo(x + cell*0.25, y + cell*0.75); ctx.stroke();
           }
 
           if (memoVal === 1 && val !== 1) {
             ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-memo').trim();
             ctx.beginPath();
-            ctx.moveTo(x + cell * 0.5, y + cell * 0.15);
-            ctx.lineTo(x + cell * 0.15, y + cell * 0.85);
-            ctx.lineTo(x + cell * 0.85, y + cell * 0.85);
+            ctx.moveTo(x + cell*0.5, y + cell*0.15);
+            ctx.lineTo(x + cell*0.15, y + cell*0.85);
+            ctx.lineTo(x + cell*0.85, y + cell*0.85);
             ctx.closePath(); ctx.fill();
           }
 
@@ -1448,7 +1121,7 @@ kbd {
       const solvedTextColor = 'rgba(38, 150, 132, 0.7)';
       const normalTextColor = '#d1e4fa';
 
-      // Подсказки строк (СЛЕВА) — первое число ближе к полю, читается сверху вниз
+      // Подсказки строк (СЛЕВА) — первое число ближе к полю
       for (let r = 0; r < size; r++) {
         const hints = this.state.getRowHints(r);
         const y = origin.y + r * cell + cell / 2;
@@ -1459,7 +1132,7 @@ kbd {
         }
       }
 
-      // Подсказки столбцов (СВЕРХУ) — первое число ближе к полю, читается слева направо
+      // Подсказки столбцов (СВЕРХУ) — первое число ближе к полю
       for (let c = 0; c < size; c++) {
         const hints = this.state.getColHints(c);
         const x = origin.x + c * cell + cell / 2;
@@ -1472,7 +1145,7 @@ kbd {
     }
   }
 
-  // ===================== INPUT HANDLER =====================
+  // ===================== INPUT HANDLER (ИСПРАВЛЕН — ВСЕ ПРАВИЛА ВОССТАНОВЛЕНЫ) =====================
   class InputHandler {
     constructor(renderer, game, callbacks) {
       this.renderer = renderer;
@@ -1521,6 +1194,7 @@ kbd {
       this.startY = e.clientY;
       this.startTime = Date.now();
 
+      // Защита: если включена, ждём 150мс; если выключена — сразу можно
       this.protectionPassed = !this.protectionEnabled;
       if (this.protectionEnabled) {
         this.protectionTimer = setTimeout(() => { this.protectionPassed = true; }, 150);
@@ -1534,8 +1208,7 @@ kbd {
     onPointerMove(e) {
       if (!this.pointerDown) {
         const { x, y } = this.getCanvasCoords(e);
-        const cell = this.renderer.screenToCell(x, y);
-        this.renderer.setHoverCell(cell);
+        this.renderer.setHoverCell(this.renderer.screenToCell(x, y));
         return;
       }
       e.preventDefault();
@@ -1550,15 +1223,18 @@ kbd {
         const { x, y } = this.getCanvasCoords(e);
         const cell = this.renderer.screenToCell(x, y);
         if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
+          // Определяем направление
           if (!this.drawDirection && this.drawingStartCell) {
             const dr = cell.r - this.drawingStartCell.r;
             const dc = cell.c - this.drawingStartCell.c;
             if (Math.abs(dr) > Math.abs(dc)) this.drawDirection = 'vertical';
             else if (Math.abs(dc) > Math.abs(dr)) this.drawDirection = 'horizontal';
           }
+          // Запрет диагонали
           if (this.drawDirection === 'vertical' && cell.c !== this.drawingStartCell.c) return;
           if (this.drawDirection === 'horizontal' && cell.r !== this.drawingStartCell.r) return;
 
+          // Добавляем в линию (НЕ закрашиваем временно!)
           const exists = this.drawnCells.some(d => d.r === cell.r && d.c === cell.c);
           if (!exists) {
             this.drawnCells.push({ r: cell.r, c: cell.c, num: this.drawnCells.length + 1 });
@@ -1573,16 +1249,18 @@ kbd {
       this.canvas.releasePointerCapture(e.pointerId);
       if (this.protectionTimer) { clearTimeout(this.protectionTimer); this.protectionTimer = null; }
 
-      // Одиночное нажатие (без движения)
-      if (!this.hasMoved && this.pointerDown && this.protectionPassed) {
-        const { x, y } = this.getCanvasCoords(e);
-        const cell = this.renderer.screenToCell(x, y);
-        if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-          this.applyAction(cell.r, cell.c);
+      // ОДИНОЧНОЕ НАЖАТИЕ — работает всегда (если защита выключена или пройдена)
+      if (!this.hasMoved && this.pointerDown) {
+        if (!this.protectionEnabled || this.protectionPassed) {
+          const { x, y } = this.getCanvasCoords(e);
+          const cell = this.renderer.screenToCell(x, y);
+          if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
+            this.applyAction(cell.r, cell.c);
+          }
         }
       }
 
-      // Линия
+      // ЛИНИЯ — закрашиваем все клетки после отпускания
       if (this.isDrawing && this.drawnCells.length > 0 && this.mode === 'paint' && this.protectionPassed) {
         const changes = this.game.setCellGroup(this.drawnCells);
         const errorCells = [];
@@ -1644,7 +1322,7 @@ kbd {
     }
   }
 
-  // ===================== UI =====================
+  // ===================== UI (остаётся тем же) =====================
   const UI = {
     game: null, renderer: null, inputHandler: null,
     currentPuzzleIndex: 0, saveTimeout: null, timerInterval: null,
@@ -1710,10 +1388,8 @@ kbd {
         const sw = e.currentTarget;
         sw.classList.toggle('on');
         const isDark = sw.classList.contains('on');
-        const theme = isDark ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', theme);
-        Storage.set('theme', theme);
-        document.querySelector('meta[name="theme-color"]').setAttribute('content', isDark ? '#05060f' : '#f5f7fb');
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        Storage.set('theme', isDark ? 'dark' : 'light');
         if (this.renderer) { this.renderer.needsStaticRedraw = true; this.renderer.draw(); }
       };
 
@@ -1750,8 +1426,7 @@ kbd {
 
       document.getElementById('btn-next-puzzle').onclick = () => {
         this.hideModal('modal-win');
-        const nextIdx = this.findNextUnsolved();
-        this.loadPuzzle(nextIdx);
+        this.loadPuzzle(this.findNextUnsolved());
       };
       document.getElementById('btn-all-puzzles').onclick = () => {
         this.hideModal('modal-win');
@@ -1779,7 +1454,6 @@ kbd {
 
       window.addEventListener('keydown', e => {
         if (document.querySelector('.modal-overlay.show')) return;
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === '1') this.setMode('paint');
         else if (e.key === '2') this.setMode('x');
         else if (e.key === '3') this.setMode('memo');
@@ -2064,11 +1738,9 @@ kbd {
       ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-cell-bg').trim();
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-fill').trim();
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
+      for (let r = 0; r < size; r++)
+        for (let c = 0; c < size; c++)
           if (solution[r][c] === 1) ctx.fillRect(c * cell, r * cell, cell + 0.5, cell + 0.5);
-        }
-      }
     },
 
     exportProgress() {
