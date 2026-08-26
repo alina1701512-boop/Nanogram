@@ -351,7 +351,6 @@
       background: rgba(199, 211, 234, 0.06);
     }
 
-    /* Анимация конфетти */
     @keyframes confetti-fall {
       0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
       100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
@@ -605,10 +604,18 @@
         } 
       },
       set(key, val) { 
-        localStorage.setItem(key, JSON.stringify(val)); 
+        try {
+          localStorage.setItem(key, JSON.stringify(val)); 
+        } catch(e) {
+          console.error('Ошибка сохранения:', e);
+        }
       },
       remove(key) { 
-        localStorage.removeItem(key); 
+        try {
+          localStorage.removeItem(key); 
+        } catch(e) {
+          console.error('Ошибка удаления:', e);
+        }
       }
     };
 
@@ -740,23 +747,35 @@
       }
       
       autoFillLine(r, c) {
+        // Проверяем строку
         const rowHints = this.getLineHints(this.rows[r]);
         const rowFilled = this.grid[r].filter(v => v === 1).length;
         const rowTarget = rowHints.reduce((a, b) => a + b, 0);
         
-        if (rowFilled === rowTarget) {
+        // Проверяем, что все закрашенные клетки правильные
+        const allRowCorrect = this.grid[r].every((v, i) => 
+          v !== 1 || this.rows[r][i] === 1
+        );
+        
+        if (rowFilled === rowTarget && allRowCorrect) {
           for (let i = 0; i < this.size; i++) {
             if (this.grid[r][i] === 0) this.grid[r][i] = 2;
           }
         }
         
+        // Проверяем столбец
         const colVals = [];
         for (let i = 0; i < this.size; i++) colVals.push(this.rows[i][c]);
         const colHints = this.getLineHints(colVals);
         const colFilled = this.grid.filter(row => row[c] === 1).length;
         const colTarget = colHints.reduce((a, b) => a + b, 0);
         
-        if (colFilled === colTarget) {
+        // Проверяем, что все закрашенные клетки правильные
+        const allColCorrect = this.grid.every((row, i) => 
+          row[c] !== 1 || this.rows[i][c] === 1
+        );
+        
+        if (colFilled === colTarget && allColCorrect) {
           for (let i = 0; i < this.size; i++) {
             if (this.grid[i][c] === 0) this.grid[i][c] = 2;
           }
@@ -804,10 +823,15 @@
       }
       
       isSolved() { 
-        for (let r = 0; r < this.size; r++) 
-          for (let c = 0; c < this.size; c++) 
-            if (this.grid[r][c] !== this.rows[r][c]) return false; 
-        return true; 
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            // Клетка должна быть закрашена ТОЛЬКО если в эталоне 1
+            if (this.rows[r][c] === 1 && this.grid[r][c] !== 1) return false;
+            // Клетка не должна быть закрашена если в эталоне 0
+            if (this.rows[r][c] === 0 && this.grid[r][c] === 1) return false;
+          }
+        }
+        return true;
       }
     }
 
@@ -818,21 +842,27 @@
       init() { 
         try { 
           this.ctx = new (window.AudioContext || window.webkitAudioContext)(); 
-        } catch(e) {} 
+        } catch(e) {
+          console.warn('WebAudio API не поддерживается');
+        } 
       },
       play(freq, dur, vol = 0.3) {
         if (!this.enabled || !this.ctx) return;
-        const osc = this.ctx.createOscillator(); 
-        const gain = this.ctx.createGain();
-        osc.type = 'sine'; 
-        osc.frequency.value = freq; 
-        gain.gain.value = vol;
-        osc.connect(gain); 
-        gain.connect(this.ctx.destination);
-        osc.start(); 
-        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
-        osc.stop(this.ctx.currentTime + dur);
+        try {
+          const osc = this.ctx.createOscillator(); 
+          const gain = this.ctx.createGain();
+          osc.type = 'sine'; 
+          osc.frequency.value = freq; 
+          gain.gain.value = vol;
+          osc.connect(gain); 
+          gain.connect(this.ctx.destination);
+          osc.start(); 
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+          osc.stop(this.ctx.currentTime + dur);
+        } catch(e) {
+          console.warn('Ошибка воспроизведения звука:', e);
+        }
       },
       tap() { this.play(600, 0.03, 0.3); },
       error() { this.play(200, 0.1, 0.3); },
@@ -844,7 +874,13 @@
     const Haptics = {
       enabled: true,
       vibrate(pattern) { 
-        if (this.enabled && 'vibrate' in navigator) navigator.vibrate(pattern); 
+        if (this.enabled && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate(pattern);
+          } catch(e) {
+            console.warn('Ошибка вибрации:', e);
+          }
+        }
       },
       tap() { this.vibrate(10); },
       error() { this.vibrate([50,30,50]); },
@@ -863,13 +899,17 @@
         this.cellSize = 30; 
         this.state = null;
         this.animations = [];
-        this.drawingLine = null; // Для отображения номеров при рисовании
+        this.drawingLine = null;
+        this.staticCanvas = document.createElement('canvas');
+        this.staticCtx = this.staticCanvas.getContext('2d');
+        this.needsStaticRedraw = true;
       }
       
       setState(state) { 
         this.state = state; 
         this.computeSizes(); 
         this.fitBoard(); 
+        this.needsStaticRedraw = true;
         this.draw(); 
       }
       
@@ -878,21 +918,47 @@
         const w = wrap.clientWidth - 20;
         const h = wrap.clientHeight - 20;
         const size = this.state.size;
-        const hintSpace = 80;
+        
+        // Динамически вычисляем пространство для подсказок
+        const maxHints = this.getMaxHints();
+        const hintSpace = Math.max(40, maxHints * 15);
+        
         const availableW = w - hintSpace;
         const availableH = h - hintSpace;
         this.cellSize = Math.min(availableW / size, availableH / size);
-        this.cellSize = Math.max(8, Math.min(35, this.cellSize));
+        this.cellSize = Math.max(6, Math.min(30, this.cellSize));
+        
         this.canvas.width = w;
         this.canvas.height = h;
+        this.staticCanvas.width = w;
+        this.staticCanvas.height = h;
+      }
+      
+      getMaxHints() {
+        if (!this.state) return 5;
+        let maxHints = 0;
+        for (let r = 0; r < this.state.size; r++) {
+          const hints = this.state.getLineHints(this.state.rows[r]);
+          maxHints = Math.max(maxHints, hints.length);
+        }
+        for (let c = 0; c < this.state.size; c++) {
+          const colVals = [];
+          for (let r = 0; r < this.state.size; r++) colVals.push(this.state.rows[r][c]);
+          const hints = this.state.getLineHints(colVals);
+          maxHints = Math.max(maxHints, hints.length);
+        }
+        return maxHints;
       }
       
       fitBoard() {
         const size = this.state.size;
         const boardW = size * this.cellSize;
         const boardH = size * this.cellSize;
-        this.offsetX = (this.canvas.width - boardW) / 2 + 40;
-        this.offsetY = (this.canvas.height - boardH) / 2 + 40;
+        const maxHints = this.getMaxHints();
+        const hintSpace = Math.max(40, maxHints * 15);
+        
+        this.offsetX = (this.canvas.width - boardW) / 2 + hintSpace / 2;
+        this.offsetY = (this.canvas.height - boardH) / 2 + hintSpace / 2;
         this.zoom = 1;
       }
       
@@ -968,17 +1034,39 @@
       draw() {
         const ctx = this.ctx; 
         const w = this.canvas.width, h = this.canvas.height;
-        ctx.clearRect(0, 0, w, h);
+        
         if (!this.state) return;
+        
+        // Рисуем статическую часть если нужно
+        if (this.needsStaticRedraw) {
+          this.drawStatic();
+          this.needsStaticRedraw = false;
+        }
+        
+        // Копируем статическую часть
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(this.staticCanvas, 0, 0);
+        
+        // Рисуем динамические элементы
+        this.drawDynamic();
+      }
+      
+      drawStatic() {
+        const ctx = this.staticCtx;
+        const w = this.canvas.width, h = this.canvas.height;
+        ctx.clearRect(0, 0, w, h);
         
         const cell = this.cellSize * this.zoom;
         const size = this.state.size;
         
+        // Фон
         ctx.fillStyle = 'rgba(186, 214, 247, 0.03)';
         ctx.fillRect(0, 0, w, h);
         
+        // Подсказки
         this.drawHints(ctx, cell, size);
         
+        // Клетки
         for (let r = 0; r < size; r++) {
           for (let c = 0; c < size; c++) {
             const x = c * cell + this.offsetX;
@@ -993,23 +1081,29 @@
             const rowSolved = this.state.solvedLines.rows.has(r);
             const colSolved = this.state.solvedLines.cols.has(c);
             
+            // Фон клетки
             ctx.fillStyle = 'rgba(199, 211, 234, 0.06)';
             ctx.fillRect(x, y, cell, cell);
             
+            // Подсветка решённых линий
             if (rowSolved || colSolved) {
               ctx.fillStyle = 'rgba(38, 150, 132, 0.15)';
               ctx.fillRect(x, y, cell, cell);
             }
             
+            // Подсказка
             if (hasHint) {
               ctx.fillStyle = 'rgba(0, 200, 255, 0.7)';
               ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
             }
             
+            // Закрашенная клетка
             if (val === 1) {
               ctx.fillStyle = '#000000';
               ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
-            } else if (val === 2) {
+            } 
+            // Крестик
+            else if (val === 2) {
               ctx.strokeStyle = '#9da7ba';
               ctx.lineWidth = Math.max(1, cell / 6);
               ctx.beginPath(); 
@@ -1022,6 +1116,7 @@
               ctx.stroke();
             }
             
+            // Memo
             if (memoVal === 1) {
               ctx.fillStyle = '#ff0000';
               ctx.beginPath();
@@ -1032,6 +1127,7 @@
               ctx.fill();
             }
             
+            // Дробь
             if (fractionVal) {
               ctx.fillStyle = '#ff8c00';
               ctx.beginPath();
@@ -1042,12 +1138,14 @@
               ctx.fillRect(x + cell * 0.3, y + cell * 0.45, cell * 0.4, cell * 0.1);
             }
             
+            // Границы клеток
             if (cell > 5) {
               ctx.strokeStyle = 'rgba(182, 217, 252, 0.3)';
               ctx.lineWidth = 0.5;
               ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
             }
             
+            // Жирные линии каждые 5 клеток
             if ((r + 1) % 5 === 0 || (c + 1) % 5 === 0) {
               ctx.strokeStyle = '#027dea';
               ctx.lineWidth = 2;
@@ -1067,7 +1165,22 @@
           }
         }
         
-        // Отображение номеров при рисовании линии
+        // Внешняя граница
+        ctx.strokeStyle = '#027dea';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(
+          this.offsetX, 
+          this.offsetY, 
+          size * cell, 
+          size * cell
+        );
+      }
+      
+      drawDynamic() {
+        const ctx = this.ctx;
+        const cell = this.cellSize * this.zoom;
+        
+        // Отображение номеров при рисовании
         if (this.drawingLine) {
           this.drawingLine.forEach(({r, c, num}) => {
             const x = c * cell + this.offsetX;
@@ -1080,15 +1193,7 @@
           });
         }
         
-        ctx.strokeStyle = '#027dea';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(
-          this.offsetX, 
-          this.offsetY, 
-          size * cell, 
-          size * cell
-        );
-        
+        // Выделение ошибок
         if (this.errorCells) {
           this.errorCells.forEach(([r,c]) => {
             const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
@@ -1099,11 +1204,30 @@
       }
       
       drawHints(ctx, cell, size) {
-        ctx.fillStyle = '#d1e4fa';
-        ctx.font = `${Math.max(7, cell * 0.55)}px 'Inter', system-ui`;
+        // Находим максимальное количество подсказок
+        let maxRowHints = 0;
+        let maxColHints = 0;
+        
+        for (let r = 0; r < size; r++) {
+          const hints = this.state.getLineHints(this.state.rows[r]);
+          maxRowHints = Math.max(maxRowHints, hints.length);
+        }
+        
+        for (let c = 0; c < size; c++) {
+          const colVals = [];
+          for (let r = 0; r < size; r++) colVals.push(this.state.rows[r][c]);
+          const hints = this.state.getLineHints(colVals);
+          maxColHints = Math.max(maxColHints, hints.length);
+        }
+        
+        const maxHints = Math.max(maxRowHints, maxColHints);
+        const hintSize = Math.max(6, Math.min(cell * 0.6, 25 / maxHints));
+        
+        ctx.font = `${hintSize}px 'Inter', system-ui`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
+        // Подсказки для строк
         for (let r = 0; r < size; r++) {
           const hints = this.state.getLineHints(this.state.rows[r]);
           let x = this.offsetX - 8;
@@ -1115,17 +1239,21 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
-          hints.forEach(hint => {
-            ctx.fillText(hint, x, y);
-            x -= cell * 0.6;
+          // Отображаем слева направо
+          hints.forEach((hint, index) => {
+            const hintX = x - index * hintSize * 1.2;
+            ctx.fillText(hint, hintX, y);
           });
         }
         
+        // Подсказки для столбцов (сверху вниз)
         for (let c = 0; c < size; c++) {
           const colVals = [];
           for (let r = 0; r < size; r++) colVals.push(this.state.rows[r][c]);
           const hints = this.state.getLineHints(colVals);
-          let y = this.offsetY - 8;
+          
+          // Начинаем снизу, чтобы первая подсказка была ближе к полю
+          let y = this.offsetY - 8 - (hints.length - 1) * hintSize * 1.2;
           let x = c * cell + this.offsetX + cell / 2;
           
           if (this.state.solvedLines.cols.has(c)) {
@@ -1134,9 +1262,10 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
-          hints.forEach(hint => {
-            ctx.fillText(hint, x, y);
-            y -= cell * 0.6;
+          // Отображаем сверху вниз
+          hints.forEach((hint, index) => {
+            const hintY = y + index * hintSize * 1.2;
+            ctx.fillText(hint, x, hintY);
           });
         }
       }
@@ -1208,6 +1337,7 @@
           const cell = this.renderer.screenToCell(x, y);
           
           if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
+            // Проверяем, что двигаемся только по прямой
             if (this.lastCell) {
               const sameRow = cell.r === this.lastCell.r;
               const sameCol = cell.c === this.lastCell.c;
@@ -1219,8 +1349,10 @@
               this.drawnCells.push({r: cell.r, c: cell.c, num: this.drawnCells.length + 1});
               this.applyAction(cell.r, cell.c);
               
-              // Обновляем отображение номеров
-              this.renderer.setDrawingLine(this.drawnCells);
+              // Показываем номера только при закрашивании
+              if (this.mode === 'paint') {
+                this.renderer.setDrawingLine(this.drawnCells);
+              }
             }
             this.lastCell = cell;
           }
@@ -1308,13 +1440,19 @@
       renderer: null, 
       inputHandler: null,
       currentSheetIndex: 0,
+      saveTimeout: null,
       
       init() {
-        SoundManager.init();
-        this.renderer = new Renderer(document.getElementById('game-canvas'));
-        this.bindEvents();
-        this.showSheetSelector();
-        this.loadSheet(0);
+        try {
+          SoundManager.init();
+          this.renderer = new Renderer(document.getElementById('game-canvas'));
+          this.bindEvents();
+          this.showSheetSelector();
+          this.loadSheet(0);
+        } catch (error) {
+          console.error('Ошибка инициализации:', error);
+          alert('Произошла ошибка. Пожалуйста, обновите страницу.');
+        }
       },
       
       bindEvents() {
@@ -1369,12 +1507,24 @@
         const sheet = dragonSheets[index];
         this.game = new GameState(sheet.rows);
         this.game.puzzleName = sheet.name;
+        
+        // Восстанавливаем прогресс
+        const progress = Storage.get('dragonProgress', {});
+        if (progress[index] && progress[index].grid) {
+          this.game.grid = progress[index].grid;
+          this.game.memoGrid = progress[index].memoGrid || Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
+          this.game.fractionGrid = progress[index].fractionGrid || Array(this.game.size).fill().map(() => Array(this.game.size).fill(false));
+          this.game.errors = progress[index].errors || 0;
+          if (progress[index].solved) this.game.solved = true;
+        }
+        
         this.renderer.setState(this.game);
         
         this.inputHandler = new InputHandler(this.renderer, this.game, {
           onUpdate: () => {
             this.renderer.draw();
             this.updateMemoButton();
+            this.debouncedSave();
           },
           onError: (r, c) => { 
             this.renderer.errorCells = [[r, c]]; 
@@ -1386,7 +1536,10 @@
             SoundManager.error(); 
           },
           onWin: () => this.winSheet(),
-          onMemoChange: () => this.updateMemoButton()
+          onMemoChange: () => {
+            this.updateMemoButton();
+            this.debouncedSave();
+          }
         });
         
         this.renderer.draw();
@@ -1394,7 +1547,13 @@
         this.startTimer();
         this.updateStats();
         this.updateMemoButton();
-        this.saveProgress();
+      },
+      
+      debouncedSave() {
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(() => {
+          this.saveProgress();
+        }, 500);
       },
       
       updateTitle() { 
@@ -1432,8 +1591,6 @@
         this.game.solved = true;
         SoundManager.win(); 
         Haptics.win();
-        
-        const timeSeconds = (Date.now() - this.game.startTime) / 1000;
         
         this.showModal('modal-win');
         document.getElementById('win-stats').innerHTML = 
@@ -1477,6 +1634,8 @@
         progress[this.currentSheetIndex] = {
           solved: solved || this.game.solved,
           grid: this.game.grid,
+          memoGrid: this.game.memoGrid,
+          fractionGrid: this.game.fractionGrid,
           errors: this.game.errors
         };
         Storage.set('dragonProgress', progress);
@@ -1486,6 +1645,7 @@
         if (this.game.undo()) { 
           this.renderer.draw(); 
           this.updateMemoButton();
+          this.debouncedSave();
           SoundManager.mode(); 
         } 
       },
@@ -1494,6 +1654,7 @@
         if (this.game.redo()) { 
           this.renderer.draw(); 
           this.updateMemoButton();
+          this.debouncedSave();
           SoundManager.mode(); 
         } 
       },
@@ -1508,6 +1669,7 @@
           this.game.solvedLines.cols.clear();
           this.renderer.draw();
           this.updateMemoButton();
+          this.debouncedSave();
         }
       },
       
@@ -1516,6 +1678,7 @@
           this.game.clearAllMemos();
           this.renderer.draw();
           this.updateMemoButton();
+          this.debouncedSave();
         }
       },
       
@@ -1615,6 +1778,7 @@
       if (UI.renderer && UI.game) { 
         UI.renderer.computeSizes(); 
         UI.renderer.fitBoard(); 
+        UI.renderer.needsStaticRedraw = true;
         UI.renderer.draw(); 
       } 
     });
