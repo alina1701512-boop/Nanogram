@@ -679,6 +679,46 @@
         this.memoGrid[r][c] = val;
       }
       
+      // Групповое действие для линии
+      setCellGroup(cells, record = true) {
+        if (record) {
+          const groupHistory = cells.map(({r, c}) => ({
+            r, c, 
+            prev: this.grid[r][c], 
+            next: this.grid[r][c] === 1 ? 0 : 1,
+            prevMemo: this.memoGrid[r][c],
+            nextMemo: this.memoGrid[r][c],
+            isGroup: true,
+            groupSize: cells.length
+          }));
+          
+          this.history.push({
+            type: 'group',
+            cells: groupHistory
+          });
+          
+          if (this.history.length > 200) this.history.shift();
+          this.redoStack = [];
+        }
+        
+        // Применяем изменения
+        cells.forEach(({r, c}) => {
+          const newVal = this.grid[r][c] === 1 ? 0 : 1;
+          this.grid[r][c] = newVal;
+          
+          if (newVal === 1) {
+            const hintKey = `${r},${c}`;
+            if (this.hintCells.has(hintKey)) {
+              this.hintCells.delete(hintKey);
+            }
+          }
+          
+          this.autoFillLine(r, c);
+        });
+        
+        this.checkSolvedLines();
+      }
+      
       clearAllMemos() {
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
@@ -771,10 +811,21 @@
       
       undo() { 
         if (this.history.length) { 
-          const last = this.history.pop(); 
-          this.grid[last.r][last.c] = last.prev; 
-          this.memoGrid[last.r][last.c] = last.prevMemo;
-          this.redoStack.push(last);
+          const last = this.history.pop();
+          
+          if (last.type === 'group') {
+            // Отменяем группу
+            last.cells.forEach(({r, c, prev, prevMemo}) => {
+              this.grid[r][c] = prev;
+              this.memoGrid[r][c] = prevMemo;
+            });
+            this.redoStack.push(last);
+          } else {
+            this.grid[last.r][last.c] = last.prev; 
+            this.memoGrid[last.r][last.c] = last.prevMemo;
+            this.redoStack.push(last);
+          }
+          
           this.checkSolvedLines();
           return true; 
         } 
@@ -783,10 +834,21 @@
       
       redo() { 
         if (this.redoStack.length) { 
-          const last = this.redoStack.pop(); 
-          this.grid[last.r][last.c] = last.next; 
-          this.memoGrid[last.r][last.c] = last.nextMemo;
-          this.history.push(last);
+          const last = this.redoStack.pop();
+          
+          if (last.type === 'group') {
+            // Повторяем группу
+            last.cells.forEach(({r, c, next, nextMemo}) => {
+              this.grid[r][c] = next;
+              this.memoGrid[r][c] = nextMemo;
+            });
+            this.history.push(last);
+          } else {
+            this.grid[last.r][last.c] = last.next; 
+            this.memoGrid[last.r][last.c] = last.nextMemo;
+            this.history.push(last);
+          }
+          
           this.checkSolvedLines();
           return true; 
         } 
@@ -944,59 +1006,6 @@
       clearDrawingLine() {
         this.drawingLine = null;
         this.draw();
-      }
-      
-      animateCellFill(r, c) {
-        const cell = this.cellSize * this.zoom;
-        const x = c * cell + this.offsetX;
-        const y = r * cell + this.offsetY;
-        
-        this.animations.push({
-          type: 'fill',
-          r, c,
-          x, y,
-          cell,
-          startTime: performance.now(),
-          duration: 200
-        });
-        
-        if (!this.animationRunning) {
-          this.animationRunning = true;
-          this.runAnimations();
-        }
-      }
-      
-      runAnimations() {
-        const now = performance.now();
-        let hasActiveAnimations = false;
-        
-        this.animations = this.animations.filter(anim => {
-          const progress = Math.min(1, (now - anim.startTime) / anim.duration);
-          
-          if (progress < 1) {
-            hasActiveAnimations = true;
-          }
-          
-          if (anim.type === 'fill') {
-            const scale = 0.5 + (progress * 0.5);
-            this.ctx.fillStyle = '#000000';
-            this.ctx.fillRect(
-              anim.x + (anim.cell - anim.cell * scale) / 2,
-              anim.y + (anim.cell - anim.cell * scale) / 2,
-              anim.cell * scale,
-              anim.cell * scale
-            );
-          }
-          
-          return progress < 1;
-        });
-        
-        if (hasActiveAnimations) {
-          requestAnimationFrame(() => this.runAnimations());
-        } else {
-          this.animationRunning = false;
-          this.draw();
-        }
       }
       
       draw() {
@@ -1164,6 +1173,7 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
+        // Подсказки для строк (слева направо)
         for (let r = 0; r < size; r++) {
           const hints = this.state.getLineHints(this.state.rows[r]);
           let x = this.offsetX - 8;
@@ -1175,18 +1185,21 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
+          // Первое число ближе к полю
           hints.forEach((hint, index) => {
             const hintX = x - index * hintSize * 1.2;
             ctx.fillText(hint, hintX, y);
           });
         }
         
+        // Подсказки для столбцов (сверху вниз)
         for (let c = 0; c < size; c++) {
           const colVals = [];
           for (let r = 0; r < size; r++) colVals.push(this.state.rows[r][c]);
           const hints = this.state.getLineHints(colVals);
           
-          let y = this.offsetY - 8 - (hints.length - 1) * hintSize * 1.2;
+          // Первое число ближе к полю
+          let y = this.offsetY - 8;
           let x = c * cell + this.offsetX + cell / 2;
           
           if (this.state.solvedLines.cols.has(c)) {
@@ -1195,8 +1208,9 @@
             ctx.fillStyle = '#d1e4fa';
           }
           
+          // Отображаем сверху вниз (первое число ближе к полю)
           hints.forEach((hint, index) => {
-            const hintY = y + index * hintSize * 1.2;
+            const hintY = y - index * hintSize * 1.2;
             ctx.fillText(hint, x, hintY);
           });
         }
@@ -1221,7 +1235,7 @@
         this.hasMoved = false;
         this.drawnCells = [];
         this.drawingStartCell = null;
-        this.drawDirection = null; // 'horizontal' или 'vertical'
+        this.drawDirection = null;
         
         this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
@@ -1271,7 +1285,7 @@
           const cell = this.renderer.screenToCell(x, y);
           
           if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-            // Определяем направление движения при первом движении
+            // Определяем направление
             if (!this.drawDirection && this.drawingStartCell) {
               const dr = cell.r - this.drawingStartCell.r;
               const dc = cell.c - this.drawingStartCell.c;
@@ -1283,25 +1297,24 @@
               }
             }
             
-            // Проверяем, что двигаемся в правильном направлении
+            // Проверяем направление
             if (this.drawDirection === 'vertical') {
-              // Двигаемся только по вертикали
-              if (cell.c !== this.drawingStartCell.c) {
-                return; // Игнорируем движение в сторону
-              }
+              if (cell.c !== this.drawingStartCell.c) return;
             } else if (this.drawDirection === 'horizontal') {
-              // Двигаемся только по горизонтали
-              if (cell.r !== this.drawingStartCell.r) {
-                return; // Игнорируем движение в сторону
-              }
+              if (cell.r !== this.drawingStartCell.r) return;
             }
             
             const cellKey = `${cell.r},${cell.c}`;
             if (!this.drawnCells.some(d => d.r === cell.r && d.c === cell.c)) {
               this.drawnCells.push({r: cell.r, c: cell.c, num: this.drawnCells.length + 1});
-              this.applyAction(cell.r, cell.c);
               
+              // Временно закрашиваем для отображения
               if (this.mode === 'paint') {
+                // Если клетка уже закрашена - оставляем закрашенной
+                // Если не закрашена - закрашиваем
+                if (this.game.getCell(cell.r, cell.c) !== 1) {
+                  this.game.grid[cell.r][cell.c] = 1;
+                }
                 this.renderer.setDrawingLine(this.drawnCells);
               }
             }
@@ -1313,7 +1326,27 @@
       onPointerUp(e) {
         e.preventDefault();
         
-        if (!this.hasMoved && this.pointerDown) {
+        if (this.isDrawing && this.drawnCells.length > 0) {
+          // Групповое действие для всей линии
+          this.game.setCellGroup(this.drawnCells);
+          
+          // Проверяем ошибки
+          this.drawnCells.forEach(({r, c}) => {
+            if (this.game.grid[r][c] === 1 && this.game.rows[r][c] !== 1) {
+              this.game.errors++;
+            }
+          });
+          
+          if (this.game.isSolved()) {
+            this.cb.onWin();
+          } else {
+            this.cb.onUpdate();
+          }
+          
+          Haptics.tap(); 
+          SoundManager.tap();
+        } else if (!this.hasMoved && this.pointerDown) {
+          // Одиночное нажатие
           const elapsed = Date.now() - this.startTime;
           const rect = this.canvas.getBoundingClientRect();
           const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
@@ -1347,7 +1380,6 @@
           const cur = this.game.getCell(r, c);
           const newVal = cur === 1 ? 0 : 1;
           this.game.setCell(r, c, newVal);
-          this.renderer.animateCellFill(r, c);
           Haptics.tap(); 
           SoundManager.tap();
           
