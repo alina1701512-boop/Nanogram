@@ -73,7 +73,6 @@
       position: relative;
     }
 
-    /* Верхняя панель */
     #top-bar { 
       display: flex; 
       align-items: center; 
@@ -134,7 +133,6 @@
       color: var(--color-moon-mist);
     }
 
-    /* Канвас контейнер */
     #canvas-wrap { 
       flex: 1; 
       position: relative; 
@@ -157,7 +155,6 @@
       border-radius: 8px; 
     }
 
-    /* Нижняя панель */
     #bottom-bar { 
       display: flex; 
       gap: 6px; 
@@ -203,7 +200,6 @@
       font-size: 18px; 
     }
 
-    /* Модальные окна */
     .modal-overlay { 
       position: fixed; 
       inset: 0; 
@@ -257,7 +253,6 @@
       color: var(--color-frost-glow); 
     }
 
-    /* Список уровней */
     .level-group { 
       margin-bottom: 18px; 
     }
@@ -281,9 +276,14 @@
       padding: 8px; 
       box-shadow: var(--shadow-subtle); 
       cursor: pointer; 
-      transition: all 0.15s; 
+      transition: all 0.3s; 
       text-align: center; 
       border: 1px solid var(--color-glass-edge);
+    }
+    
+    .level-card:hover { 
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
     
     .level-card:active { 
@@ -313,12 +313,17 @@
       border: 2px solid #269684; 
     }
     
+    .level-card .stars {
+      color: #ffd700;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    
     .checkmark { 
       color: #269684; 
       font-size: 18px; 
     }
 
-    /* Кнопки в модалках */
     .action-row { 
       display: flex; 
       gap: 10px; 
@@ -338,8 +343,12 @@
       align-items: center; 
       gap: 6px; 
       color: var(--color-frost-glow); 
-      transition: all 0.2s; 
+      transition: all 0.3s; 
       backdrop-filter: blur(10px);
+    }
+    
+    .action-btn:hover {
+      background: var(--color-steel-plate);
     }
     
     .action-btn.primary { 
@@ -348,11 +357,14 @@
       box-shadow: 0 0 12px rgba(102, 58, 243, 0.5);
     }
     
+    .action-btn.primary:hover {
+      background: #7c5af5;
+    }
+    
     .action-btn:active { 
       transform: scale(0.95); 
     }
 
-    /* Редактор */
     .editor-grid { 
       display: flex; 
       gap: 15px; 
@@ -393,7 +405,6 @@
       color: var(--color-moon-mist);
     }
 
-    /* Превью в модальном окне */
     #preview-container {
       margin-top: 16px;
       padding: 16px;
@@ -414,7 +425,50 @@
       border-radius: 8px;
     }
 
-    /* Адаптивность */
+    /* Статистика */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .stat-card {
+      background: rgba(186, 214, 247, 0.03);
+      border-radius: var(--radius-cards);
+      padding: 16px;
+      text-align: center;
+      border: 1px solid var(--color-glass-edge);
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--color-ice-highlight);
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--color-moon-mist);
+    }
+
+    /* Анимации */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .modal.show {
+      animation: fadeIn 0.3s ease-out;
+    }
+
     @media (max-width: 600px) {
       .bottom-btn { 
         font-size: 13px; 
@@ -451,9 +505,10 @@
     <button class="bottom-btn active" data-mode="paint">⬛ Закрасить</button>
     <button class="bottom-btn" data-mode="x">✕ Крестик</button>
     <button class="bottom-btn" data-mode="memo">🔺 Memo</button>
+    <button class="bottom-btn" data-mode="memo-fraction">½ Дробь</button>
+    <button class="bottom-btn small" id="btn-clear-memo" aria-label="Удалить memo" style="display:none;">🗑</button>
     <button class="bottom-btn small" id="btn-undo" aria-label="Отменить">↺</button>
     <button class="bottom-btn small" id="btn-redo" aria-label="Повторить">↻</button>
-    <button class="bottom-btn small" id="btn-clear-memo" aria-label="Удалить memo" style="display:none;">🗑</button>
     <button class="bottom-btn small" id="btn-clear" aria-label="Очистить всё">✕</button>
     <button class="bottom-btn small" id="btn-hint" aria-label="Подсказка">💡</button>
   </div>
@@ -465,8 +520,10 @@
     <button class="modal-close" data-close="modal-menu">×</button>
     <h2>Меню</h2>
     <button class="action-btn" id="btn-levels">📚 Выбор уровня</button>
+    <button class="action-btn" id="btn-daily">📅 Ежедневное задание</button>
     <button class="action-btn" id="btn-editor">🎨 Редактор</button>
     <button class="action-btn" id="btn-generate">✨ Сгенерировать</button>
+    <button class="action-btn" id="btn-stats">📊 Статистика</button>
     <button class="action-btn" id="btn-settings">⚙️ Настройки</button>
   </div>
 </div>
@@ -481,6 +538,41 @@
       <h3>Превью</h3>
       <canvas id="preview-canvas"></canvas>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-daily">
+  <div class="modal">
+    <button class="modal-close" data-close="modal-daily">×</button>
+    <h2>📅 Ежедневное задание</h2>
+    <div id="daily-info"></div>
+    <button class="action-btn primary" id="btn-play-daily">▶ Играть</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-stats">
+  <div class="modal">
+    <button class="modal-close" data-close="modal-stats">×</button>
+    <h2>📊 Статистика</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-solved">0</div>
+        <div class="stat-label">Решено пазлов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Всего пазлов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-best-time">--:--</div>
+        <div class="stat-label">Лучшее время</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-avg-errors">0</div>
+        <div class="stat-label">Среднее ошибок</div>
+      </div>
+    </div>
+    <div id="stats-chart" style="margin-top: 20px;"></div>
   </div>
 </div>
 
@@ -556,19 +648,19 @@
 
     // ===================== PUZZLE_DATA =====================
     const PUZZLES = [
-      { name: "Сердечко", size: 5, difficulty: 1, rows: ["01100","11110","11110","01110","00100"] },
-      { name: "Крестик", size: 5, difficulty: 1, rows: ["10001","01010","00100","01010","10001"] },
-      { name: "Стрелка вверх", size: 5, difficulty: 1, rows: ["00100","01110","00100","00100","00100"] },
-      { name: "Котик (мордочка)", size: 10, difficulty: 2, rows: ["0000000000","0100100100","0100100100","0000000000","0111111110","0100000010","0101111010","0100000010","0011111100","0000000000"] },
-      { name: "Цветок", size: 10, difficulty: 2, rows: ["0011001100","0111111110","1111111111","0111111110","0011111100","0001111000","0000110000","0000110000","0000110000","0001111000"] },
-      { name: "Звезда", size: 10, difficulty: 2, rows: ["0000110000","0000110000","1111111111","0011111100","0011111100","0111111110","1100110011","0011001100","0010000100","0100000010"] },
-      { name: "Чашка кофе", size: 10, difficulty: 2, rows: ["0000000000","0111111100","0110001100","0110001100","0111111100","0011111000","0001110000","0001110000","0001110000","0011111000"] },
-      { name: "Гриб", size: 10, difficulty: 2, rows: ["0001111000","0011111100","0111111110","1111111111","0001111000","0001111000","0001111000","0011111100","0110000110","0000000000"] },
-      { name: "Котик сидячий", size: 15, difficulty: 3, rows: ["000011000011000","000111100111100","001111111111110","011111111111111","111101111110111","111001111100111","111111111111111","011111111111110","001111111111100","001111111111100","000111111111000","000111111111000","000111111111000","000011111110000","000111111111000"] },
-      { name: "Бабочка", size: 15, difficulty: 3, rows: ["110000000000011","111000000000111","111100000001111","111110000011111","111111000111111","011111111111110","001111111111100","001111111111100","001111111111100","011111111111110","111111000111111","111110000011111","111100000001111","111000000000111","110000000000011"] },
-      { name: "Сердце большое", size: 15, difficulty: 3, rows: ["011110000011110","111111000111111","111111101111111","111111111111111","111111111111111","011111111111110","001111111111100","000111111111000","000011111110000","000001111100000","000000111000000","000000010000000","000000000000000","000000000000000","000000000000000"] },
-      { name: "Дерево", size: 15, difficulty: 3, rows: ["000000111000000","000001111100000","000011111110000","000111111111000","001111111111100","011111111111110","111111111111111","000001111100000","000001111100000","000001111100000","000001111100000","000001111100000","000011111110000","000111111111000","001111111111100"] },
-      { name: "Смайлик", size: 20, difficulty: 3, rows: ["00011111111111100000","00111111111111111000","01111111111111111100","11111111111111111110","11111111111111111110","11100011111110001110","11100011111110001110","11111111111111111110","11111111111111111110","11111111111111111110","11111111111111111110","11011111111111110110","11101111111111101110","11110000000000011110","11111111111111111110","01111111111111111100","00111111111111111000","00011111111111100000","00000000000000000000","00000000000000000000"] }
+      { name: "Сердечко", size: 5, difficulty: 1, category: "Символы", rows: ["01100","11110","11110","01110","00100"] },
+      { name: "Крестик", size: 5, difficulty: 1, category: "Символы", rows: ["10001","01010","00100","01010","10001"] },
+      { name: "Стрелка вверх", size: 5, difficulty: 1, category: "Символы", rows: ["00100","01110","00100","00100","00100"] },
+      { name: "Котик (мордочка)", size: 10, difficulty: 2, category: "Животные", rows: ["0000000000","0100100100","0100100100","0000000000","0111111110","0100000010","0101111010","0100000010","0011111100","0000000000"] },
+      { name: "Цветок", size: 10, difficulty: 2, category: "Природа", rows: ["0011001100","0111111110","1111111111","0111111110","0011111100","0001111000","0000110000","0000110000","0000110000","0001111000"] },
+      { name: "Звезда", size: 10, difficulty: 2, category: "Символы", rows: ["0000110000","0000110000","1111111111","0011111100","0011111100","0111111110","1100110011","0011001100","0010000100","0100000010"] },
+      { name: "Чашка кофе", size: 10, difficulty: 2, category: "Предметы", rows: ["0000000000","0111111100","0110001100","0110001100","0111111100","0011111000","0001110000","0001110000","0001110000","0011111000"] },
+      { name: "Гриб", size: 10, difficulty: 2, category: "Природа", rows: ["0001111000","0011111100","0111111110","1111111111","0001111000","0001111000","0001111000","0011111100","0110000110","0000000000"] },
+      { name: "Котик сидячий", size: 15, difficulty: 3, category: "Животные", rows: ["000011000011000","000111100111100","001111111111110","011111111111111","111101111110111","111001111100111","111111111111111","011111111111110","001111111111100","001111111111100","000111111111000","000111111111000","000111111111000","000011111110000","000111111111000"] },
+      { name: "Бабочка", size: 15, difficulty: 3, category: "Природа", rows: ["110000000000011","111000000000111","111100000001111","111110000011111","111111000111111","011111111111110","001111111111100","001111111111100","001111111111100","011111111111110","111111000111111","111110000011111","111100000001111","111000000000111","110000000000011"] },
+      { name: "Сердце большое", size: 15, difficulty: 3, category: "Символы", rows: ["011110000011110","111111000111111","111111101111111","111111111111111","111111111111111","011111111111110","001111111111100","000111111111000","000011111110000","000001111100000","000000111000000","000000010000000","000000000000000","000000000000000","000000000000000"] },
+      { name: "Дерево", size: 15, difficulty: 3, category: "Природа", rows: ["000000111000000","000001111100000","000011111110000","000111111111000","001111111111100","011111111111110","111111111111111","000001111100000","000001111100000","000001111100000","000001111100000","000001111100000","000011111110000","000111111111000","001111111111100"] },
+      { name: "Смайлик", size: 20, difficulty: 3, category: "Символы", rows: ["00011111111111100000","00111111111111111000","01111111111111111100","11111111111111111110","11111111111111111110","11100011111110001110","11100011111110001110","11111111111111111110","11111111111111111110","11111111111111111110","11111111111111111110","11011111111111110110","11101111111111101110","11110000000000011110","11111111111111111110","01111111111111111100","00111111111111111000","00011111111111100000","00000000000000000000","00000000000000000000"] }
     ];
     
     // Добавляем 30x30 пазл "Замок"
@@ -576,7 +668,6 @@
       const size = 30;
       const grid = Array(size).fill().map(() => Array(size).fill(0));
       
-      // Башни
       for (let i = 2; i < 28; i++) {
         for (let j = 2; j < 8; j++) {
           if (i >= 3 && i <= 26 && j >= 3 && j <= 7) grid[i][j] = 1;
@@ -586,7 +677,6 @@
         }
       }
       
-      // Крыши башен
       for (let j = 2; j < 8; j++) {
         grid[2][j] = 1;
         grid[1][3] = 1; grid[1][4] = 1; grid[1][5] = 1; grid[1][6] = 1;
@@ -598,28 +688,24 @@
         grid[0][24] = 1; grid[0][25] = 1;
       }
       
-      // Стена между башнями
       for (let i = 3; i < 10; i++) {
         for (let j = 8; j < 22; j++) {
           grid[i][j] = 1;
         }
       }
       
-      // Ворота
       for (let i = 10; i < 20; i++) {
         for (let j = 12; j < 18; j++) {
           grid[i][j] = 0;
         }
       }
       
-      // Арка ворот
       for (let j = 12; j < 18; j++) {
         grid[10][j] = 1;
       }
       grid[11][12] = 1; grid[11][17] = 1;
       grid[12][12] = 1; grid[12][17] = 1;
       
-      // Окна в башнях
       grid[8][4] = 1; grid[8][5] = 1;
       grid[8][24] = 1; grid[8][25] = 1;
       grid[15][4] = 1; grid[15][5] = 1;
@@ -627,25 +713,22 @@
       grid[22][4] = 1; grid[22][5] = 1;
       grid[22][24] = 1; grid[22][25] = 1;
       
-      // Зубцы на стене
       for (let j = 8; j < 22; j += 2) {
         grid[2][j] = 1;
         grid[3][j] = 1;
       }
       
-      // Нижняя часть
       for (let i = 20; i < 28; i++) {
         for (let j = 10; j < 20; j++) {
           if (i >= 21 && j >= 11 && j <= 18) grid[i][j] = 1;
         }
       }
       
-      // Окна в нижней части
       grid[24][13] = 1; grid[24][14] = 1; grid[24][15] = 1; grid[24][16] = 1;
       grid[25][13] = 1; grid[25][16] = 1;
       grid[26][13] = 1; grid[26][14] = 1; grid[26][15] = 1; grid[26][16] = 1;
       
-      PUZZLES.push({ name: "Замок", size: 30, difficulty: 4, rows: grid.map(r => r.join('')) });
+      PUZZLES.push({ name: "Замок", size: 30, difficulty: 4, category: "Предметы", rows: grid.map(r => r.join('')) });
     })();
 
     // ===================== STORAGE =====================
@@ -672,7 +755,10 @@
         this.rows = rows.map(r => r.split('').map(Number));
         this.size = this.rows.length;
         this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
-        this.memoGrid = Array(this.size).fill().map(() => Array(this.size).fill(false));
+        this.memoGrid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+        this.fractionGrid = Array(this.size).fill().map(() => Array(this.size).fill(false));
+        this.hintCells = new Set();
+        this.solvedLines = { rows: new Set(), cols: new Set() };
         this.errors = 0;
         this.hintsLeft = 3;
         this.history = [];
@@ -690,6 +776,10 @@
         return this.memoGrid[r][c]; 
       }
       
+      getFraction(r, c) { 
+        return this.fractionGrid[r][c]; 
+      }
+      
       setCell(r, c, val, record = true) {
         if (record) {
           this.history.push({
@@ -697,13 +787,24 @@
             prev: this.grid[r][c], 
             next: val,
             prevMemo: this.memoGrid[r][c],
-            nextMemo: this.memoGrid[r][c]
+            nextMemo: this.memoGrid[r][c],
+            prevFraction: this.fractionGrid[r][c],
+            nextFraction: this.fractionGrid[r][c]
           });
           if (this.history.length > 200) this.history.shift();
           this.redoStack = [];
         }
         this.grid[r][c] = val;
+        
+        if (val === 1) {
+          const hintKey = `${r},${c}`;
+          if (this.hintCells.has(hintKey)) {
+            this.hintCells.delete(hintKey);
+          }
+        }
+        
         this.autoFillLine(r, c);
+        this.checkSolvedLines();
       }
       
       setMemo(r, c, val, record = true) {
@@ -713,7 +814,9 @@
             prev: this.grid[r][c], 
             next: this.grid[r][c],
             prevMemo: this.memoGrid[r][c],
-            nextMemo: val
+            nextMemo: val,
+            prevFraction: this.fractionGrid[r][c],
+            nextFraction: this.fractionGrid[r][c]
           });
           if (this.history.length > 200) this.history.shift();
           this.redoStack = [];
@@ -721,11 +824,31 @@
         this.memoGrid[r][c] = val;
       }
       
+      setFraction(r, c, val, record = true) {
+        if (record) {
+          this.history.push({
+            r, c, 
+            prev: this.grid[r][c], 
+            next: this.grid[r][c],
+            prevMemo: this.memoGrid[r][c],
+            nextMemo: this.memoGrid[r][c],
+            prevFraction: this.fractionGrid[r][c],
+            nextFraction: val
+          });
+          if (this.history.length > 200) this.history.shift();
+          this.redoStack = [];
+        }
+        this.fractionGrid[r][c] = val;
+      }
+      
       clearAllMemos() {
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
-            if (this.memoGrid[r][c]) {
-              this.memoGrid[r][c] = false;
+            if (this.memoGrid[r][c] > 0) {
+              this.memoGrid[r][c] = 0;
+            }
+            if (this.fractionGrid[r][c]) {
+              this.fractionGrid[r][c] = false;
             }
           }
         }
@@ -734,14 +857,53 @@
       hasMemos() {
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
-            if (this.memoGrid[r][c]) return true;
+            if (this.memoGrid[r][c] > 0 || this.fractionGrid[r][c]) return true;
           }
         }
         return false;
       }
       
+      addHint(r, c) {
+        this.hintCells.add(`${r},${c}`);
+      }
+      
+      hasHint(r, c) {
+        return this.hintCells.has(`${r},${c}`);
+      }
+      
+      checkSolvedLines() {
+        // Проверяем строки
+        for (let r = 0; r < this.size; r++) {
+          const rowHints = this.getLineHints(this.rows[r]);
+          const rowFilled = this.grid[r].filter(v => v === 1).length;
+          const rowTarget = rowHints.reduce((a, b) => a + b, 0);
+          
+          if (rowFilled === rowTarget) {
+            this.solvedLines.rows.add(r);
+          } else {
+            this.solvedLines.rows.delete(r);
+          }
+        }
+        
+        // Проверяем столбцы
+        for (let c = 0; c < this.size; c++) {
+          const colVals = [];
+          for (let r = 0; r < this.size; r++) {
+            colVals.push(this.rows[r][c]);
+          }
+          const colHints = this.getLineHints(colVals);
+          const colFilled = this.grid.filter(row => row[c] === 1).length;
+          const colTarget = colHints.reduce((a, b) => a + b, 0);
+          
+          if (colFilled === colTarget) {
+            this.solvedLines.cols.add(c);
+          } else {
+            this.solvedLines.cols.delete(c);
+          }
+        }
+      }
+      
       autoFillLine(r, c) {
-        // Проверяем строку
         const rowHints = this.getLineHints(this.rows[r]);
         const rowFilled = this.grid[r].filter(v => v === 1).length;
         const rowTarget = rowHints.reduce((a, b) => a + b, 0);
@@ -749,12 +911,11 @@
         if (rowFilled === rowTarget) {
           for (let i = 0; i < this.size; i++) {
             if (this.grid[r][i] === 0) {
-              this.grid[r][i] = 2; // автоматически ставим крестик
+              this.grid[r][i] = 2;
             }
           }
         }
         
-        // Проверяем столбец
         const colVals = [];
         for (let i = 0; i < this.size; i++) {
           colVals.push(this.rows[i][c]);
@@ -766,7 +927,7 @@
         if (colFilled === colTarget) {
           for (let i = 0; i < this.size; i++) {
             if (this.grid[i][c] === 0) {
-              this.grid[i][c] = 2; // автоматически ставим крестик
+              this.grid[i][c] = 2;
             }
           }
         }
@@ -791,7 +952,9 @@
           const last = this.history.pop(); 
           this.grid[last.r][last.c] = last.prev; 
           this.memoGrid[last.r][last.c] = last.prevMemo;
-          this.redoStack.push(last); 
+          this.fractionGrid[last.r][last.c] = last.prevFraction;
+          this.redoStack.push(last);
+          this.checkSolvedLines();
           return true; 
         } 
         return false; 
@@ -802,7 +965,9 @@
           const last = this.redoStack.pop(); 
           this.grid[last.r][last.c] = last.next; 
           this.memoGrid[last.r][last.c] = last.nextMemo;
-          this.history.push(last); 
+          this.fractionGrid[last.r][last.c] = last.nextFraction;
+          this.history.push(last);
+          this.checkSolvedLines();
           return true; 
         } 
         return false; 
@@ -871,6 +1036,7 @@
         this.offsetY = 0;
         this.cellSize = 30; 
         this.state = null;
+        this.animations = [];
       }
       
       setState(state) { 
@@ -909,6 +1075,59 @@
         return {r, c};
       }
       
+      animateCellFill(r, c) {
+        const cell = this.cellSize * this.zoom;
+        const x = c * cell + this.offsetX;
+        const y = r * cell + this.offsetY;
+        
+        this.animations.push({
+          type: 'fill',
+          r, c,
+          x, y,
+          cell,
+          startTime: performance.now(),
+          duration: 200
+        });
+        
+        if (!this.animationRunning) {
+          this.animationRunning = true;
+          this.runAnimations();
+        }
+      }
+      
+      runAnimations() {
+        const now = performance.now();
+        let hasActiveAnimations = false;
+        
+        this.animations = this.animations.filter(anim => {
+          const progress = Math.min(1, (now - anim.startTime) / anim.duration);
+          
+          if (progress < 1) {
+            hasActiveAnimations = true;
+          }
+          
+          if (anim.type === 'fill') {
+            const scale = 0.5 + (progress * 0.5);
+            this.ctx.fillStyle = '#000000';
+            this.ctx.fillRect(
+              anim.x + (anim.cell - anim.cell * scale) / 2,
+              anim.y + (anim.cell - anim.cell * scale) / 2,
+              anim.cell * scale,
+              anim.cell * scale
+            );
+          }
+          
+          return progress < 1;
+        });
+        
+        if (hasActiveAnimations) {
+          requestAnimationFrame(() => this.runAnimations());
+        } else {
+          this.animationRunning = false;
+          this.draw();
+        }
+      }
+      
       draw() {
         const ctx = this.ctx; 
         const w = this.canvas.width, h = this.canvas.height;
@@ -918,14 +1137,11 @@
         const cell = this.cellSize * this.zoom;
         const size = this.state.size;
         
-        // Фон
         ctx.fillStyle = 'rgba(186, 214, 247, 0.03)';
         ctx.fillRect(0, 0, w, h);
         
-        // Подсказки
         this.drawHints(ctx, cell, size);
         
-        // Клетки
         for (let r = 0; r < size; r++) {
           for (let c = 0; c < size; c++) {
             const x = c * cell + this.offsetX;
@@ -934,18 +1150,32 @@
             if (x + cell < 0 || x > w || y + cell < 0 || y > h) continue;
             
             const val = this.state.grid[r][c];
-            const hasMemo = this.state.memoGrid[r][c];
+            const memoVal = this.state.memoGrid[r][c];
+            const fractionVal = this.state.fractionGrid[r][c];
+            const hasHint = this.state.hasHint(r, c);
+            const rowSolved = this.state.solvedLines.rows.has(r);
+            const colSolved = this.state.solvedLines.cols.has(c);
             
             // Фон клетки
             ctx.fillStyle = 'rgba(199, 211, 234, 0.06)';
             ctx.fillRect(x, y, cell, cell);
             
+            // Подсветка решённых линий
+            if (rowSolved || colSolved) {
+              ctx.fillStyle = 'rgba(38, 150, 132, 0.15)';
+              ctx.fillRect(x, y, cell, cell);
+            }
+            
+            // Подсказка - яркий голубой фон
+            if (hasHint) {
+              ctx.fillStyle = 'rgba(0, 200, 255, 0.7)';
+              ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+            }
+            
             if (val === 1) {
-              // Закрашенная клетка - чёрная
               ctx.fillStyle = '#000000';
               ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
             } else if (val === 2) {
-              // Крестик - серый
               ctx.strokeStyle = '#9da7ba';
               ctx.lineWidth = Math.max(1, cell / 6);
               ctx.beginPath(); 
@@ -958,8 +1188,7 @@
               ctx.stroke();
             }
             
-            // Memo - ярко-красный треугольник
-            if (hasMemo) {
+            if (memoVal === 1) {
               ctx.fillStyle = '#ff0000';
               ctx.beginPath();
               ctx.moveTo(x + cell * 0.5, y + cell * 0.1);
@@ -969,14 +1198,22 @@
               ctx.fill();
             }
             
-            // Границы клеток - голубые
+            if (fractionVal) {
+              ctx.fillStyle = '#ff8c00';
+              ctx.beginPath();
+              ctx.arc(x + cell * 0.5, y + cell * 0.5, cell * 0.35, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(x + cell * 0.45, y + cell * 0.3, cell * 0.1, cell * 0.4);
+              ctx.fillRect(x + cell * 0.3, y + cell * 0.45, cell * 0.4, cell * 0.1);
+            }
+            
             if (cell > 6) {
               ctx.strokeStyle = 'rgba(182, 217, 252, 0.3)';
               ctx.lineWidth = 0.5;
               ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
             }
             
-            // Жирные синие линии каждые 5 клеток
             if ((r + 1) % 5 === 0 || (c + 1) % 5 === 0) {
               ctx.strokeStyle = '#027dea';
               ctx.lineWidth = 2;
@@ -996,7 +1233,6 @@
           }
         }
         
-        // Внешняя граница
         ctx.strokeStyle = '#027dea';
         ctx.lineWidth = 3;
         ctx.strokeRect(
@@ -1006,21 +1242,12 @@
           size * cell
         );
         
-        // Выделение ошибок
         if (this.errorCells) {
           this.errorCells.forEach(([r,c]) => {
             const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
             ctx.fillStyle = 'rgba(255,0,0,0.35)'; 
             ctx.fillRect(x, y, cell, cell);
           });
-        }
-        
-        // Подсказка
-        if (this.hintCell) {
-          const [r,c] = this.hintCell;
-          const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
-          ctx.fillStyle = 'rgba(102, 58, 243, 0.6)'; 
-          ctx.fillRect(x, y, cell, cell);
         }
       }
       
@@ -1030,24 +1257,38 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Подсказки для строк
         for (let r = 0; r < size; r++) {
           const hints = this.state.getLineHints(this.state.rows[r]);
           let x = this.offsetX - 10;
           let y = r * cell + this.offsetY + cell / 2;
+          
+          // Подсветка решённых строк
+          if (this.state.solvedLines.rows.has(r)) {
+            ctx.fillStyle = 'rgba(157, 167, 186, 0.5)';
+          } else {
+            ctx.fillStyle = '#d1e4fa';
+          }
+          
           hints.forEach(hint => {
             ctx.fillText(hint, x, y);
             x -= cell * 0.7;
           });
         }
         
-        // Подсказки для столбцов
         for (let c = 0; c < size; c++) {
           const colVals = [];
           for (let r = 0; r < size; r++) colVals.push(this.state.rows[r][c]);
           const hints = this.state.getLineHints(colVals);
           let y = this.offsetY - 10;
           let x = c * cell + this.offsetX + cell / 2;
+          
+          // Подсветка решённых столбцов
+          if (this.state.solvedLines.cols.has(c)) {
+            ctx.fillStyle = 'rgba(157, 167, 186, 0.5)';
+          } else {
+            ctx.fillStyle = '#d1e4fa';
+          }
+          
           hints.forEach(hint => {
             ctx.fillText(hint, x, y);
             y -= cell * 0.7;
@@ -1070,8 +1311,9 @@
         this.startY = 0;
         this.startTime = 0;
         this.lastCell = null;
-        this.isPan = false;
+        this.isDrawing = false;
         this.hasMoved = false;
+        this.drawnCells = new Set();
         
         this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
@@ -1093,6 +1335,8 @@
         e.preventDefault();
         this.pointerDown = true;
         this.hasMoved = false;
+        this.isDrawing = false;
+        this.drawnCells.clear();
         this.startX = e.clientX; 
         this.startY = e.clientY;
         this.startTime = Date.now();
@@ -1109,22 +1353,33 @@
         
         const dx = e.clientX - this.startX;
         const dy = e.clientY - this.startY;
-        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
           this.hasMoved = true;
+          this.isDrawing = true;
         }
         
-        if (this.hasMoved) {
+        if (this.isDrawing) {
           const rect = this.canvas.getBoundingClientRect();
           const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
           const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
           const cell = this.renderer.screenToCell(x, y);
           
           if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-            if (!this.lastCell || (this.lastCell.r !== cell.r || this.lastCell.c !== cell.c)) {
-              if (this.lastCell) this.interpolateCells(this.lastCell, cell);
-              this.applyAction(cell.r, cell.c);
-              this.lastCell = cell;
+            if (this.lastCell) {
+              const sameRow = cell.r === this.lastCell.r;
+              const sameCol = cell.c === this.lastCell.c;
+              
+              if (!sameRow && !sameCol) {
+                return;
+              }
             }
+            
+            const cellKey = `${cell.r},${cell.c}`;
+            if (!this.drawnCells.has(cellKey)) {
+              this.drawnCells.add(cellKey);
+              this.applyAction(cell.r, cell.c);
+            }
+            this.lastCell = cell;
           }
         }
       }
@@ -1140,7 +1395,6 @@
           const cell = this.renderer.screenToCell(x, y);
           
           if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-            // Защита от случайных касаний - требуем удержание 150мс
             if (!this.protectionEnabled || elapsed > 150) {
               this.applyAction(cell.r, cell.c);
             }
@@ -1148,20 +1402,10 @@
         }
         
         this.pointerDown = false;
+        this.isDrawing = false;
         this.hasMoved = false;
         this.lastCell = null;
-      }
-      
-      interpolateCells(from, to) {
-        let r1 = from.r, c1 = from.c, r2 = to.r, c2 = to.c;
-        const dr = Math.abs(r2 - r1), dc = Math.abs(c2 - c1);
-        const steps = Math.max(dr, dc);
-        if (steps === 0) return;
-        for (let i = 0; i <= steps; i++) {
-          const rr = Math.round(r1 + (r2 - r1) * i / steps);
-          const cc = Math.round(c1 + (c2 - c1) * i / steps);
-          this.applyAction(rr, cc);
-        }
+        this.drawnCells.clear();
       }
       
       applyAction(r, c) {
@@ -1171,6 +1415,7 @@
           const cur = this.game.getCell(r, c);
           const newVal = cur === 1 ? 0 : 1;
           this.game.setCell(r, c, newVal);
+          this.renderer.animateCellFill(r, c);
           Haptics.tap(); 
           SoundManager.tap();
           
@@ -1191,7 +1436,15 @@
           this.cb.onUpdate();
         } else if (this.mode === 'memo') {
           const cur = this.game.getMemo(r, c);
-          this.game.setMemo(r, c, !cur);
+          const newVal = cur > 0 ? 0 : 1;
+          this.game.setMemo(r, c, newVal);
+          Haptics.mode(); 
+          SoundManager.mode();
+          this.cb.onUpdate();
+          this.cb.onMemoChange();
+        } else if (this.mode === 'memo-fraction') {
+          const cur = this.game.getFraction(r, c);
+          this.game.setFraction(r, c, !cur);
           Haptics.mode(); 
           SoundManager.mode();
           this.cb.onUpdate();
@@ -1424,7 +1677,6 @@
       renderer: null, 
       inputHandler: null, 
       editor: null,
-      currentPreviewPuzzle: null,
       
       init() {
         SoundManager.init();
@@ -1455,13 +1707,11 @@
       },
       
       bindEvents() {
-        // Меню
         document.getElementById('btn-menu').onclick = () => this.showModal('modal-menu');
         document.getElementById('btn-settings').onclick = () => {
           this.showModal('modal-menu');
         };
         
-        // Настройки
         document.getElementById('setting-sound').onchange = e => { 
           SoundManager.enabled = e.target.checked; 
           this.saveSettings(); 
@@ -1480,11 +1730,18 @@
           this.saveSettings(); 
         };
         
-        // Навигация
         document.getElementById('btn-levels').onclick = () => { 
           this.hideModal('modal-menu'); 
           this.showLevels(); 
           this.showModal('modal-levels'); 
+        };
+        document.getElementById('btn-daily').onclick = () => { 
+          this.hideModal('modal-menu'); 
+          this.showDaily(); 
+        };
+        document.getElementById('btn-stats').onclick = () => { 
+          this.hideModal('modal-menu'); 
+          this.showStats(); 
         };
         document.getElementById('btn-editor').onclick = () => { 
           this.hideModal('modal-menu'); 
@@ -1495,13 +1752,16 @@
           this.generateLevel(); 
         };
         
-        // Игровые кнопки
         document.getElementById('btn-undo').onclick = () => this.undo();
         document.getElementById('btn-redo').onclick = () => this.redo();
         document.getElementById('btn-clear').onclick = () => { 
           if (this.game) { 
             this.game.grid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0)); 
-            this.game.memoGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(false));
+            this.game.memoGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
+            this.game.fractionGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(false));
+            this.game.hintCells.clear();
+            this.game.solvedLines.rows.clear();
+            this.game.solvedLines.cols.clear();
             this.renderer.draw(); 
             this.updateMemoButton();
           } 
@@ -1515,7 +1775,6 @@
         };
         document.getElementById('btn-hint').onclick = () => this.giveHint();
         
-        // Режимы
         document.querySelectorAll('[data-mode]').forEach(btn => 
           btn.onclick = e => {
             const mode = e.target.dataset.mode;
@@ -1525,7 +1784,6 @@
           }
         );
         
-        // Редактор
         document.getElementById('editor-save').onclick = () => this.saveEditorPuzzle();
         document.getElementById('editor-export').onclick = () => this.editor.exportJSON();
         document.getElementById('editor-import').onclick = () => { 
@@ -1546,7 +1804,6 @@
           }
         );
         
-        // Победа
         document.getElementById('btn-next').onclick = () => this.nextLevel();
         document.getElementById('btn-restart').onclick = () => this.restartLevel();
         document.getElementById('btn-menu-win').onclick = () => { 
@@ -1554,7 +1811,6 @@
           this.showModal('modal-menu'); 
         };
         
-        // Генератор
         document.getElementById('gen-play').onclick = () => { 
           this.hideModal('modal-generate'); 
           this.loadPuzzle(this.generatedPuzzle); 
@@ -1564,10 +1820,21 @@
           this.saveGenerated(); 
         };
         
-        // Закрытие модальных окон
+        document.getElementById('btn-play-daily').onclick = () => {
+          this.hideModal('modal-daily');
+          if (this.dailyPuzzle) {
+            this.loadPuzzle(this.dailyPuzzle);
+          }
+        };
+        
         document.querySelectorAll('[data-close]').forEach(btn => 
           btn.onclick = () => this.hideModal(btn.dataset.close)
         );
+        
+        document.getElementById('btn-reset-stats').onclick = () => {
+          Storage.remove('stats');
+          alert('Статистика сброшена');
+        };
       },
       
       saveSettings() {
@@ -1620,7 +1887,6 @@
           onMemoChange: () => this.updateMemoButton()
         });
         
-        // Применяем настройку защиты
         const protectionEnabled = Storage.get('settings', {}).protection || false;
         this.inputHandler.setProtection(protectionEnabled);
         
@@ -1635,101 +1901,118 @@
         this.game.solved = true;
         SoundManager.win(); 
         Haptics.win();
+        
+        // Вычисляем звёзды
+        const timeSeconds = (Date.now() - this.game.startTime) / 1000;
+        const stars = this.calculateStars(timeSeconds, this.game.errors, this.game.size);
+        
         this.showModal('modal-win');
         document.getElementById('win-stats').innerHTML = 
           `Время: ${this.formatTime(Date.now() - this.game.startTime)}<br>` +
           `Ошибки: ${this.game.errors}<br>` +
-          `Размер: ${this.game.size}x${this.game.size}`;
+          `Размер: ${this.game.size}x${this.game.size}<br>` +
+          `Звёзды: ${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}`;
         
+        // Сохраняем статистику
         const stats = Storage.get('stats', {});
         const key = this.game.puzzleName;
-        if (!stats[key] || stats[key].bestTime > (Date.now() - this.game.startTime)) {
-          stats[key] = { 
-            solved: true, 
-            bestTime: Date.now() - this.game.startTime, 
-            errors: this.game.errors 
-          };
-          Storage.set('stats', stats);
-        }
-      },
-      
-      updateTitle() { 
-        document.getElementById('puzzle-title').textContent = 
-          `${this.game.puzzleName} ${this.game.size}x${this.game.size}`; 
-      },
-      
-      formatTime(ms) { 
-        const s = Math.floor(ms / 1000); 
-        return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`; 
-      },
-      
-      startTimer() {
-        if (this.timerInterval) clearInterval(this.timerInterval);
-        this.timerInterval = setInterval(() => { 
-          if (this.game && !this.game.solved) {
-            document.getElementById('timer').textContent = 
-              `⏱ ${this.formatTime(Date.now() - this.game.startTime)}`; 
-          }
-        }, 1000);
-      },
-      
-      updateStats() { 
-        document.getElementById('error-count').textContent = `✕ ${this.game.errors}`; 
-      },
-      
-      undo() { 
-        if (this.game.undo()) { 
-          this.renderer.draw(); 
-          this.updateMemoButton();
-          SoundManager.mode(); 
-        } 
-      },
-      
-      redo() { 
-        if (this.game.redo()) { 
-          this.renderer.draw(); 
-          this.updateMemoButton();
-          SoundManager.mode(); 
-        } 
-      },
-      
-      giveHint() {
-        if (!this.game || this.game.hintsLeft <= 0) return;
-        const unsolved = [];
-        for (let r = 0; r < this.game.size; r++) 
-          for (let c = 0; c < this.game.size; c++) 
-            if (this.game.rows[r][c] === 1 && this.game.grid[r][c] !== 1) 
-              unsolved.push([r, c]);
+        const prevStars = stats[key]?.stars || 0;
+        const newStars = Math.max(prevStars, stars);
         
-        if (unsolved.length) {
-          const [r, c] = unsolved[Math.floor(Math.random() * unsolved.length)];
-          this.renderer.hintCell = [r, c]; 
-          this.renderer.draw();
-          this.game.hintsLeft--;
-          setTimeout(() => { 
-            this.renderer.hintCell = null; 
-            this.renderer.draw(); 
-          }, 2000);
+        stats[key] = { 
+          solved: true, 
+          bestTime: Math.min(stats[key]?.bestTime || Infinity, Date.now() - this.game.startTime),
+          errors: this.game.errors,
+          stars: newStars
+        };
+        Storage.set('stats', stats);
+      },
+      
+      calculateStars(timeSeconds, errors, size) {
+        const baseTime = size * 2; // базовое время в секундах
+        const timeBonus = Math.max(0, 1 - (timeSeconds - baseTime) / baseTime);
+        const errorPenalty = errors * 0.1;
+        
+        const score = timeBonus - errorPenalty;
+        
+        if (score > 0.8) return 3;
+        if (score > 0.5) return 2;
+        if (score > 0.2) return 1;
+        return 0;
+      },
+      
+      showDaily() {
+        const today = new Date().toDateString();
+        let dailyData = Storage.get('daily', {});
+        
+        if (dailyData.date !== today) {
+          // Выбираем случайный пазл для сегодня
+          const puzzle = PUZZLES[Math.floor(Math.random() * PUZZLES.length)];
+          dailyData = {
+            date: today,
+            puzzle: puzzle,
+            solved: false
+          };
+          Storage.set('daily', dailyData);
         }
+        
+        this.dailyPuzzle = dailyData.puzzle;
+        
+        const info = document.getElementById('daily-info');
+        const stats = Storage.get('stats', {})[dailyData.puzzle.name];
+        
+        info.innerHTML = `
+          <p style="margin-bottom: 12px;">Пазл: <strong>${dailyData.puzzle.name}</strong></p>
+          <p style="margin-bottom: 12px;">Размер: ${dailyData.puzzle.size}x${dailyData.puzzle.size}</p>
+          ${stats?.solved ? '<p style="color: #269684;">✅ Уже решён сегодня</p>' : '<p>Ещё не решён</p>'}
+        `;
+        
+        this.showModal('modal-daily');
+      },
+      
+      showStats() {
+        const stats = Storage.get('stats', {});
+        const solvedCount = Object.values(stats).filter(s => s.solved).length;
+        const totalCount = PUZZLES.length;
+        
+        document.getElementById('stat-solved').textContent = solvedCount;
+        document.getElementById('stat-total').textContent = totalCount;
+        
+        // Лучшее время
+        const bestTime = Math.min(...Object.values(stats).map(s => s.bestTime || Infinity));
+        if (bestTime !== Infinity) {
+          document.getElementById('stat-best-time').textContent = this.formatTime(bestTime);
+        } else {
+          document.getElementById('stat-best-time').textContent = '--:--';
+        }
+        
+        // Среднее количество ошибок
+        const errorsList = Object.values(stats).map(s => s.errors || 0);
+        const avgErrors = errorsList.length ? Math.round(errorsList.reduce((a, b) => a + b, 0) / errorsList.length) : 0;
+        document.getElementById('stat-avg-errors').textContent = avgErrors;
+        
+        this.showModal('modal-stats');
       },
       
       showLevels() {
         const container = document.getElementById('levels-list');
         container.innerHTML = '';
-        const grouped = {};
+        
+        // Группировка по категориям
+        const categories = {};
         PUZZLES.forEach(p => { 
-          if (!grouped[p.size]) grouped[p.size] = []; 
-          grouped[p.size].push(p); 
+          if (!categories[p.category]) categories[p.category] = []; 
+          categories[p.category].push(p); 
         });
         
-        Object.keys(grouped).sort((a, b) => a - b).forEach(size => {
+        Object.keys(categories).forEach(category => {
           const div = document.createElement('div'); 
           div.className = 'level-group';
-          div.innerHTML = `<h3>${size}x${size}</h3>`;
+          div.innerHTML = `<h3>${category}</h3>`;
           const cards = document.createElement('div'); 
           cards.className = 'cards';
           
-          grouped[size].forEach(p => {
+          categories[category].forEach(p => {
             const card = document.createElement('div'); 
             card.className = 'level-card';
             const stats = Storage.get('stats', {})[p.name];
@@ -1748,22 +2031,21 @@
             );
             
             card.appendChild(miniCanvas);
+            
+            const starsHtml = stats?.stars ? 
+              `<div class="stars">${'★'.repeat(stats.stars)}${'☆'.repeat(3 - stats.stars)}</div>` : '';
+            
             card.innerHTML += 
               `<div class="name">${p.name}</div>` +
-              `<div class="meta">${'★'.repeat(p.difficulty)} ${stats?.solved ? '✅' : ''}</div>`;
+              `<div class="meta">${p.size}x${p.size} ${stats?.solved ? '✅' : ''}</div>` +
+              starsHtml;
             
-            // Показ превью при наведении/касании
             card.onclick = () => { 
               this.hideModal('modal-levels'); 
               this.loadPuzzle(p); 
             };
             card.onmouseenter = () => this.showPreview(p);
             card.onmouseleave = () => this.hidePreview();
-            card.ontouchstart = (e) => {
-              e.preventDefault();
-              this.showPreview(p);
-            };
-            card.ontouchend = () => this.hidePreview();
             
             cards.appendChild(card);
           });
@@ -1831,7 +2113,6 @@
           });
         });
         
-        // Перемещаем превью вниз списка
         container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       },
       
@@ -1918,6 +2199,63 @@
         this.hideModal('modal-win');
         const current = PUZZLES.find(p => p.name === this.game.puzzleName);
         this.loadPuzzle(current || this.game);
+      },
+      
+      updateTitle() { 
+        document.getElementById('puzzle-title').textContent = 
+          `${this.game.puzzleName} ${this.game.size}x${this.game.size}`; 
+      },
+      
+      formatTime(ms) { 
+        const s = Math.floor(ms / 1000); 
+        return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`; 
+      },
+      
+      startTimer() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        this.timerInterval = setInterval(() => { 
+          if (this.game && !this.game.solved) {
+            document.getElementById('timer').textContent = 
+              `⏱ ${this.formatTime(Date.now() - this.game.startTime)}`; 
+          }
+        }, 1000);
+      },
+      
+      updateStats() { 
+        document.getElementById('error-count').textContent = `✕ ${this.game.errors}`; 
+      },
+      
+      undo() { 
+        if (this.game.undo()) { 
+          this.renderer.draw(); 
+          this.updateMemoButton();
+          SoundManager.mode(); 
+        } 
+      },
+      
+      redo() { 
+        if (this.game.redo()) { 
+          this.renderer.draw(); 
+          this.updateMemoButton();
+          SoundManager.mode(); 
+        } 
+      },
+      
+      giveHint() {
+        if (!this.game) return;
+        const unsolved = [];
+        for (let r = 0; r < this.game.size; r++) 
+          for (let c = 0; c < this.game.size; c++) 
+            if (this.game.rows[r][c] === 1 && this.game.grid[r][c] !== 1 && !this.game.hasHint(r, c)) 
+              unsolved.push([r, c]);
+        
+        if (unsolved.length) {
+          const [r, c] = unsolved[Math.floor(Math.random() * unsolved.length)];
+          this.game.addHint(r, c); 
+          this.renderer.draw();
+          Haptics.tap(); 
+          SoundManager.tap();
+        }
       }
     };
 
