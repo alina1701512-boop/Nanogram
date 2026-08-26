@@ -30,8 +30,29 @@
       --btn-h: 60px;
       --transition: 0.25s ease;
     }
+    
+    /* Тёмная тема через data-атрибут */
+    [data-theme="dark"] {
+      --bg: #1e1e1e;
+      --surface: #2d2d2d;
+      --cell-bg: #2d2d2d;
+      --cell-filled: #e8e8e8;
+      --cell-x: #ff8a80;
+      --text: #f0f0f0;
+      --accent: #8bb3a5;
+      --border: #444;
+      --shadow: rgba(255,255,255,0.05);
+      --btn-bg: #3a3a3a;
+      --btn-active: #4a4a4a;
+      --modal-bg: #2a2a2a;
+      --highlight: #6b5b00;
+      --error-highlight: #5c2b2b;
+      --solved: #2e7d32;
+    }
+    
+    /* Системная тема по умолчанию */
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-theme="light"]) {
         --bg: #1e1e1e;
         --surface: #2d2d2d;
         --cell-bg: #2d2d2d;
@@ -49,71 +70,359 @@
         --solved: #2e7d32;
       }
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
-    html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; overscroll-behavior: none; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; transition: background var(--transition), color var(--transition); }
-    body { display: flex; flex-direction: column; align-items: center; justify-content: space-between; user-select: none; }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+      -webkit-touch-callout: none; 
+    }
+    
+    html, body { 
+      height: 100%; 
+      width: 100%; 
+      overflow: hidden; 
+      position: fixed; 
+      overscroll-behavior: none; 
+      background: var(--bg); 
+      color: var(--text); 
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; 
+      transition: background var(--transition), color var(--transition); 
+    }
+    
+    body { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: space-between; 
+      user-select: none; 
+    }
 
-    #app { width: 100%; height: 100%; display: flex; flex-direction: column; max-width: 800px; padding: 8px 8px 0; }
+    #app { 
+      width: 100%; 
+      height: 100%; 
+      display: flex; 
+      flex-direction: column; 
+      max-width: 800px; 
+      padding: 8px 8px 0; 
+    }
 
     /* Верхняя панель */
-    #top-bar { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 4px 8px; flex-shrink: 0; }
-    .top-btn { background: var(--btn-bg); border: none; border-radius: var(--radius); box-shadow: 0 2px 6px var(--shadow); width: 48px; height: 48px; font-size: 24px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .top-btn:active { transform: scale(0.94); background: var(--btn-active); }
-    #puzzle-title { font-weight: 600; font-size: 16px; text-align: center; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #stats { display: flex; align-items: center; gap: 12px; font-size: 14px; }
-    #error-count { color: #e53935; font-weight: 600; }
-    #timer { font-variant-numeric: tabular-nums; }
+    #top-bar { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      gap: 6px; 
+      padding: 4px 4px 8px; 
+      flex-shrink: 0; 
+    }
+    
+    .top-btn { 
+      background: var(--btn-bg); 
+      border: none; 
+      border-radius: var(--radius); 
+      box-shadow: 0 2px 6px var(--shadow); 
+      width: 48px; 
+      height: 48px; 
+      font-size: 24px; 
+      cursor: pointer; 
+      color: var(--text); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      transition: all 0.2s; 
+    }
+    
+    .top-btn:active { 
+      transform: scale(0.94); 
+      background: var(--btn-active); 
+    }
+    
+    #puzzle-title { 
+      font-weight: 600; 
+      font-size: 16px; 
+      text-align: center; 
+      flex: 1; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+    
+    #stats { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      font-size: 14px; 
+    }
+    
+    #error-count { 
+      color: #e53935; 
+      font-weight: 600; 
+    }
+    
+    #timer { 
+      font-variant-numeric: tabular-nums; 
+    }
 
     /* Канвас контейнер */
-    #canvas-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: var(--radius); background: var(--surface); box-shadow: 0 4px 20px var(--shadow); margin-bottom: 8px; touch-action: none; }
-    canvas { display: block; touch-action: none; border-radius: 6px; }
+    #canvas-wrap { 
+      flex: 1; 
+      position: relative; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      overflow: hidden; 
+      border-radius: var(--radius); 
+      background: var(--surface); 
+      box-shadow: 0 4px 20px var(--shadow); 
+      margin-bottom: 8px; 
+      touch-action: none; 
+      min-height: 0;
+    }
+    
+    canvas { 
+      display: block; 
+      touch-action: none; 
+      border-radius: 6px; 
+    }
 
     /* Нижняя панель */
-    #bottom-bar { display: flex; gap: 8px; padding: 8px 0 12px; flex-shrink: 0; flex-wrap: wrap; justify-content: center; }
-    .bottom-btn { flex: 1 1 60px; min-width: 60px; height: var(--btn-h); background: var(--btn-bg); border: none; border-radius: var(--radius); box-shadow: 0 2px 6px var(--shadow); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; color: var(--text); transition: all 0.2s; font-weight: 500; }
-    .bottom-btn.active { background: var(--accent); color: white; }
-    .bottom-btn:active { transform: scale(0.95); }
-    .bottom-btn.small { flex: 0 0 56px; font-size: 20px; }
+    #bottom-bar { 
+      display: flex; 
+      gap: 8px; 
+      padding: 8px 0 12px; 
+      flex-shrink: 0; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+    }
+    
+    .bottom-btn { 
+      flex: 1 1 60px; 
+      min-width: 60px; 
+      height: var(--btn-h); 
+      background: var(--btn-bg); 
+      border: none; 
+      border-radius: var(--radius); 
+      box-shadow: 0 2px 6px var(--shadow); 
+      font-size: 16px; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 4px; 
+      color: var(--text); 
+      transition: all 0.2s; 
+      font-weight: 500; 
+    }
+    
+    .bottom-btn.active { 
+      background: var(--accent); 
+      color: white; 
+    }
+    
+    .bottom-btn:active { 
+      transform: scale(0.95); 
+    }
+    
+    .bottom-btn.small { 
+      flex: 0 0 56px; 
+      font-size: 20px; 
+    }
 
     /* Модальные окна */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-    .modal-overlay.show { opacity: 1; pointer-events: auto; }
-    .modal { background: var(--modal-bg); width: 90%; max-width: 720px; max-height: 85%; overflow-y: auto; border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: translateY(30px); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
-    .modal-overlay.show .modal { transform: translateY(0); }
-    .modal h2, .modal h3 { margin-bottom: 12px; }
-    .modal-close { float: right; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text); }
+    .modal-overlay { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(0,0,0,0.4); 
+      backdrop-filter: blur(3px); 
+      z-index: 100; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      opacity: 0; 
+      pointer-events: none; 
+      transition: opacity 0.3s; 
+    }
+    
+    .modal-overlay.show { 
+      opacity: 1; 
+      pointer-events: auto; 
+    }
+    
+    .modal { 
+      background: var(--modal-bg); 
+      width: 90%; 
+      max-width: 720px; 
+      max-height: 85%; 
+      overflow-y: auto; 
+      border-radius: 24px; 
+      padding: 20px; 
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+      transform: translateY(30px); 
+      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2); 
+    }
+    
+    .modal-overlay.show .modal { 
+      transform: translateY(0); 
+    }
+    
+    .modal h2, .modal h3 { 
+      margin-bottom: 12px; 
+    }
+    
+    .modal-close { 
+      float: right; 
+      background: none; 
+      border: none; 
+      font-size: 28px; 
+      cursor: pointer; 
+      color: var(--text); 
+    }
 
     /* Список уровней */
-    .level-group { margin-bottom: 18px; }
-    .level-group h3 { font-size: 16px; margin-bottom: 8px; color: var(--accent); }
-    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-    .level-card { background: var(--surface); border-radius: 14px; padding: 8px; box-shadow: 0 2px 8px var(--shadow); cursor: pointer; transition: all 0.15s; text-align: center; }
-    .level-card:active { transform: scale(0.96); }
-    .level-card canvas { width: 100%; border-radius: 8px; }
-    .level-card .name { font-size: 13px; font-weight: 600; margin-top: 4px; }
-    .level-card .meta { font-size: 11px; opacity: 0.8; }
-    .level-card.solved { border: 2px solid var(--solved); }
-    .checkmark { color: var(--solved); font-size: 18px; }
+    .level-group { 
+      margin-bottom: 18px; 
+    }
+    
+    .level-group h3 { 
+      font-size: 16px; 
+      margin-bottom: 8px; 
+      color: var(--accent); 
+    }
+    
+    .cards { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+      gap: 10px; 
+    }
+    
+    .level-card { 
+      background: var(--surface); 
+      border-radius: 14px; 
+      padding: 8px; 
+      box-shadow: 0 2px 8px var(--shadow); 
+      cursor: pointer; 
+      transition: all 0.15s; 
+      text-align: center; 
+    }
+    
+    .level-card:active { 
+      transform: scale(0.96); 
+    }
+    
+    .level-card canvas { 
+      width: 100%; 
+      border-radius: 8px; 
+    }
+    
+    .level-card .name { 
+      font-size: 13px; 
+      font-weight: 600; 
+      margin-top: 4px; 
+    }
+    
+    .level-card .meta { 
+      font-size: 11px; 
+      opacity: 0.8; 
+    }
+    
+    .level-card.solved { 
+      border: 2px solid var(--solved); 
+    }
+    
+    .checkmark { 
+      color: var(--solved); 
+      font-size: 18px; 
+    }
 
     /* Кнопки в модалках */
-    .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
-    .action-btn { background: var(--btn-bg); border: none; padding: 12px 18px; border-radius: 10px; font-size: 15px; cursor: pointer; box-shadow: 0 2px 6px var(--shadow); display: flex; align-items: center; gap: 6px; color: var(--text); transition: all 0.2s; }
-    .action-btn.primary { background: var(--accent); color: white; }
-    .action-btn:active { transform: scale(0.95); }
+    .action-row { 
+      display: flex; 
+      gap: 10px; 
+      flex-wrap: wrap; 
+      margin-top: 16px; 
+    }
+    
+    .action-btn { 
+      background: var(--btn-bg); 
+      border: none; 
+      padding: 12px 18px; 
+      border-radius: 10px; 
+      font-size: 15px; 
+      cursor: pointer; 
+      box-shadow: 0 2px 6px var(--shadow); 
+      display: flex; 
+      align-items: center; 
+      gap: 6px; 
+      color: var(--text); 
+      transition: all 0.2s; 
+    }
+    
+    .action-btn.primary { 
+      background: var(--accent); 
+      color: white; 
+    }
+    
+    .action-btn:active { 
+      transform: scale(0.95); 
+    }
 
     /* Редактор */
-    .editor-grid { display: flex; gap: 15px; flex-wrap: wrap; }
-    .editor-canvas { border: 2px solid var(--border); border-radius: 10px; image-rendering: pixelated; }
-    .editor-tools { display: flex; flex-direction: column; gap: 8px; }
-    .tool-btn { background: var(--btn-bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
-    .tool-btn.active { background: var(--accent); color: white; }
-    .editor-preview { display: flex; flex-direction: column; align-items: center; }
+    .editor-grid { 
+      display: flex; 
+      gap: 15px; 
+      flex-wrap: wrap; 
+    }
+    
+    .editor-canvas { 
+      border: 2px solid var(--border); 
+      border-radius: 10px; 
+      image-rendering: pixelated; 
+    }
+    
+    .editor-tools { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+    }
+    
+    .tool-btn { 
+      background: var(--btn-bg); 
+      border: 1px solid var(--border); 
+      border-radius: 8px; 
+      padding: 8px 14px; 
+      cursor: pointer; 
+      font-size: 14px; 
+    }
+    
+    .tool-btn.active { 
+      background: var(--accent); 
+      color: white; 
+    }
+    
+    .editor-preview { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+    }
 
     /* Адаптивность */
     @media (max-width: 600px) {
-      .bottom-btn { font-size: 13px; height: 52px; min-width: 44px; }
-      .bottom-btn.small { flex: 0 0 44px; font-size: 18px; }
-      #top-bar .top-btn { width: 40px; height: 40px; font-size: 20px; }
+      .bottom-btn { 
+        font-size: 13px; 
+        height: 52px; 
+        min-width: 44px; 
+      }
+      .bottom-btn.small { 
+        flex: 0 0 44px; 
+        font-size: 18px; 
+      }
+      #top-bar .top-btn { 
+        width: 40px; 
+        height: 40px; 
+        font-size: 20px; 
+      }
     }
   </style>
 </head>
@@ -127,6 +436,9 @@
       <span id="timer">⏱ 00:00</span>
       <button class="top-btn" id="btn-sound" aria-label="Звук">🔊</button>
       <button class="top-btn" id="btn-theme" aria-label="Тема">🌓</button>
+      <button class="top-btn" id="btn-zoom-in" aria-label="Увеличить">+</button>
+      <button class="top-btn" id="btn-zoom-out" aria-label="Уменьшить">−</button>
+      <button class="top-btn" id="btn-zoom-reset" aria-label="Сбросить зум">⟲</button>
     </div>
   </div>
   <div id="canvas-wrap">
@@ -250,33 +562,109 @@
       { name: "Дерево", size: 15, difficulty: 3, rows: ["000000111000000","000001111100000","000011111110000","000111111111000","001111111111100","011111111111110","111111111111111","000001111100000","000001111100000","000001111100000","000001111100000","000001111100000","000011111110000","000111111111000","001111111111100"] },
       { name: "Смайлик", size: 20, difficulty: 3, rows: ["00011111111111100000","00111111111111111000","01111111111111111100","11111111111111111110","11111111111111111110","11100011111110001110","11100011111110001110","11111111111111111110","11111111111111111110","11111111111111111110","11111111111111111110","11011111111111110110","11101111111111101110","11110000000000011110","11111111111111111110","01111111111111111100","00111111111111111000","00011111111111100000","00000000000000000000","00000000000000000000"] }
     ];
-    // Добавим 30x30 Луна и звёзды симметрично
+    
+    // Добавляем более детальный 30x30 пазл
     (function() {
       const size = 30;
       const grid = Array(size).fill().map(() => Array(size).fill(0));
-      // полумесяц
-      for (let i=6; i<24; i++) for (let j=6; j<24; j++) {
-        const dx = i-14.5, dy = j-14.5;
-        const dist = Math.sqrt(dx*dx+dy*dy);
-        if (dist < 8 && dist > 4.5 && dx < 2) grid[i][j] = 1;
+      
+      // Создаём детальный рисунок - замок
+      // Башни
+      for (let i = 2; i < 28; i++) {
+        for (let j = 2; j < 8; j++) {
+          if (i >= 3 && i <= 26 && j >= 3 && j <= 7) grid[i][j] = 1;
+        }
+        for (let j = 22; j < 28; j++) {
+          if (i >= 3 && i <= 26 && j >= 23 && j <= 27) grid[i][j] = 1;
+        }
       }
-      // звёзды
-      const stars = [[3,3],[3,26],[26,3],[26,26],[8,14],[14,8],[21,14],[14,21]];
-      stars.forEach(([x,y]) => { grid[x][y]=1; grid[x][y+1]=1; grid[x+1][y]=1; grid[x-1][y]=1; grid[x][y-1]=1; });
-      // симметрия
-      for (let i=0; i<size; i++) for (let j=0; j<size; j++) {
-        grid[i][size-1-j] = grid[i][j] || grid[i][size-1-j];
-        grid[size-1-i][j] = grid[i][j] || grid[size-1-i][j];
-        grid[size-1-i][size-1-j] = grid[i][j] || grid[size-1-i][size-1-j];
+      
+      // Крыши башен
+      for (let j = 2; j < 8; j++) {
+        grid[2][j] = 1;
+        grid[1][3] = 1; grid[1][4] = 1; grid[1][5] = 1; grid[1][6] = 1;
+        grid[0][4] = 1; grid[0][5] = 1;
       }
-      PUZZLES.push({ name: "Луна и звёзды", size: 30, difficulty: 4, rows: grid.map(r => r.join('')) });
+      for (let j = 22; j < 28; j++) {
+        grid[2][j] = 1;
+        grid[1][23] = 1; grid[1][24] = 1; grid[1][25] = 1; grid[1][26] = 1;
+        grid[0][24] = 1; grid[0][25] = 1;
+      }
+      
+      // Стена между башнями
+      for (let i = 3; i < 10; i++) {
+        for (let j = 8; j < 22; j++) {
+          grid[i][j] = 1;
+        }
+      }
+      
+      // Ворота
+      for (let i = 10; i < 20; i++) {
+        for (let j = 12; j < 18; j++) {
+          grid[i][j] = 0;
+        }
+      }
+      
+      // Арка ворот
+      for (let j = 12; j < 18; j++) {
+        grid[10][j] = 1;
+      }
+      grid[11][12] = 1; grid[11][17] = 1;
+      grid[12][12] = 1; grid[12][17] = 1;
+      
+      // Окна в башнях
+      grid[8][4] = 1; grid[8][5] = 1;
+      grid[8][24] = 1; grid[8][25] = 1;
+      grid[15][4] = 1; grid[15][5] = 1;
+      grid[15][24] = 1; grid[15][25] = 1;
+      grid[22][4] = 1; grid[22][5] = 1;
+      grid[22][24] = 1; grid[22][25] = 1;
+      
+      // Зубцы на стене
+      for (let j = 8; j < 22; j += 2) {
+        grid[2][j] = 1;
+        grid[3][j] = 1;
+      }
+      
+      // Добавляем больше деталей
+      for (let i = 20; i < 28; i++) {
+        for (let j = 10; j < 20; j++) {
+          if (i >= 21 && j >= 11 && j <= 18) grid[i][j] = 1;
+        }
+      }
+      
+      // Окна в нижней части
+      grid[24][13] = 1; grid[24][14] = 1; grid[24][15] = 1; grid[24][16] = 1;
+      grid[25][13] = 1; grid[25][16] = 1;
+      grid[26][13] = 1; grid[26][14] = 1; grid[26][15] = 1; grid[26][16] = 1;
+      
+      // Флаг на крыше
+      grid[1][4] = 0; grid[0][4] = 0;
+      grid[1][25] = 0; grid[0][25] = 0;
+      
+      // Добавляем кресты на флагах
+      grid[1][3] = 1; grid[1][5] = 1;
+      grid[1][23] = 1; grid[1][27] = 1;
+      
+      PUZZLES.push({ name: "Замок", size: 30, difficulty: 4, rows: grid.map(r => r.join('')) });
     })();
 
     // ===================== STORAGE =====================
     const Storage = {
-      get(key, def) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e) { return def; } },
-      set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-      remove(key) { localStorage.removeItem(key); }
+      get(key, def) { 
+        try { 
+          const v = localStorage.getItem(key); 
+          return v ? JSON.parse(v) : def; 
+        } catch(e) { 
+          return def; 
+        } 
+      },
+      set(key, val) { 
+        localStorage.setItem(key, JSON.stringify(val)); 
+      },
+      remove(key) { 
+        localStorage.removeItem(key); 
+      }
     };
 
     // ===================== GAME STATE =====================
@@ -293,7 +681,9 @@
         this.timerInterval = null;
         this.solved = false;
       }
-      getCell(r,c) { return this.grid[r][c]; }
+      getCell(r,c) { 
+        return this.grid[r][c]; 
+      }
       setCell(r,c,val, record=true) {
         if (record) {
           this.history.push({r,c,prev:this.grid[r][c], next:val});
@@ -301,23 +691,108 @@
           this.redoStack = [];
         }
         this.grid[r][c] = val;
+        this.autoFillLine(r, c);
       }
-      undo() { if (this.history.length) { const last = this.history.pop(); this.grid[last.r][last.c] = last.prev; this.redoStack.push(last); return true; } return false; }
-      redo() { if (this.redoStack.length) { const last = this.redoStack.pop(); this.grid[last.r][last.c] = last.next; this.history.push(last); return true; } return false; }
-      isSolved() { for (let r=0; r<this.size; r++) for (let c=0; c<this.size; c++) if (this.grid[r][c] !== this.rows[r][c]) return false; return true; }
+      
+      // Автозаполнение строки и столбца
+      autoFillLine(r, c) {
+        // Проверяем строку
+        const rowHints = this.getLineHints(this.rows[r]);
+        const rowFilled = this.grid[r].filter(v => v === 1).length;
+        const rowTarget = rowHints.reduce((a, b) => a + b, 0);
+        
+        if (rowFilled === rowTarget) {
+          for (let i = 0; i < this.size; i++) {
+            if (this.grid[r][i] === 0) {
+              this.grid[r][i] = 2; // автоматически ставим крестик
+            }
+          }
+        }
+        
+        // Проверяем столбец
+        const colVals = [];
+        for (let i = 0; i < this.size; i++) {
+          colVals.push(this.rows[i][c]);
+        }
+        const colHints = this.getLineHints(colVals);
+        const colFilled = this.grid.filter(row => row[c] === 1).length;
+        const colTarget = colHints.reduce((a, b) => a + b, 0);
+        
+        if (colFilled === colTarget) {
+          for (let i = 0; i < this.size; i++) {
+            if (this.grid[i][c] === 0) {
+              this.grid[i][c] = 2; // автоматически ставим крестик
+            }
+          }
+        }
+      }
+      
+      getLineHints(line) {
+        const hints = [];
+        let count = 0;
+        line.forEach(v => {
+          if (v === 1) count++;
+          else {
+            if (count > 0) hints.push(count);
+            count = 0;
+          }
+        });
+        if (count > 0) hints.push(count);
+        return hints.length ? hints : [0];
+      }
+      
+      undo() { 
+        if (this.history.length) { 
+          const last = this.history.pop(); 
+          this.grid[last.r][last.c] = last.prev; 
+          this.redoStack.push(last); 
+          return true; 
+        } 
+        return false; 
+      }
+      
+      redo() { 
+        if (this.redoStack.length) { 
+          const last = this.redoStack.pop(); 
+          this.grid[last.r][last.c] = last.next; 
+          this.history.push(last); 
+          return true; 
+        } 
+        return false; 
+      }
+      
+      isSolved() { 
+        for (let r = 0; r < this.size; r++) 
+          for (let c = 0; c < this.size; c++) 
+            if (this.grid[r][c] !== this.rows[r][c]) return false; 
+        return true; 
+      }
     }
 
     // ===================== SOUND MANAGER =====================
     const SoundManager = {
-      ctx: null, enabled: true,
-      init() { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} },
-      toggle() { this.enabled = !this.enabled; return this.enabled; },
+      ctx: null, 
+      enabled: true,
+      init() { 
+        try { 
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+        } catch(e) {} 
+      },
+      toggle() { 
+        this.enabled = !this.enabled; 
+        return this.enabled; 
+      },
       play(freq, dur, vol=0.3) {
         if (!this.enabled || !this.ctx) return;
-        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq; gain.gain.value = vol;
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        const osc = this.ctx.createOscillator(); 
+        const gain = this.ctx.createGain();
+        osc.type = 'sine'; 
+        osc.frequency.value = freq; 
+        gain.gain.value = vol;
+        osc.connect(gain); 
+        gain.connect(this.ctx.destination);
+        osc.start(); 
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
         osc.stop(this.ctx.currentTime + dur);
       },
@@ -330,7 +805,9 @@
     // ===================== HAPTICS =====================
     const Haptics = {
       enabled: true,
-      vibrate(pattern) { if (this.enabled && 'vibrate' in navigator) navigator.vibrate(pattern); },
+      vibrate(pattern) { 
+        if (this.enabled && 'vibrate' in navigator) navigator.vibrate(pattern); 
+      },
       tap() { this.vibrate(10); },
       error() { this.vibrate([50,30,50]); },
       mode() { this.vibrate(15); },
@@ -340,36 +817,54 @@
     // ===================== RENDERER =====================
     class Renderer {
       constructor(canvas) {
-        this.canvas = canvas; this.ctx = canvas.getContext('2d');
-        this.zoom = 1; this.offsetX = 0; this.offsetY = 0;
-        this.cellSize = 30; this.viewport = { left:0, top:0, right:0, bottom:0 };
-        this.hintLayer = document.createElement('canvas');
-        this.hintCtx = this.hintLayer.getContext('2d');
-        this.animationId = null; this.animations = [];
-        this.state = null; this.puzzleName = '';
+        this.canvas = canvas; 
+        this.ctx = canvas.getContext('2d');
+        this.zoom = 1; 
+        this.offsetX = 0; 
+        this.offsetY = 0;
+        this.cellSize = 30; 
+        this.state = null;
+        this.animations = [];
       }
-      setState(state) { this.state = state; this.computeSizes(); this.centerBoard(); this.draw(); }
+      
+      setState(state) { 
+        this.state = state; 
+        this.computeSizes(); 
+        this.fitBoard(); 
+        this.draw(); 
+      }
+      
       computeSizes() {
         const wrap = document.getElementById('canvas-wrap');
-        const w = wrap.clientWidth, h = wrap.clientHeight;
+        const w = wrap.clientWidth - 20; // Учитываем отступы
+        const h = wrap.clientHeight - 20;
         const size = this.state.size;
-        this.cellSize = Math.min(w / (size + 2), h / (size + 2));
-        this.canvas.width = w; this.canvas.height = h;
-        this.hintLayer.width = w; this.hintLayer.height = h;
+        // Учитываем место для подсказок
+        const hintSpace = 80;
+        const availableW = w - hintSpace;
+        const availableH = h - hintSpace;
+        this.cellSize = Math.min(availableW / size, availableH / size);
+        this.cellSize = Math.max(10, Math.min(40, this.cellSize)); // Ограничиваем размер
+        this.canvas.width = w;
+        this.canvas.height = h;
       }
-      centerBoard() {
-        const size = this.state.size, cell = this.cellSize;
-        const boardW = size * cell, boardH = size * cell;
-        this.offsetX = (this.canvas.width - boardW) / 2;
-        this.offsetY = (this.canvas.height - boardH) / 2;
+      
+      fitBoard() {
+        const size = this.state.size;
+        const boardW = size * this.cellSize;
+        const boardH = size * this.cellSize;
+        // Центрируем с учётом подсказок
+        this.offsetX = (this.canvas.width - boardW) / 2 + 40;
+        this.offsetY = (this.canvas.height - boardH) / 2 + 40;
         this.zoom = 1;
       }
+      
       applyZoom(newZoom, cx, cy) {
         const oldZoom = this.zoom;
-        const minZ = 0.5, maxZ = 5;
+        const minZ = 0.5, maxZ = 8;
         newZoom = Math.max(minZ, Math.min(maxZ, newZoom));
-        if (cx === undefined) cx = this.canvas.width/2;
-        if (cy === undefined) cy = this.canvas.height/2;
+        if (cx === undefined) cx = this.canvas.width / 2;
+        if (cy === undefined) cy = this.canvas.height / 2;
         const worldX = (cx - this.offsetX) / oldZoom;
         const worldY = (cy - this.offsetY) / oldZoom;
         this.offsetX = cx - worldX * newZoom;
@@ -377,128 +872,148 @@
         this.zoom = newZoom;
         this.draw();
       }
-      zoomIn() { const cx = this.canvas.width/2, cy = this.canvas.height/2; this.animateZoom(this.zoom*1.2, cx, cy); }
-      zoomOut() { const cx = this.canvas.width/2, cy = this.canvas.height/2; this.animateZoom(this.zoom/1.2, cx, cy); }
-      resetZoom() { this.animateZoom(1, this.canvas.width/2, this.canvas.height/2); }
-      animateZoom(target, cx, cy) {
-        const start = this.zoom, diff = target - start;
-        const startX = this.offsetX, startY = this.offsetY;
-        const worldX = (cx - startX) / start, worldY = (cy - startY) / start;
-        const targetX = cx - worldX * target, targetY = cy - worldY * target;
-        const duration = 300; const startTime = performance.now();
-        const step = (now) => {
-          const t = Math.min(1, (now - startTime) / duration);
-          const ease = 1 - Math.pow(1-t, 3);
-          this.zoom = start + diff * ease;
-          this.offsetX = startX + (targetX - startX) * ease;
-          this.offsetY = startY + (targetY - startY) * ease;
-          this.draw();
-          if (t < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      }
+      
       screenToCell(x, y) {
         const r = Math.floor((y - this.offsetY) / (this.cellSize * this.zoom));
         const c = Math.floor((x - this.offsetX) / (this.cellSize * this.zoom));
         return {r, c};
       }
+      
       draw() {
-        const ctx = this.ctx; const w = this.canvas.width, h = this.canvas.height;
-        ctx.clearRect(0,0,w,h);
+        const ctx = this.ctx; 
+        const w = this.canvas.width, h = this.canvas.height;
+        ctx.clearRect(0, 0, w, h);
         if (!this.state) return;
+        
         const cell = this.cellSize * this.zoom;
         const size = this.state.size;
-        // Background cells
-        for (let r=0; r<size; r++) {
-          for (let c=0; c<size; c++) {
-            if (r*cell+this.offsetY > h || c*cell+this.offsetX > w) continue;
-            if (r*cell+this.offsetY+cell < 0 || c*cell+this.offsetX+cell < 0) continue;
-            const x = c*cell+this.offsetX, y = r*cell+this.offsetY;
+        
+        // Рисуем фон
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#fff';
+        ctx.fillRect(0, 0, w, h);
+        
+        // Рисуем подсказки
+        this.drawHints(ctx, cell, size);
+        
+        // Рисуем клетки
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const x = c * cell + this.offsetX;
+            const y = r * cell + this.offsetY;
+            
+            // Пропускаем невидимые клетки
+            if (x + cell < 0 || x > w || y + cell < 0 || y > h) continue;
+            
+            const val = this.state.grid[r][c];
             ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--cell-bg').trim() || '#fff';
             ctx.fillRect(x, y, cell, cell);
-            const val = this.state.grid[r][c];
+            
             if (val === 1) {
               ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--cell-filled').trim() || '#3a3a3a';
-              ctx.fillRect(x+1, y+1, cell-2, cell-2);
+              ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
             } else if (val === 2) {
               ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--cell-x').trim() || '#c44';
-              ctx.lineWidth = Math.max(1, cell/6);
-              ctx.beginPath(); ctx.moveTo(x+cell*0.2, y+cell*0.2); ctx.lineTo(x+cell*0.8, y+cell*0.8); ctx.stroke();
-              ctx.beginPath(); ctx.moveTo(x+cell*0.8, y+cell*0.2); ctx.lineTo(x+cell*0.2, y+cell*0.8); ctx.stroke();
+              ctx.lineWidth = Math.max(1, cell / 6);
+              ctx.beginPath(); 
+              ctx.moveTo(x + cell * 0.2, y + cell * 0.2); 
+              ctx.lineTo(x + cell * 0.8, y + cell * 0.8); 
+              ctx.stroke();
+              ctx.beginPath(); 
+              ctx.moveTo(x + cell * 0.8, y + cell * 0.2); 
+              ctx.lineTo(x + cell * 0.2, y + cell * 0.8); 
+              ctx.stroke();
             }
+            
             if (cell > 8) {
               ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#ddd';
               ctx.lineWidth = 1;
-              ctx.strokeRect(x+0.5, y+0.5, cell, cell);
+              ctx.strokeRect(x + 0.5, y + 0.5, cell, cell);
             }
           }
         }
-        // Grid lines for large cells
-        if (cell > 12) {
-          ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
-          for (let i=0; i<=size; i++) {
-            ctx.beginPath(); ctx.moveTo(i*cell+this.offsetX, this.offsetY); ctx.lineTo(i*cell+this.offsetX, size*cell+this.offsetY); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(this.offsetX, i*cell+this.offsetY); ctx.lineTo(size*cell+this.offsetX, i*cell+this.offsetY); ctx.stroke();
+        
+        // Рисуем линии сетки для больших клеток
+        if (cell > 15) {
+          ctx.strokeStyle = '#888'; 
+          ctx.lineWidth = 1;
+          for (let i = 0; i <= size; i++) {
+            ctx.beginPath(); 
+            ctx.moveTo(i * cell + this.offsetX, this.offsetY); 
+            ctx.lineTo(i * cell + this.offsetX, size * cell + this.offsetY); 
+            ctx.stroke();
+            ctx.beginPath(); 
+            ctx.moveTo(this.offsetX, i * cell + this.offsetY); 
+            ctx.lineTo(size * cell + this.offsetX, i * cell + this.offsetY); 
+            ctx.stroke();
           }
         }
-        // Draw hints
-        this.drawHints(cell);
-        // Error highlights
+        
+        // Рисуем выделение ошибок
         if (this.errorCells) {
           this.errorCells.forEach(([r,c]) => {
-            const x = c*cell+this.offsetX, y = r*cell+this.offsetY;
-            ctx.fillStyle = 'rgba(255,0,0,0.35)'; ctx.fillRect(x, y, cell, cell);
+            const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
+            ctx.fillStyle = 'rgba(255,0,0,0.35)'; 
+            ctx.fillRect(x, y, cell, cell);
           });
         }
-        // Hint highlight
+        
+        // Рисуем подсказку
         if (this.hintCell) {
           const [r,c] = this.hintCell;
-          const x = c*cell+this.offsetX, y = r*cell+this.offsetY;
-          ctx.fillStyle = 'rgba(255,235,59,0.6)'; ctx.fillRect(x, y, cell, cell);
+          const x = c * cell + this.offsetX, y = r * cell + this.offsetY;
+          ctx.fillStyle = 'rgba(255,235,59,0.6)'; 
+          ctx.fillRect(x, y, cell, cell);
         }
       }
-      drawHints(cell) {
-        const size = this.state.size;
-        const ctx = this.ctx;
+      
+      drawHints(ctx, cell, size) {
         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#333';
-        ctx.font = `${Math.max(8, cell*0.5)}px system-ui`;
+        ctx.font = `${Math.max(8, cell * 0.6)}px system-ui`;
         ctx.textAlign = 'center';
-        // Row hints
-        for (let r=0; r<size; r++) {
-          const hints = this.getLineHints(this.state.rows[r]);
-          let x = this.offsetX - (hints.length * cell*0.5) - 4;
-          let y = r*cell+this.offsetY + cell/2;
-          hints.forEach(hint => { ctx.fillText(hint, x, y); x += cell*0.5; });
+        ctx.textBaseline = 'middle';
+        
+        // Подсказки для строк
+        for (let r = 0; r < size; r++) {
+          const hints = this.state.getLineHints(this.state.rows[r]);
+          let x = this.offsetX - 10;
+          let y = r * cell + this.offsetY + cell / 2;
+          hints.forEach(hint => {
+            ctx.fillText(hint, x, y);
+            x -= cell * 0.7;
+          });
         }
-        // Column hints
-        for (let c=0; c<size; c++) {
+        
+        // Подсказки для столбцов
+        for (let c = 0; c < size; c++) {
           const colVals = [];
-          for (let r=0; r<size; r++) colVals.push(this.state.rows[r][c]);
-          const hints = this.getLineHints(colVals);
-          let y = this.offsetY - (hints.length * cell*0.5) - 4;
-          let x = c*cell+this.offsetX + cell/2;
-          hints.forEach(hint => { ctx.fillText(hint, x, y); y += cell*0.5; });
+          for (let r = 0; r < size; r++) colVals.push(this.state.rows[r][c]);
+          const hints = this.state.getLineHints(colVals);
+          let y = this.offsetY - 10;
+          let x = c * cell + this.offsetX + cell / 2;
+          hints.forEach(hint => {
+            ctx.fillText(hint, x, y);
+            y -= cell * 0.7;
+          });
         }
-      }
-      getLineHints(line) {
-        const hints = []; let count = 0;
-        line.forEach(v => { if (v===1) count++; else { if (count>0) hints.push(count); count=0; } });
-        if (count>0) hints.push(count);
-        return hints.length ? hints : [0];
       }
     }
 
     // ===================== INPUT HANDLER =====================
     class InputHandler {
       constructor(renderer, game, callbacks) {
-        this.renderer = renderer; this.game = game; this.cb = callbacks;
+        this.renderer = renderer; 
+        this.game = game; 
+        this.cb = callbacks;
         this.canvas = renderer.canvas;
         this.mode = 'paint';
         this.pointerDown = false;
-        this.startX = 0; this.startY = 0;
-        this.lastCell = null; this.isPan = false;
+        this.startX = 0; 
+        this.startY = 0;
+        this.lastCell = null; 
+        this.isPan = false;
         this.activePointers = new Map();
         this.pinchDist = 0;
+        
         this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
         this.canvas.addEventListener('pointerup', this.onPointerUp.bind(this));
@@ -506,46 +1021,70 @@
         this.canvas.addEventListener('dblclick', e => e.preventDefault());
         this.canvas.addEventListener('contextmenu', e => e.preventDefault());
       }
-      setMode(mode) { this.mode = mode; }
+      
+      setMode(mode) { 
+        this.mode = mode; 
+      }
+      
       onPointerDown(e) {
         e.preventDefault();
         this.pointerDown = true;
-        this.startX = e.clientX; this.startY = e.clientY;
+        this.startX = e.clientX; 
+        this.startY = e.clientY;
         this.activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        
         if (this.activePointers.size === 2) {
-          this.isPan = true; this.pinchDist = this.getPinchDist();
+          this.isPan = true; 
+          this.pinchDist = this.getPinchDist();
         } else {
-          this.isPan = (this.mode === 'hand') || (this.renderer.zoom > 1.01);
-          this.lastCell = this.renderer.screenToCell(e.offsetX, e.offsetY);
-          if (this.lastCell && this.lastCell.r >=0 && this.lastCell.c>=0 && this.lastCell.r<this.game.size && this.lastCell.c<this.game.size) {
+          this.isPan = (this.mode === 'hand') || (this.renderer.zoom > 1.5);
+          const rect = this.canvas.getBoundingClientRect();
+          const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+          const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+          this.lastCell = this.renderer.screenToCell(x, y);
+          
+          if (this.lastCell && this.lastCell.r >= 0 && this.lastCell.c >= 0 && 
+              this.lastCell.r < this.game.size && this.lastCell.c < this.game.size) {
             this.applyAction(this.lastCell.r, this.lastCell.c);
           }
         }
       }
+      
       onPointerMove(e) {
         if (!this.pointerDown) return;
         e.preventDefault();
-        if (this.activePointers.has(e.pointerId)) this.activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        
+        if (this.activePointers.has(e.pointerId)) {
+          this.activePointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        }
+        
         if (this.activePointers.size === 2) {
           const newDist = this.getPinchDist();
           if (this.pinchDist > 0) {
             const scale = newDist / this.pinchDist;
             this.pinchDist = newDist;
             const rect = this.canvas.getBoundingClientRect();
-            const cx = (this.activePointers.values().next().value.x + Array.from(this.activePointers.values())[1].x)/2 - rect.left;
-            const cy = (this.activePointers.values().next().value.y + Array.from(this.activePointers.values())[1].y)/2 - rect.top;
+            const pointers = Array.from(this.activePointers.values());
+            const cx = ((pointers[0].x + pointers[1].x) / 2 - rect.left) * (this.canvas.width / rect.width);
+            const cy = ((pointers[0].y + pointers[1].y) / 2 - rect.top) * (this.canvas.height / rect.height);
             this.renderer.applyZoom(this.renderer.zoom * scale, cx, cy);
           }
         } else if (this.isPan) {
-          const dx = e.clientX - this.startX; const dy = e.clientY - this.startY;
-          this.renderer.offsetX += dx; this.renderer.offsetY += dy;
-          this.startX = e.clientX; this.startY = e.clientY;
+          const dx = (e.clientX - this.startX) * (this.canvas.width / this.canvas.getBoundingClientRect().width);
+          const dy = (e.clientY - this.startY) * (this.canvas.height / this.canvas.getBoundingClientRect().height);
+          this.renderer.offsetX += dx; 
+          this.renderer.offsetY += dy;
+          this.startX = e.clientX; 
+          this.startY = e.clientY;
           this.renderer.draw();
         } else {
-          const cell = this.renderer.screenToCell(e.offsetX, e.offsetY);
-          if (cell && cell.r>=0 && cell.c>=0 && cell.r<this.game.size && cell.c<this.game.size) {
+          const rect = this.canvas.getBoundingClientRect();
+          const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+          const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+          const cell = this.renderer.screenToCell(x, y);
+          
+          if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
             if (!this.lastCell || (this.lastCell.r !== cell.r || this.lastCell.c !== cell.c)) {
-              // Bresenham interpolation for smooth drawing
               if (this.lastCell) this.interpolateCells(this.lastCell, cell);
               this.applyAction(cell.r, cell.c);
               this.lastCell = cell;
@@ -553,6 +1092,7 @@
           }
         }
       }
+      
       onPointerUp(e) {
         e.preventDefault();
         this.activePointers.delete(e.pointerId);
@@ -563,188 +1103,269 @@
           this.lastCell = null;
         }
       }
+      
       getPinchDist() {
         const pts = Array.from(this.activePointers.values());
         if (pts.length < 2) return 0;
-        return Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+        return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
       }
+      
       interpolateCells(from, to) {
-        let r1=from.r, c1=from.c, r2=to.r, c2=to.c;
-        const dr = Math.abs(r2-r1), dc = Math.abs(c2-c1);
+        let r1 = from.r, c1 = from.c, r2 = to.r, c2 = to.c;
+        const dr = Math.abs(r2 - r1), dc = Math.abs(c2 - c1);
         const steps = Math.max(dr, dc);
         if (steps === 0) return;
-        for (let i=0; i<=steps; i++) {
-          const rr = Math.round(r1 + (r2-r1)*i/steps);
-          const cc = Math.round(c1 + (c2-c1)*i/steps);
+        for (let i = 0; i <= steps; i++) {
+          const rr = Math.round(r1 + (r2 - r1) * i / steps);
+          const cc = Math.round(c1 + (c2 - c1) * i / steps);
           this.applyAction(rr, cc);
         }
       }
+      
       applyAction(r, c) {
         if (this.game.solved) return;
+        
         if (this.mode === 'paint') {
-          const cur = this.game.getCell(r,c);
+          const cur = this.game.getCell(r, c);
           const newVal = cur === 1 ? 0 : 1;
-          this.game.setCell(r,c,newVal);
-          Haptics.tap(); SoundManager.tap();
-          if (newVal === 1 && this.game.rows[r][c] !== 1) { this.game.errors++; this.cb.onError(r,c); }
-          else if (newVal === 0) { this.cb.onUpdate(); }
-          else { this.cb.onUpdate(); }
+          this.game.setCell(r, c, newVal);
+          Haptics.tap(); 
+          SoundManager.tap();
+          
+          if (newVal === 1 && this.game.rows[r][c] !== 1) { 
+            this.game.errors++; 
+            this.cb.onError(r, c); 
+          } else {
+            this.cb.onUpdate();
+          }
+          
           if (this.game.isSolved()) this.cb.onWin();
         } else if (this.mode === 'x') {
-          const cur = this.game.getCell(r,c);
+          const cur = this.game.getCell(r, c);
           const newVal = cur === 2 ? 0 : 2;
-          this.game.setCell(r,c,newVal);
-          Haptics.mode(); SoundManager.mode();
+          this.game.setCell(r, c, newVal);
+          Haptics.mode(); 
+          SoundManager.mode();
           this.cb.onUpdate();
         }
+        
         this.renderer.draw();
       }
     }
 
     // ===================== LEVEL GENERATOR =====================
     const LevelGenerator = {
-      generate(size=20) {
+      generate(size = 20) {
         let grid = Array(size).fill().map(() => Array(size).fill(0));
-        const primitives = ['circle','semicircle','hline','vline','dline','corner','stripe','diamond','triangle'];
-        const count = 2 + Math.floor(Math.random()*3);
-        for (let i=0; i<count; i++) {
-          const type = primitives[Math.floor(Math.random()*primitives.length)];
-          const x = Math.floor(Math.random()*size);
-          const y = Math.floor(Math.random()*size);
-          const radius = 3 + Math.floor(Math.random()*Math.max(2, size/4));
+        const primitives = ['circle', 'semicircle', 'hline', 'vline', 'dline', 'corner', 'stripe', 'diamond', 'triangle'];
+        const count = 2 + Math.floor(Math.random() * 3);
+        
+        for (let i = 0; i < count; i++) {
+          const type = primitives[Math.floor(Math.random() * primitives.length)];
+          const x = Math.floor(Math.random() * size);
+          const y = Math.floor(Math.random() * size);
+          const radius = 3 + Math.floor(Math.random() * Math.max(2, size / 4));
           this.drawPrimitive(grid, type, x, y, radius);
         }
+        
         if (Math.random() < 0.7) {
-          const sym = ['v','h','both'][Math.floor(Math.random()*3)];
+          const sym = ['v', 'h', 'both'][Math.floor(Math.random() * 3)];
           this.applySymmetry(grid, sym);
         }
+        
         this.smooth(grid);
         this.validate(grid);
         return grid;
       },
+      
       drawPrimitive(grid, type, cx, cy, r) {
         const size = grid.length;
-        for (let i=0; i<size; i++) for (let j=0; j<size; j++) {
-          const dx = i-cx, dy = j-cy;
-          let val = false;
-          switch(type) {
-            case 'circle': val = dx*dx+dy*dy <= r*r; break;
-            case 'semicircle': val = dx*dx+dy*dy <= r*r && dx > 0; break;
-            case 'hline': val = Math.abs(dx) <= r && Math.abs(dy) <= 1; break;
-            case 'vline': val = Math.abs(dy) <= r && Math.abs(dx) <= 1; break;
-            case 'dline': val = Math.abs(dx-dy) <= 1 && Math.abs(dx+dy) <= r; break;
-            case 'corner': val = (Math.abs(dx)<=r && Math.abs(dy)<=1) || (Math.abs(dy)<=r && Math.abs(dx)<=1); break;
-            case 'stripe': val = Math.abs(dx) <= r && Math.abs(dy) <= 2 && (i+j)%2===0; break;
-            case 'diamond': val = Math.abs(dx)+Math.abs(dy) <= r; break;
-            case 'triangle': val = dy >= 0 && Math.abs(dx)+dy <= r; break;
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            const dx = i - cx, dy = j - cy;
+            let val = false;
+            switch(type) {
+              case 'circle': val = dx*dx + dy*dy <= r*r; break;
+              case 'semicircle': val = dx*dx + dy*dy <= r*r && dx > 0; break;
+              case 'hline': val = Math.abs(dx) <= r && Math.abs(dy) <= 1; break;
+              case 'vline': val = Math.abs(dy) <= r && Math.abs(dx) <= 1; break;
+              case 'dline': val = Math.abs(dx-dy) <= 1 && Math.abs(dx+dy) <= r; break;
+              case 'corner': val = (Math.abs(dx)<=r && Math.abs(dy)<=1) || (Math.abs(dy)<=r && Math.abs(dx)<=1); break;
+              case 'stripe': val = Math.abs(dx) <= r && Math.abs(dy) <= 2 && (i+j)%2===0; break;
+              case 'diamond': val = Math.abs(dx)+Math.abs(dy) <= r; break;
+              case 'triangle': val = dy >= 0 && Math.abs(dx)+dy <= r; break;
+            }
+            if (val) grid[i][j] = 1;
           }
-          if (val) grid[i][j] = 1;
         }
       },
+      
       applySymmetry(grid, sym) {
         const size = grid.length;
-        const copy = grid.map(r=>[...r]);
-        if (sym === 'v') for (let i=0;i<size;i++) for (let j=0;j<size;j++) grid[i][size-1-j] = copy[i][j] || grid[i][size-1-j];
-        if (sym === 'h') for (let i=0;i<size;i++) for (let j=0;j<size;j++) grid[size-1-i][j] = copy[i][j] || grid[size-1-i][j];
-        if (sym === 'both') for (let i=0;i<size;i++) for (let j=0;j<size;j++) grid[size-1-i][size-1-j] = copy[i][j] || grid[size-1-i][size-1-j];
+        const copy = grid.map(r => [...r]);
+        if (sym === 'v') for (let i = 0; i < size; i++) for (let j = 0; j < size; j++) grid[i][size-1-j] = copy[i][j] || grid[i][size-1-j];
+        if (sym === 'h') for (let i = 0; i < size; i++) for (let j = 0; j < size; j++) grid[size-1-i][j] = copy[i][j] || grid[size-1-i][j];
+        if (sym === 'both') for (let i = 0; i < size; i++) for (let j = 0; j < size; j++) grid[size-1-i][size-1-j] = copy[i][j] || grid[size-1-i][size-1-j];
       },
+      
       smooth(grid) {
         const size = grid.length;
-        for (let pass=0; pass<2; pass++) {
-          const copy = grid.map(r=>[...r]);
-          for (let i=1;i<size-1;i++) for (let j=1;j<size-1;j++) {
-            let sum=0; for (let di=-1;di<=1;di++) for (let dj=-1;dj<=1;dj++) sum += copy[i+di][j+dj];
-            if (sum < 3) grid[i][j] = 0;
-            else if (sum > 6) grid[i][j] = 1;
+        for (let pass = 0; pass < 2; pass++) {
+          const copy = grid.map(r => [...r]);
+          for (let i = 1; i < size-1; i++) {
+            for (let j = 1; j < size-1; j++) {
+              let sum = 0;
+              for (let di = -1; di <= 1; di++) 
+                for (let dj = -1; dj <= 1; dj++) 
+                  sum += copy[i+di][j+dj];
+              if (sum < 3) grid[i][j] = 0;
+              else if (sum > 6) grid[i][j] = 1;
+            }
           }
         }
-        // remove isolated
-        for (let i=1;i<size-1;i++) for (let j=1;j<size-1;j++) {
-          if (grid[i][j] && !grid[i-1][j] && !grid[i+1][j] && !grid[i][j-1] && !grid[i][j+1]) grid[i][j]=0;
+        // Удаляем изолированные клетки
+        for (let i = 1; i < size-1; i++) {
+          for (let j = 1; j < size-1; j++) {
+            if (grid[i][j] && !grid[i-1][j] && !grid[i+1][j] && !grid[i][j-1] && !grid[i][j+1]) {
+              grid[i][j] = 0;
+            }
+          }
         }
       },
+      
       validate(grid) {
         const size = grid.length;
-        let filled = 0; grid.forEach(r=>r.forEach(v=>filled+=v));
-        const ratio = filled/(size*size);
-        if (ratio < 0.2 || ratio > 0.6) return false;
-        return true;
+        let filled = 0;
+        grid.forEach(r => r.forEach(v => filled += v));
+        const ratio = filled / (size * size);
+        return ratio >= 0.2 && ratio <= 0.6;
       }
     };
 
     // ===================== EDITOR =====================
     class Editor {
       constructor() {
-        this.size = 10; this.grid = Array(this.size).fill().map(()=>Array(this.size).fill(0));
-        this.tool = 'pencil'; this.symmetry = 'none';
-        this.canvas = document.getElementById('editor-canvas'); this.ctx = this.canvas.getContext('2d');
-        this.preview = document.getElementById('editor-preview'); this.previewCtx = this.preview.getContext('2d');
+        this.size = 10; 
+        this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+        this.tool = 'pencil'; 
+        this.symmetry = 'none';
+        this.canvas = document.getElementById('editor-canvas'); 
+        this.ctx = this.canvas.getContext('2d');
+        this.preview = document.getElementById('editor-preview'); 
+        this.previewCtx = this.preview.getContext('2d');
         this.setupEvents();
       }
-      setSize(s) { this.size = s; this.grid = Array(s).fill().map(()=>Array(s).fill(0)); this.render(); }
-      setupEvents() {
-        this.canvas.addEventListener('pointerdown', e=>{ this.paint(e.offsetX, e.offsetY); });
-        this.canvas.addEventListener('pointermove', e=>{ if(e.buttons) this.paint(e.offsetX, e.offsetY); });
+      
+      setSize(s) { 
+        this.size = s; 
+        this.grid = Array(s).fill().map(() => Array(s).fill(0)); 
+        this.render(); 
       }
-      paint(x,y) {
-        const rect = this.canvas.getBoundingClientRect();
-        const cell = rect.width / this.size;
-        const r = Math.floor(y/cell), c = Math.floor(x/cell);
-        if (r<0||c<0||r>=this.size||c>=this.size) return;
-        this.applyTool(r,c);
+      
+      setupEvents() {
+        this.canvas.addEventListener('pointerdown', e => { 
+          const rect = this.canvas.getBoundingClientRect();
+          const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+          const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+          this.paint(x, y); 
+        });
+        
+        this.canvas.addEventListener('pointermove', e => { 
+          if (e.buttons) {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+            this.paint(x, y); 
+          }
+        });
+      }
+      
+      paint(x, y) {
+        const cell = this.canvas.width / this.size;
+        const r = Math.floor(y / cell), c = Math.floor(x / cell);
+        if (r < 0 || c < 0 || r >= this.size || c >= this.size) return;
+        this.applyTool(r, c);
         this.render();
       }
-      applyTool(r,c) {
-        if (this.tool === 'pencil') this.grid[r][c]=1;
-        else if (this.tool === 'eraser') this.grid[r][c]=0;
-        else if (this.tool === 'fill') this.floodFill(r,c,this.grid[r][c]?0:1);
-        else if (this.tool === 'line') { /* simple line from last point */ }
-        else if (this.tool === 'rect') { /* rect from last point */ }
+      
+      applyTool(r, c) {
+        if (this.tool === 'pencil') this.grid[r][c] = 1;
+        else if (this.tool === 'eraser') this.grid[r][c] = 0;
+        else if (this.tool === 'fill') this.floodFill(r, c, this.grid[r][c] ? 0 : 1);
+        
         if (this.symmetry !== 'none') this.applySymmetry();
       }
+      
       applySymmetry() {
-        const s = this.size; const g = this.grid.map(r=>[...r]);
-        if (this.symmetry === 'v' || this.symmetry === 'both') for(let i=0;i<s;i++) for(let j=0;j<s;j++) this.grid[i][s-1-j]=g[i][j];
-        if (this.symmetry === 'h' || this.symmetry === 'both') for(let i=0;i<s;i++) for(let j=0;j<s;j++) this.grid[s-1-i][j]=g[i][j];
+        const s = this.size; 
+        const g = this.grid.map(r => [...r]);
+        if (this.symmetry === 'v' || this.symmetry === 'both') 
+          for (let i = 0; i < s; i++) 
+            for (let j = 0; j < s; j++) 
+              this.grid[i][s-1-j] = g[i][j];
+        if (this.symmetry === 'h' || this.symmetry === 'both') 
+          for (let i = 0; i < s; i++) 
+            for (let j = 0; j < s; j++) 
+              this.grid[s-1-i][j] = g[i][j];
       }
-      floodFill(r,c,val) {
-        const old = this.grid[r][c]; if (old===val) return;
-        const q=[[r,c]];
-        while(q.length) {
-          const [x,y]=q.pop(); if(x<0||y<0||x>=this.size||y>=this.size) continue;
-          if(this.grid[x][y]!==old) continue;
-          this.grid[x][y]=val; q.push([x-1,y],[x+1,y],[x,y-1],[x,y+1]);
+      
+      floodFill(r, c, val) {
+        const old = this.grid[r][c]; 
+        if (old === val) return;
+        const q = [[r, c]];
+        while (q.length) {
+          const [x, y] = q.pop();
+          if (x < 0 || y < 0 || x >= this.size || y >= this.size) continue;
+          if (this.grid[x][y] !== old) continue;
+          this.grid[x][y] = val; 
+          q.push([x-1,y], [x+1,y], [x,y-1], [x,y+1]);
         }
       }
+      
       render() {
         const cell = this.canvas.width / this.size;
-        this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-        for(let r=0;r<this.size;r++) for(let c=0;c<this.size;c++) {
-          this.ctx.fillStyle = this.grid[r][c] ? '#3a3a3a' : '#fff';
-          this.ctx.fillRect(c*cell,r*cell,cell,cell);
-          this.ctx.strokeStyle='#ccc'; this.ctx.strokeRect(c*cell,r*cell,cell,cell);
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            this.ctx.fillStyle = this.grid[r][c] ? '#3a3a3a' : '#fff';
+            this.ctx.fillRect(c * cell, r * cell, cell, cell);
+            this.ctx.strokeStyle = '#ccc'; 
+            this.ctx.strokeRect(c * cell, r * cell, cell, cell);
+          }
         }
-        // preview
-        const pcell = this.preview.width/this.size;
-        this.previewCtx.clearRect(0,0,this.preview.width,this.preview.height);
-        for(let r=0;r<this.size;r++) for(let c=0;c<this.size;c++) {
-          this.previewCtx.fillStyle = this.grid[r][c] ? '#3a3a3a' : '#f0f0f0';
-          this.previewCtx.fillRect(c*pcell,r*pcell,pcell,pcell);
+        
+        // Превью
+        const pcell = this.preview.width / this.size;
+        this.previewCtx.clearRect(0, 0, this.preview.width, this.preview.height);
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            this.previewCtx.fillStyle = this.grid[r][c] ? '#3a3a3a' : '#f0f0f0';
+            this.previewCtx.fillRect(c * pcell, r * pcell, pcell, pcell);
+          }
         }
       }
+      
       exportJSON() {
-        const data = { name: 'Мой пазл', size:this.size, rows: this.grid.map(r=>r.join('')) };
-        const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'puzzle.json'; a.click();
+        const data = { name: 'Мой пазл', size: this.size, rows: this.grid.map(r => r.join('')) };
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(blob); 
+        a.download = 'puzzle.json'; 
+        a.click();
       }
+      
       importJSON(file) {
         const reader = new FileReader();
         reader.onload = e => {
           try {
             const data = JSON.parse(e.target.result);
-            this.size = data.size; this.grid = data.rows.map(r=>r.split('').map(Number));
+            this.size = data.size; 
+            this.grid = data.rows.map(r => r.split('').map(Number));
             this.render();
-          } catch(err) { alert('Ошибка импорта'); }
+          } catch(err) { 
+            alert('Ошибка импорта'); 
+          }
         };
         reader.readAsText(file);
       }
@@ -752,7 +1373,11 @@
 
     // ===================== UI =====================
     const UI = {
-      game: null, renderer: null, inputHandler: null, editor: null,
+      game: null, 
+      renderer: null, 
+      inputHandler: null, 
+      editor: null,
+      
       init() {
         SoundManager.init();
         this.loadSettings();
@@ -760,225 +1385,509 @@
         this.editor = new Editor();
         this.bindEvents();
         this.showLevels();
+        
         const saved = Storage.get('savedPuzzle', null);
         if (saved) this.loadPuzzle(saved);
         else this.loadPuzzle(PUZZLES[0]);
       },
+      
       loadSettings() {
-        const s = Storage.get('settings', {sound:true, haptics:true, timer:true, theme:'light'});
-        SoundManager.enabled = s.sound; Haptics.enabled = s.haptics;
+        const s = Storage.get('settings', {sound: true, haptics: true, timer: true, theme: 'light'});
+        SoundManager.enabled = s.sound; 
+        Haptics.enabled = s.haptics;
         document.getElementById('setting-sound').checked = s.sound;
         document.getElementById('setting-haptics').checked = s.haptics;
         document.getElementById('setting-timer').checked = s.timer;
-        if (s.theme === 'dark') document.documentElement.style.setProperty('--bg','#1e1e1e');
+        
+        // Устанавливаем тему
+        document.documentElement.setAttribute('data-theme', s.theme);
       },
+      
       bindEvents() {
-        document.getElementById('btn-menu').onclick = ()=>this.showModal('modal-menu');
-        document.getElementById('btn-sound').onclick = ()=>{ SoundManager.toggle(); };
-        document.getElementById('btn-theme').onclick = ()=>{ document.documentElement.classList.toggle('dark'); };
-        document.querySelectorAll('[data-close]').forEach(btn => btn.onclick = ()=>this.hideModal(btn.dataset.close));
-        document.getElementById('btn-levels').onclick = ()=>{ this.hideModal('modal-menu'); this.showLevels(); this.showModal('modal-levels'); };
-        document.getElementById('btn-editor').onclick = ()=>{ this.hideModal('modal-menu'); this.showModal('modal-editor'); };
-        document.getElementById('btn-generate').onclick = ()=>{ this.hideModal('modal-menu'); this.generateLevel(); };
-        document.getElementById('btn-settings').onclick = ()=>{ this.hideModal('modal-menu'); this.showModal('modal-settings'); };
-        document.getElementById('setting-sound').onchange = e=>{ SoundManager.enabled = e.target.checked; this.saveSettings(); };
-        document.getElementById('setting-haptics').onchange = e=>{ Haptics.enabled = e.target.checked; this.saveSettings(); };
-        document.getElementById('setting-timer').onchange = e=>{ this.saveSettings(); };
-        document.getElementById('btn-random-level').onclick = ()=>this.randomLevel();
-        document.getElementById('btn-reset-stats').onclick = ()=>{ Storage.remove('stats'); alert('Статистика сброшена'); };
-        document.getElementById('btn-undo').onclick = ()=>this.undo();
-        document.getElementById('btn-redo').onclick = ()=>this.redo();
-        document.getElementById('btn-clear').onclick = ()=>{ if(this.game){ this.game.grid = Array(this.game.size).fill().map(()=>Array(this.game.size).fill(0)); this.renderer.draw(); } };
-        document.getElementById('btn-check').onclick = ()=>this.checkErrors();
-        document.getElementById('btn-hint').onclick = ()=>this.giveHint();
-        document.getElementById('btn-hand').onclick = e=>{ this.inputHandler.setMode('hand'); document.querySelectorAll('.bottom-btn').forEach(b=>b.classList.remove('active')); e.target.classList.add('active'); };
-        document.querySelectorAll('[data-mode]').forEach(btn=>btn.onclick = e=>{
-          const mode = e.target.dataset.mode;
-          this.inputHandler.setMode(mode); document.querySelectorAll('.bottom-btn').forEach(b=>b.classList.remove('active')); e.target.classList.add('active');
-        });
-        document.getElementById('editor-save').onclick = ()=>this.saveEditorPuzzle();
-        document.getElementById('editor-export').onclick = ()=>this.editor.exportJSON();
-        document.getElementById('editor-import').onclick = ()=>{ const inp = document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=e=>this.editor.importJSON(e.target.files[0]); inp.click(); };
-        document.getElementById('editor-play').onclick = ()=>this.playEditorPuzzle();
-        document.getElementById('btn-next').onclick = ()=>this.nextLevel();
-        document.getElementById('btn-restart').onclick = ()=>this.restartLevel();
-        document.getElementById('btn-menu-win').onclick = ()=>{ this.hideModal('modal-win'); this.showModal('modal-menu'); };
-        document.getElementById('gen-play').onclick = ()=>{ this.hideModal('modal-generate'); this.loadPuzzle(this.generatedPuzzle); };
-        document.getElementById('gen-regenerate').onclick = ()=>this.generateLevel();
-        document.getElementById('gen-save').onclick = ()=>{ this.saveGenerated(); };
-        document.getElementById('editor-size').onchange = e=>this.editor.setSize(parseInt(e.target.value));
-        document.getElementById('editor-symmetry').onchange = e=>this.editor.symmetry = e.target.value;
-        document.querySelectorAll('.tool-btn').forEach(btn=>btn.onclick = e=>{ document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active')); e.target.classList.add('active'); this.editor.tool = e.target.dataset.tool; });
+        // Кнопки меню
+        document.getElementById('btn-menu').onclick = () => this.showModal('modal-menu');
+        document.getElementById('btn-sound').onclick = () => { 
+          SoundManager.toggle(); 
+          document.getElementById('btn-sound').textContent = SoundManager.enabled ? '🔊' : '🔇';
+        };
+        
+        // Кнопка темы
+        document.getElementById('btn-theme').onclick = () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const newTheme = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          this.saveSettings();
+          this.renderer.draw();
+        };
+        
+        // Кнопки зума
+        document.getElementById('btn-zoom-in').onclick = () => this.renderer.applyZoom(this.renderer.zoom * 1.2);
+        document.getElementById('btn-zoom-out').onclick = () => this.renderer.applyZoom(this.renderer.zoom / 1.2);
+        document.getElementById('btn-zoom-reset').onclick = () => {
+          this.renderer.fitBoard();
+          this.renderer.draw();
+        };
+        
+        // Закрытие модальных окон
+        document.querySelectorAll('[data-close]').forEach(btn => 
+          btn.onclick = () => this.hideModal(btn.dataset.close)
+        );
+        
+        // Навигация
+        document.getElementById('btn-levels').onclick = () => { 
+          this.hideModal('modal-menu'); 
+          this.showLevels(); 
+          this.showModal('modal-levels'); 
+        };
+        document.getElementById('btn-editor').onclick = () => { 
+          this.hideModal('modal-menu'); 
+          this.showModal('modal-editor'); 
+        };
+        document.getElementById('btn-generate').onclick = () => { 
+          this.hideModal('modal-menu'); 
+          this.generateLevel(); 
+        };
+        document.getElementById('btn-settings').onclick = () => { 
+          this.hideModal('modal-menu'); 
+          this.showModal('modal-settings'); 
+        };
+        
+        // Настройки
+        document.getElementById('setting-sound').onchange = e => { 
+          SoundManager.enabled = e.target.checked; 
+          this.saveSettings(); 
+        };
+        document.getElementById('setting-haptics').onchange = e => { 
+          Haptics.enabled = e.target.checked; 
+          this.saveSettings(); 
+        };
+        document.getElementById('setting-timer').onchange = e => { 
+          this.saveSettings(); 
+        };
+        document.getElementById('btn-reset-stats').onclick = () => { 
+          Storage.remove('stats'); 
+          alert('Статистика сброшена'); 
+        };
+        
+        // Уровни
+        document.getElementById('btn-random-level').onclick = () => this.randomLevel();
+        
+        // Игровые кнопки
+        document.getElementById('btn-undo').onclick = () => this.undo();
+        document.getElementById('btn-redo').onclick = () => this.redo();
+        document.getElementById('btn-clear').onclick = () => { 
+          if (this.game) { 
+            this.game.grid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0)); 
+            this.renderer.draw(); 
+          } 
+        };
+        document.getElementById('btn-check').onclick = () => this.checkErrors();
+        document.getElementById('btn-hint').onclick = () => this.giveHint();
+        
+        // Режимы ввода
+        document.querySelectorAll('[data-mode]').forEach(btn => 
+          btn.onclick = e => {
+            const mode = e.target.dataset.mode;
+            this.inputHandler.setMode(mode); 
+            document.querySelectorAll('.bottom-btn').forEach(b => b.classList.remove('active')); 
+            e.target.classList.add('active');
+          }
+        );
+        
+        // Редактор
+        document.getElementById('editor-save').onclick = () => this.saveEditorPuzzle();
+        document.getElementById('editor-export').onclick = () => this.editor.exportJSON();
+        document.getElementById('editor-import').onclick = () => { 
+          const inp = document.createElement('input'); 
+          inp.type = 'file'; 
+          inp.accept = '.json'; 
+          inp.onchange = e => this.editor.importJSON(e.target.files[0]); 
+          inp.click(); 
+        };
+        document.getElementById('editor-play').onclick = () => this.playEditorPuzzle();
+        document.getElementById('editor-size').onchange = e => this.editor.setSize(parseInt(e.target.value));
+        document.getElementById('editor-symmetry').onchange = e => this.editor.symmetry = e.target.value;
+        document.querySelectorAll('.tool-btn').forEach(btn => 
+          btn.onclick = e => {
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); 
+            e.target.classList.add('active'); 
+            this.editor.tool = e.target.dataset.tool;
+          }
+        );
+        
+        // Кнопки победы
+        document.getElementById('btn-next').onclick = () => this.nextLevel();
+        document.getElementById('btn-restart').onclick = () => this.restartLevel();
+        document.getElementById('btn-menu-win').onclick = () => { 
+          this.hideModal('modal-win'); 
+          this.showModal('modal-menu'); 
+        };
+        
+        // Генератор
+        document.getElementById('gen-play').onclick = () => { 
+          this.hideModal('modal-generate'); 
+          this.loadPuzzle(this.generatedPuzzle); 
+        };
+        document.getElementById('gen-regenerate').onclick = () => this.generateLevel();
+        document.getElementById('gen-save').onclick = () => { 
+          this.saveGenerated(); 
+        };
       },
+      
       saveSettings() {
-        Storage.set('settings', {sound:SoundManager.enabled, haptics:Haptics.enabled, timer:document.getElementById('setting-timer').checked, theme:'light'});
+        const theme = document.documentElement.getAttribute('data-theme') || 'light';
+        Storage.set('settings', {
+          sound: SoundManager.enabled, 
+          haptics: Haptics.enabled, 
+          timer: document.getElementById('setting-timer').checked, 
+          theme: theme
+        });
       },
-      showModal(id) { document.getElementById(id).classList.add('show'); },
-      hideModal(id) { document.getElementById(id).classList.remove('show'); },
+      
+      showModal(id) { 
+        document.getElementById(id).classList.add('show'); 
+      },
+      
+      hideModal(id) { 
+        document.getElementById(id).classList.remove('show'); 
+      },
+      
       loadPuzzle(puzzle) {
         if (!puzzle) return;
         this.game = new GameState(puzzle.rows);
         this.game.puzzleName = puzzle.name;
         this.renderer.setState(this.game);
+        
         this.inputHandler = new InputHandler(this.renderer, this.game, {
-          onUpdate: ()=>this.renderer.draw(),
-          onError: (r,c)=>{ this.renderer.errorCells = [[r,c]]; setTimeout(()=>{this.renderer.errorCells=null; this.renderer.draw();},300); Haptics.error(); SoundManager.error(); },
-          onWin: ()=>this.winGame()
+          onUpdate: () => this.renderer.draw(),
+          onError: (r, c) => { 
+            this.renderer.errorCells = [[r, c]]; 
+            setTimeout(() => {
+              this.renderer.errorCells = null; 
+              this.renderer.draw();
+            }, 300); 
+            Haptics.error(); 
+            SoundManager.error(); 
+          },
+          onWin: () => this.winGame()
         });
+        
         this.renderer.draw();
         this.updateTitle();
         this.startTimer();
         this.updateStats();
       },
+      
       winGame() {
         this.game.solved = true;
-        SoundManager.win(); Haptics.win();
+        SoundManager.win(); 
+        Haptics.win();
         this.showModal('modal-win');
-        document.getElementById('win-stats').innerHTML = `Время: ${this.formatTime(Date.now()-this.game.startTime)}<br>Ошибки: ${this.game.errors}<br>Размер: ${this.game.size}x${this.game.size}`;
-        // save stats
+        document.getElementById('win-stats').innerHTML = 
+          `Время: ${this.formatTime(Date.now() - this.game.startTime)}<br>` +
+          `Ошибки: ${this.game.errors}<br>` +
+          `Размер: ${this.game.size}x${this.game.size}`;
+        
+        // Сохраняем статистику
         const stats = Storage.get('stats', {});
         const key = this.game.puzzleName;
-        if (!stats[key] || stats[key].bestTime > (Date.now()-this.game.startTime)) {
-          stats[key] = { solved:true, bestTime: Date.now()-this.game.startTime, errors: this.game.errors };
+        if (!stats[key] || stats[key].bestTime > (Date.now() - this.game.startTime)) {
+          stats[key] = { 
+            solved: true, 
+            bestTime: Date.now() - this.game.startTime, 
+            errors: this.game.errors 
+          };
           Storage.set('stats', stats);
         }
-        // confetti
+        
         this.spawnConfetti();
       },
+      
       spawnConfetti() {
-        const canvas = this.renderer.canvas; const ctx = canvas.getContext('2d');
-        const particles = []; for(let i=0;i<80;i++) particles.push({x:Math.random()*canvas.width,y:-20,vy:Math.random()*3+2,vx:Math.random()*2-1,color:`hsl(${Math.random()*360},80%,60%)`});
+        const canvas = this.renderer.canvas; 
+        const ctx = canvas.getContext('2d');
+        const particles = []; 
+        for (let i = 0; i < 80; i++) {
+          particles.push({
+            x: Math.random() * canvas.width, 
+            y: -20, 
+            vy: Math.random() * 3 + 2, 
+            vx: Math.random() * 2 - 1, 
+            color: `hsl(${Math.random() * 360}, 80%, 60%)`
+          });
+        }
+        
         let start = performance.now();
         const animate = (now) => {
           const elapsed = now - start;
-          if (elapsed > 3000) return;
-          ctx.clearRect(0,0,canvas.width,canvas.height);
-          particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,4,4); });
+          if (elapsed > 3000) {
+            this.renderer.draw();
+            return;
+          }
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          particles.forEach(p => { 
+            p.x += p.vx; 
+            p.y += p.vy; 
+            ctx.fillStyle = p.color; 
+            ctx.fillRect(p.x, p.y, 4, 4); 
+          });
           requestAnimationFrame(animate);
         };
         requestAnimationFrame(animate);
       },
-      updateTitle() { document.getElementById('puzzle-title').textContent = `${this.game.puzzleName} ${this.game.size}x${this.game.size}`; },
-      formatTime(ms) { const s = Math.floor(ms/1000); return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; },
+      
+      updateTitle() { 
+        document.getElementById('puzzle-title').textContent = 
+          `${this.game.puzzleName} ${this.game.size}x${this.game.size}`; 
+      },
+      
+      formatTime(ms) { 
+        const s = Math.floor(ms / 1000); 
+        return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`; 
+      },
+      
       startTimer() {
         if (this.timerInterval) clearInterval(this.timerInterval);
-        this.timerInterval = setInterval(()=>{ if(this.game && !this.game.solved) document.getElementById('timer').textContent = `⏱ ${this.formatTime(Date.now()-this.game.startTime)}`; },1000);
+        this.timerInterval = setInterval(() => { 
+          if (this.game && !this.game.solved) {
+            document.getElementById('timer').textContent = 
+              `⏱ ${this.formatTime(Date.now() - this.game.startTime)}`; 
+          }
+        }, 1000);
       },
-      updateStats() { document.getElementById('error-count').textContent = `✕ ${this.game.errors}`; },
-      undo() { if(this.game.undo()){ this.renderer.draw(); SoundManager.mode(); } },
-      redo() { if(this.game.redo()){ this.renderer.draw(); SoundManager.mode(); } },
+      
+      updateStats() { 
+        document.getElementById('error-count').textContent = `✕ ${this.game.errors}`; 
+      },
+      
+      undo() { 
+        if (this.game.undo()) { 
+          this.renderer.draw(); 
+          SoundManager.mode(); 
+        } 
+      },
+      
+      redo() { 
+        if (this.game.redo()) { 
+          this.renderer.draw(); 
+          SoundManager.mode(); 
+        } 
+      },
+      
       checkErrors() {
-        if(!this.game) return;
+        if (!this.game) return;
         const wrong = [];
-        for(let r=0;r<this.game.size;r++) for(let c=0;c<this.game.size;c++) if(this.game.grid[r][c]===1 && this.game.rows[r][c]!==1) wrong.push([r,c]);
+        for (let r = 0; r < this.game.size; r++) 
+          for (let c = 0; c < this.game.size; c++) 
+            if (this.game.grid[r][c] === 1 && this.game.rows[r][c] !== 1) 
+              wrong.push([r, c]);
+        
         this.renderer.errorCells = wrong;
         this.renderer.draw();
-        setTimeout(()=>{ this.renderer.errorCells=null; this.renderer.draw(); },2000);
+        setTimeout(() => { 
+          this.renderer.errorCells = null; 
+          this.renderer.draw(); 
+        }, 2000);
       },
+      
       giveHint() {
-        if(!this.game || this.game.hintsLeft<=0) return;
+        if (!this.game || this.game.hintsLeft <= 0) return;
         const unsolved = [];
-        for(let r=0;r<this.game.size;r++) for(let c=0;c<this.game.size;c++) if(this.game.rows[r][c]===1 && this.game.grid[r][c]!==1) unsolved.push([r,c]);
-        if(unsolved.length) {
-          const [r,c] = unsolved[Math.floor(Math.random()*unsolved.length)];
-          this.renderer.hintCell = [r,c]; this.renderer.draw();
+        for (let r = 0; r < this.game.size; r++) 
+          for (let c = 0; c < this.game.size; c++) 
+            if (this.game.rows[r][c] === 1 && this.game.grid[r][c] !== 1) 
+              unsolved.push([r, c]);
+        
+        if (unsolved.length) {
+          const [r, c] = unsolved[Math.floor(Math.random() * unsolved.length)];
+          this.renderer.hintCell = [r, c]; 
+          this.renderer.draw();
           this.game.hintsLeft--;
-          setTimeout(()=>{ this.renderer.hintCell=null; this.renderer.draw(); },2000);
+          setTimeout(() => { 
+            this.renderer.hintCell = null; 
+            this.renderer.draw(); 
+          }, 2000);
         }
       },
+      
       showLevels() {
         const container = document.getElementById('levels-list');
         container.innerHTML = '';
         const grouped = {};
-        PUZZLES.forEach(p=>{ if(!grouped[p.size]) grouped[p.size]=[]; grouped[p.size].push(p); });
-        Object.keys(grouped).sort((a,b)=>a-b).forEach(size=>{
-          const div = document.createElement('div'); div.className='level-group';
+        PUZZLES.forEach(p => { 
+          if (!grouped[p.size]) grouped[p.size] = []; 
+          grouped[p.size].push(p); 
+        });
+        
+        Object.keys(grouped).sort((a, b) => a - b).forEach(size => {
+          const div = document.createElement('div'); 
+          div.className = 'level-group';
           div.innerHTML = `<h3>${size}x${size}</h3>`;
-          const cards = document.createElement('div'); cards.className='cards';
-          grouped[size].forEach(p=>{
-            const card = document.createElement('div'); card.className='level-card';
+          const cards = document.createElement('div'); 
+          cards.className = 'cards';
+          
+          grouped[size].forEach(p => {
+            const card = document.createElement('div'); 
+            card.className = 'level-card';
             const stats = Storage.get('stats', {})[p.name];
             if (stats?.solved) card.classList.add('solved');
-            const miniCanvas = document.createElement('canvas'); miniCanvas.width=100; miniCanvas.height=100;
-            const ctx = miniCanvas.getContext('2d'); const cell = 100/p.size;
-            p.rows.forEach((row,r)=>row.split('').forEach((v,c)=>{ ctx.fillStyle = v==='1' ? '#3a3a3a' : '#fff'; ctx.fillRect(c*cell,r*cell,cell,cell); }));
+            
+            const miniCanvas = document.createElement('canvas'); 
+            miniCanvas.width = 100; 
+            miniCanvas.height = 100;
+            const ctx = miniCanvas.getContext('2d'); 
+            const cell = 100 / p.size;
+            p.rows.forEach((row, r) => 
+              row.split('').forEach((v, c) => { 
+                ctx.fillStyle = v === '1' ? '#3a3a3a' : '#fff'; 
+                ctx.fillRect(c * cell, r * cell, cell, cell); 
+              })
+            );
+            
             card.appendChild(miniCanvas);
-            card.innerHTML += `<div class="name">${p.name}</div><div class="meta">${'★'.repeat(p.difficulty)} ${stats?.solved?'✅':''}</div>`;
-            card.onclick = ()=>{ this.hideModal('modal-levels'); this.loadPuzzle(p); };
+            card.innerHTML += 
+              `<div class="name">${p.name}</div>` +
+              `<div class="meta">${'★'.repeat(p.difficulty)} ${stats?.solved ? '✅' : ''}</div>`;
+            card.onclick = () => { 
+              this.hideModal('modal-levels'); 
+              this.loadPuzzle(p); 
+            };
             cards.appendChild(card);
           });
-          div.appendChild(cards); container.appendChild(div);
+          
+          div.appendChild(cards); 
+          container.appendChild(div);
         });
-        // my puzzles from editor
+        
+        // Пользовательские пазлы
         const custom = Storage.get('customPuzzles', []);
         if (custom.length) {
-          const div = document.createElement('div'); div.className='level-group';
+          const div = document.createElement('div'); 
+          div.className = 'level-group';
           div.innerHTML = '<h3>Мои пазлы</h3>';
-          const cards = document.createElement('div'); cards.className='cards';
-          custom.forEach(p=>{
-            const card = document.createElement('div'); card.className='level-card';
-            const miniCanvas = document.createElement('canvas'); miniCanvas.width=100; miniCanvas.height=100;
-            const ctx = miniCanvas.getContext('2d'); const cell=100/p.size;
-            p.rows.forEach((row,r)=>row.split('').forEach((v,c)=>{ ctx.fillStyle = v==='1' ? '#3a3a3a' : '#fff'; ctx.fillRect(c*cell,r*cell,cell,cell); }));
-            card.appendChild(miniCanvas); card.innerHTML += `<div class="name">${p.name}</div><div class="meta">${p.size}x${p.size}</div>`;
-            card.onclick = ()=>{ this.hideModal('modal-levels'); this.loadPuzzle(p); };
+          const cards = document.createElement('div'); 
+          cards.className = 'cards';
+          
+          custom.forEach(p => {
+            const card = document.createElement('div'); 
+            card.className = 'level-card';
+            const miniCanvas = document.createElement('canvas'); 
+            miniCanvas.width = 100; 
+            miniCanvas.height = 100;
+            const ctx = miniCanvas.getContext('2d'); 
+            const cell = 100 / p.size;
+            p.rows.forEach((row, r) => 
+              row.split('').forEach((v, c) => { 
+                ctx.fillStyle = v === '1' ? '#3a3a3a' : '#fff'; 
+                ctx.fillRect(c * cell, r * cell, cell, cell); 
+              })
+            );
+            card.appendChild(miniCanvas); 
+            card.innerHTML += 
+              `<div class="name">${p.name}</div>` +
+              `<div class="meta">${p.size}x${p.size}</div>`;
+            card.onclick = () => { 
+              this.hideModal('modal-levels'); 
+              this.loadPuzzle(p); 
+            };
             cards.appendChild(card);
           });
-          div.appendChild(cards); container.appendChild(div);
+          
+          div.appendChild(cards); 
+          container.appendChild(div);
         }
       },
+      
       randomLevel() {
-        const unsolved = PUZZLES.filter(p=>!Storage.get('stats',{})[p.name]?.solved);
+        const unsolved = PUZZLES.filter(p => !Storage.get('stats', {})[p.name]?.solved);
         const pool = unsolved.length ? unsolved : PUZZLES;
-        const p = pool[Math.floor(Math.random()*pool.length)];
-        this.hideModal('modal-levels'); this.loadPuzzle(p);
+        const p = pool[Math.floor(Math.random() * pool.length)];
+        this.hideModal('modal-levels'); 
+        this.loadPuzzle(p);
       },
+      
       saveEditorPuzzle() {
         const name = prompt('Название пазла:', 'Мой пазл');
         if (!name) return;
         const custom = Storage.get('customPuzzles', []);
-        custom.push({name, size:this.editor.size, rows: this.editor.grid.map(r=>r.join(''))});
+        custom.push({
+          name, 
+          size: this.editor.size, 
+          rows: this.editor.grid.map(r => r.join(''))
+        });
         Storage.set('customPuzzles', custom);
         alert('Сохранено в "Мои пазлы"');
       },
+      
       playEditorPuzzle() {
         const grid = this.editor.grid;
-        const filled = grid.flat().reduce((a,b)=>a+b,0);
-        if (filled < 3) { alert('Слишком мало закрашенных клеток'); return; }
-        const puzzle = {name:'Мой пазл', size:this.editor.size, rows: grid.map(r=>r.join(''))};
-        this.hideModal('modal-editor'); this.loadPuzzle(puzzle);
+        const filled = grid.flat().reduce((a, b) => a + b, 0);
+        if (filled < 3) { 
+          alert('Слишком мало закрашенных клеток'); 
+          return; 
+        }
+        const puzzle = {
+          name: 'Мой пазл', 
+          size: this.editor.size, 
+          rows: grid.map(r => r.join(''))
+        };
+        this.hideModal('modal-editor'); 
+        this.loadPuzzle(puzzle);
       },
+      
       generateLevel() {
         const size = 20;
         let grid = LevelGenerator.generate(size);
-        this.generatedPuzzle = { name:'Сгенерированный', size, rows: grid.map(r=>r.join('')) };
+        this.generatedPuzzle = { 
+          name: 'Сгенерированный', 
+          size, 
+          rows: grid.map(r => r.join('')) 
+        };
+        
         const canvas = document.getElementById('gen-preview');
-        const ctx = canvas.getContext('2d'); canvas.width=300; canvas.height=300;
-        const cell = 300/size;
-        for(let r=0;r<size;r++) for(let c=0;c<size;c++) { ctx.fillStyle = grid[r][c]?'#3a3a3a':'#fff'; ctx.fillRect(c*cell,r*cell,cell,cell); }
+        const ctx = canvas.getContext('2d'); 
+        canvas.width = 300; 
+        canvas.height = 300;
+        const cell = 300 / size;
+        for (let r = 0; r < size; r++) 
+          for (let c = 0; c < size; c++) { 
+            ctx.fillStyle = grid[r][c] ? '#3a3a3a' : '#fff'; 
+            ctx.fillRect(c * cell, r * cell, cell, cell); 
+          }
+        
         this.showModal('modal-generate');
       },
+      
       saveGenerated() {
         const custom = Storage.get('customPuzzles', []);
         custom.push(this.generatedPuzzle);
         Storage.set('customPuzzles', custom);
         alert('Сохранено');
       },
+      
       nextLevel() {
-        const idx = PUZZLES.findIndex(p=>p.name===this.game.puzzleName);
-        const next = PUZZLES[(idx+1)%PUZZLES.length];
-        this.hideModal('modal-win'); this.loadPuzzle(next);
+        const idx = PUZZLES.findIndex(p => p.name === this.game.puzzleName);
+        const next = PUZZLES[(idx + 1) % PUZZLES.length];
+        this.hideModal('modal-win'); 
+        this.loadPuzzle(next);
       },
+      
       restartLevel() {
         this.hideModal('modal-win');
-        const current = PUZZLES.find(p=>p.name===this.game.puzzleName);
+        const current = PUZZLES.find(p => p.name === this.game.puzzleName);
         this.loadPuzzle(current || this.game);
       }
     };
 
     // Запуск
-    window.addEventListener('DOMContentLoaded', ()=>UI.init());
-    window.addEventListener('resize', ()=>{ if(UI.renderer && UI.game) { UI.renderer.computeSizes(); UI.renderer.centerBoard(); UI.renderer.draw(); } });
+    window.addEventListener('DOMContentLoaded', () => UI.init());
+    window.addEventListener('resize', () => { 
+      if (UI.renderer && UI.game) { 
+        UI.renderer.computeSizes(); 
+        UI.renderer.fitBoard(); 
+        UI.renderer.draw(); 
+      } 
+    });
   })();
 </script>
 </body>
