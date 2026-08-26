@@ -286,7 +286,6 @@
       transform: scale(0.95); 
     }
 
-    /* Карточки листов */
     .sheets-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -332,7 +331,6 @@
       color: var(--color-moon-mist);
     }
 
-    /* Общий превью */
     .full-preview-container {
       margin-top: 20px;
       padding: 16px;
@@ -351,6 +349,21 @@
       max-width: 100%;
       border-radius: 8px;
       background: rgba(199, 211, 234, 0.06);
+    }
+
+    /* Анимация конфетти */
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      animation: confetti-fall 3s linear forwards;
+      z-index: 200;
+      pointer-events: none;
     }
 
     @media (max-width: 600px) {
@@ -403,15 +416,12 @@
   </div>
 </div>
 
-<!-- Модальное окно выбора листа -->
 <div class="modal-overlay" id="modal-sheets">
   <div class="modal">
     <button class="modal-close" data-close="modal-sheets">×</button>
     <h2>🗺 Выбор листа (30x30)</h2>
     <p style="margin-bottom: 16px; color: var(--color-moon-mist);">Выберите лист для решения. Решённые листы отмечены зелёным.</p>
-    <div class="sheets-grid" id="sheets-grid">
-      <!-- Карточки генерируются динамически -->
-    </div>
+    <div class="sheets-grid" id="sheets-grid"></div>
     <div class="full-preview-container">
       <h3>Общая картина (превью)</h3>
       <canvas id="full-preview-canvas"></canvas>
@@ -419,7 +429,6 @@
   </div>
 </div>
 
-<!-- Модальное окно победы -->
 <div class="modal-overlay" id="modal-win">
   <div class="modal">
     <h2>🎉 Лист решён!</h2>
@@ -441,7 +450,6 @@
       const size = 90;
       const grid = Array(size).fill().map(() => Array(size).fill(0));
       
-      // Функция для рисования линии (алгоритм Брезенхэма)
       function drawLine(x1, y1, x2, y2, thickness = 1) {
         const dx = Math.abs(x2 - x1);
         const dy = Math.abs(y2 - y1);
@@ -450,7 +458,6 @@
         let err = dx - dy;
         
         while (true) {
-          // Рисуем точку с толщиной
           for (let tx = -Math.floor(thickness/2); tx <= Math.floor(thickness/2); tx++) {
             for (let ty = -Math.floor(thickness/2); ty <= Math.floor(thickness/2); ty++) {
               const nx = x1 + tx;
@@ -474,7 +481,6 @@
         }
       }
       
-      // Функция для заливки круга
       function drawCircle(cx, cy, radius) {
         for (let i = -radius; i <= radius; i++) {
           for (let j = -radius; j <= radius; j++) {
@@ -489,41 +495,28 @@
         }
       }
       
-      // ===== ГОЛОВА (Листы 1-A, 1-B) =====
-      // Морда дракона
-      drawCircle(20, 20, 8); // Голова
-      drawCircle(25, 22, 5); // Морда
-      
-      // Открытая пасть с зубцами
-      drawLine(22, 25, 30, 25, 2); // Нижняя челюсть
-      drawLine(22, 20, 28, 20, 2); // Верхняя челюсть
-      
-      // Зубцы по краю пасти
+      // Голова
+      drawCircle(20, 20, 8);
+      drawCircle(25, 22, 5);
+      drawLine(22, 25, 30, 25, 2);
+      drawLine(22, 20, 28, 20, 2);
       for (let i = 23; i <= 29; i += 2) {
         grid[i][24] = 1;
         grid[i][21] = 1;
       }
-      
-      // Глаз
       drawCircle(18, 17, 2);
-      grid[18][17] = 0; // Зрачок
+      grid[18][17] = 0;
       grid[17][17] = 0;
       
-      // ===== ШЕЯ И ТУЛОВИЩЕ (S-образная линия) =====
-      // Шея от головы вниз
+      // Шея и туловище
       drawLine(22, 28, 35, 45, 10);
-      
-      // Туловище - S-образная кривая
       drawLine(35, 45, 55, 55, 12);
       drawLine(55, 55, 65, 50, 10);
       drawLine(65, 50, 75, 55, 8);
       
-      // ===== КРЫЛО (Лист 1-C и 2-C) =====
-      // Большое треугольное крыло
+      // Крыло
       const wingBaseX = 60;
       const wingBaseY = 40;
-      
-      // Основная форма крыла
       for (let i = 0; i < 35; i++) {
         const wingWidth = Math.floor(i * 0.7);
         for (let j = -wingWidth; j <= wingWidth; j++) {
@@ -534,60 +527,39 @@
           }
         }
       }
-      
-      // Перепонки крыла (линии-ребра)
       drawLine(60, 40, 85, 10, 2);
       drawLine(62, 42, 88, 20, 2);
       drawLine(64, 44, 90, 30, 2);
       drawLine(66, 46, 88, 40, 2);
       
-      // ===== ХВОСТ (Лист 3-A, 3-B) =====
-      // Тонкий хвост, закручивающийся спиралью
+      // Хвост
       drawLine(75, 55, 70, 70, 4);
       drawLine(70, 70, 55, 75, 4);
       drawLine(55, 75, 45, 68, 4);
       drawLine(45, 68, 40, 75, 4);
       drawLine(40, 75, 35, 70, 4);
-      
-      // Спираль на конце хвоста
       drawCircle(32, 68, 4);
       drawCircle(30, 70, 3);
       drawCircle(32, 72, 2);
       
-      // ===== ЛАПЫ (Лист 2-A и 3-C) =====
-      // Передние лапы
+      // Лапы
       drawLine(40, 55, 38, 65, 3);
       drawLine(38, 65, 35, 68, 2);
       drawLine(38, 65, 40, 68, 2);
       drawLine(38, 65, 42, 67, 2);
-      
-      // Задние лапы
       drawLine(70, 55, 72, 65, 3);
       drawLine(72, 65, 69, 68, 2);
       drawLine(72, 65, 74, 68, 2);
       drawLine(72, 65, 76, 67, 2);
       
-      // ===== ДОПОЛНИТЕЛЬНЫЕ ДЕТАЛИ =====
-      // Гребень на спине
+      // Гребень
       for (let i = 25; i < 50; i += 3) {
         drawCircle(i, 35 - Math.floor((i - 25) / 10), 2);
-      }
-      
-      // Чешуя на туловище
-      for (let i = 40; i < 70; i += 5) {
-        for (let j = -3; j <= 3; j += 2) {
-          const nx = i;
-          const ny = 50 + j;
-          if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-            grid[nx][ny] = 1;
-          }
-        }
       }
       
       return grid;
     }
 
-    // ===================== РАЗДЕЛЕНИЕ НА ЛИСТЫ =====================
     function splitIntoSheets(grid, sheetSize = 30) {
       const sheets = [];
       const sheetNames = ['1-A', '1-B', '1-C', '2-A', '2-B', '2-C', '3-A', '3-B', '3-C'];
@@ -619,10 +591,9 @@
       return sheets;
     }
 
-    // ===================== ГЕНЕРАЦИЯ ДАННЫХ =====================
     const dragonGrid = generateDragon();
     const dragonSheets = splitIntoSheets(dragonGrid);
-    
+
     // ===================== STORAGE =====================
     const Storage = {
       get(key, def) { 
@@ -892,6 +863,7 @@
         this.cellSize = 30; 
         this.state = null;
         this.animations = [];
+        this.drawingLine = null; // Для отображения номеров при рисовании
       }
       
       setState(state) { 
@@ -928,6 +900,16 @@
         const r = Math.floor((y - this.offsetY) / (this.cellSize * this.zoom));
         const c = Math.floor((x - this.offsetX) / (this.cellSize * this.zoom));
         return {r, c};
+      }
+      
+      setDrawingLine(cells) {
+        this.drawingLine = cells;
+        this.draw();
+      }
+      
+      clearDrawingLine() {
+        this.drawingLine = null;
+        this.draw();
       }
       
       animateCellFill(r, c) {
@@ -1085,6 +1067,19 @@
           }
         }
         
+        // Отображение номеров при рисовании линии
+        if (this.drawingLine) {
+          this.drawingLine.forEach(({r, c, num}) => {
+            const x = c * cell + this.offsetX;
+            const y = r * cell + this.offsetY;
+            ctx.fillStyle = '#663af3';
+            ctx.font = `bold ${Math.max(10, cell * 0.6)}px 'Inter', system-ui`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(num, x + cell / 2, y + cell / 2);
+          });
+        }
+        
         ctx.strokeStyle = '#027dea';
         ctx.lineWidth = 3;
         ctx.strokeRect(
@@ -1163,7 +1158,8 @@
         this.lastCell = null;
         this.isDrawing = false;
         this.hasMoved = false;
-        this.drawnCells = new Set();
+        this.drawnCells = [];
+        this.drawingStartCell = null;
         
         this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
@@ -1181,7 +1177,8 @@
         this.pointerDown = true;
         this.hasMoved = false;
         this.isDrawing = false;
-        this.drawnCells.clear();
+        this.drawnCells = [];
+        this.drawingStartCell = null;
         this.startX = e.clientX; 
         this.startY = e.clientY;
         this.startTime = Date.now();
@@ -1190,6 +1187,7 @@
         const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
         const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
         this.lastCell = this.renderer.screenToCell(x, y);
+        this.drawingStartCell = this.lastCell;
       }
       
       onPointerMove(e) {
@@ -1217,9 +1215,12 @@
             }
             
             const cellKey = `${cell.r},${cell.c}`;
-            if (!this.drawnCells.has(cellKey)) {
-              this.drawnCells.add(cellKey);
+            if (!this.drawnCells.some(d => d.r === cell.r && d.c === cell.c)) {
+              this.drawnCells.push({r: cell.r, c: cell.c, num: this.drawnCells.length + 1});
               this.applyAction(cell.r, cell.c);
+              
+              // Обновляем отображение номеров
+              this.renderer.setDrawingLine(this.drawnCells);
             }
             this.lastCell = cell;
           }
@@ -1243,11 +1244,15 @@
           }
         }
         
+        // Очищаем отображение номеров
+        this.renderer.clearDrawingLine();
+        
         this.pointerDown = false;
         this.isDrawing = false;
         this.hasMoved = false;
         this.lastCell = null;
-        this.drawnCells.clear();
+        this.drawnCells = [];
+        this.drawingStartCell = null;
       }
       
       applyAction(r, c) {
@@ -1389,8 +1394,6 @@
         this.startTimer();
         this.updateStats();
         this.updateMemoButton();
-        
-        // Сохраняем прогресс
         this.saveProgress();
       },
       
@@ -1439,8 +1442,29 @@
           `Ошибки: ${this.game.errors}<br>` +
           `Размер: ${this.game.size}x${this.game.size}`;
         
-        // Сохраняем прогресс
         this.saveProgress(true);
+        this.spawnConfetti();
+      },
+      
+      spawnConfetti() {
+        const colors = ['#663af3', '#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#ff9ff3', '#54a0ff'];
+        for (let i = 0; i < 80; i++) {
+          setTimeout(() => {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.top = '-10px';
+            piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.width = (Math.random() * 8 + 5) + 'px';
+            piece.style.height = (Math.random() * 8 + 5) + 'px';
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            document.body.appendChild(piece);
+            
+            setTimeout(() => {
+              piece.remove();
+            }, 3000);
+          }, Math.random() * 2000);
+        }
       },
       
       formatTime(ms) { 
@@ -1525,7 +1549,6 @@
           const isSolved = progress[index]?.solved || false;
           if (isSolved) card.classList.add('solved');
           
-          // Мини-превью листа
           const miniCanvas = document.createElement('canvas');
           miniCanvas.width = 80;
           miniCanvas.height = 80;
@@ -1553,7 +1576,6 @@
           grid.appendChild(card);
         });
         
-        // Общее превью
         this.drawFullPreview();
       },
       
@@ -1572,7 +1594,6 @@
           }
         }
         
-        // Рисуем линии разделения
         ctx.strokeStyle = '#663af3';
         ctx.lineWidth = 2;
         for (let i = 1; i < 3; i++) {
