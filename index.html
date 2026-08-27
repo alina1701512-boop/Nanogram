@@ -196,8 +196,12 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     <button class="modal-close" data-close="modal-puzzles">×</button>
     <h2>📚 Коллекция кроссвордов</h2>
     <p>Выберите кроссворд для решения. Решённые отмечены зелёным.</p>
+    <p id="collection-progress" style="font-size: 13px; color: var(--color-moon-mist);"></p>
     <div class="filter-row" id="filter-row">
       <button class="filter-btn active" data-filter="all">Все</button>
+      <button class="filter-btn" data-filter="diff:Легко">Легко</button>
+      <button class="filter-btn" data-filter="diff:Средне">Средне</button>
+      <button class="filter-btn" data-filter="diff:Сложно">Сложно</button>
       <button class="filter-btn" data-filter="15">15×15</button>
       <button class="filter-btn" data-filter="20">20×20</button>
       <button class="filter-btn" data-filter="25">25×25</button>
@@ -352,27 +356,31 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       }
       return grid;
     },
+    // Раньше лицо рисовалось тонким кольцом-контуром (толщиной в одну клетку) —
+    // на редакторской проверке решателем кроссворд не решался логикой: 120 клеток
+    // оставались неопределены, у фигуры было несколько разных верных решений.
+    // Сплошной диск с вырезанными дырками решается однозначно.
     smiley(size) {
       const grid = [];
       const cx = size / 2, cy = size / 2;
       const faceR = size * 0.42;
-      const eyeR = size * 0.06;
-      const eyeY = cy - size * 0.1;
-      const eyeXOffset = size * 0.15;
+      const eyeR = size * 0.07;
+      const eyeY = cy - size * 0.08;
+      const eyeXOffset = size * 0.16;
+      const mouthCy = cy + size * 0.06;
       const mouthR = size * 0.22;
+      const mouthThickness = size * 0.08;
       for (let y = 0; y < size; y++) {
         const row = [];
         for (let x = 0; x < size; x++) {
-          const dx = x - cx, dy = y - cy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          let fill = 0;
-          if (dist <= faceR && dist >= faceR - size * 0.05) fill = 1;
-          const eyeDx1 = x - (cx - eyeXOffset), eyeDy1 = y - eyeY;
-          const eyeDx2 = x - (cx + eyeXOffset), eyeDy2 = y - eyeY;
-          if (Math.sqrt(eyeDx1*eyeDx1 + eyeDy1*eyeDy1) <= eyeR || Math.sqrt(eyeDx2*eyeDx2 + eyeDy2*eyeDy2) <= eyeR) fill = 1;
-          const mouthDx = x - cx, mouthDy = y - (cy + size * 0.05);
-          const mouthDist = Math.sqrt(mouthDx*mouthDx + mouthDy*mouthDy);
-          if (mouthDist <= mouthR && mouthDist >= mouthR - size * 0.04 && mouthDy > 0) fill = 1;
+          const dist = Math.hypot(x - cx, y - cy);
+          let fill = dist <= faceR ? 1 : 0;
+          const d1 = Math.hypot(x - (cx - eyeXOffset), y - eyeY);
+          const d2 = Math.hypot(x - (cx + eyeXOffset), y - eyeY);
+          if (d1 <= eyeR || d2 <= eyeR) fill = 0;
+          const mdx = x - cx, mdy = y - mouthCy;
+          const mdist = Math.hypot(mdx, mdy);
+          if (mdy > 0 && mdist <= mouthR && mdist >= mouthR - mouthThickness) fill = 0;
           row.push(fill);
         }
         grid.push(row);
@@ -576,21 +584,153 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     }
   };
 
+  // ===================== РЕШАТЕЛЬ =====================
+  // Построчный логический решатель нонограмм: по числам-подсказкам линии выводит
+  // клетки, которые определены однозначно, и повторяет для всех строк/столбцов,
+  // пока выводится хоть что-то новое. Если в конце остаются неопределённые клетки —
+  // кроссворд нельзя решить логикой, только угадыванием. На этом же прогоне
+  // считается настоящая сложность: она не размер поля, а то, сколько проходов
+  // потребовалось и сколько в линиях независимых групп подряд.
+  const Solver = {
+    lineHints(line) {
+      const hints = [];
+      let count = 0;
+      for (const v of line) {
+        if (v === 1) count++;
+        else { if (count > 0) hints.push(count); count = 0; }
+      }
+      if (count > 0) hints.push(count);
+      return hints.length ? hints : [0];
+    },
+
+    // Для одной линии длины n с подсказками hints и уже известными клетками
+    // (0 — точно пусто, 1 — точно закрашено, -1 — неизвестно) возвращает массив
+    // того же вида, но с довыведенными клетками, или null, если подсказки
+    // противоречат уже известным клеткам.
+    solveLine(hints, known) {
+      const n = known.length, k = hints.length;
+      const memo = new Map();
+      const fits = (i, j) => {
+        if (j === k) {
+          for (let t = i; t < n; t++) if (known[t] === 1) return false;
+          return true;
+        }
+        if (i >= n) return false;
+        const key = i * (k + 2) + j;
+        const cached = memo.get(key);
+        if (cached !== undefined) return cached;
+        let ok = false;
+        if (known[i] !== 1 && fits(i + 1, j)) ok = true;
+        if (!ok) {
+          const h = hints[j];
+          if (i + h <= n) {
+            let can = true;
+            for (let t = i; t < i + h; t++) if (known[t] === 0) { can = false; break; }
+            if (can && (i + h === n || known[i + h] !== 1) && fits(i + h + 1, j + 1)) ok = true;
+          }
+        }
+        memo.set(key, ok);
+        return ok;
+      };
+      if (!fits(0, 0)) return null;
+
+      const can = new Array(n).fill(0); // бит 1 — встречается пустой вариант, бит 2 — закрашенный
+      const seen = new Set();
+      const walk = (i, j) => {
+        const key = i * (k + 2) + j;
+        if (seen.has(key)) return;
+        seen.add(key);
+        if (j === k) { for (let t = i; t < n; t++) can[t] |= 1; return; }
+        if (i >= n) return;
+        if (known[i] !== 1 && fits(i + 1, j)) { can[i] |= 1; walk(i + 1, j); }
+        const h = hints[j];
+        if (i + h <= n) {
+          let ok = true;
+          for (let t = i; t < i + h; t++) if (known[t] === 0) { ok = false; break; }
+          if (ok && (i + h === n || known[i + h] !== 1) && fits(i + h + 1, j + 1)) {
+            for (let t = i; t < i + h; t++) can[t] |= 2;
+            if (i + h < n) can[i + h] |= 1;
+            walk(i + h + 1, j + 1);
+          }
+        }
+      };
+      walk(0, 0);
+      return can.map(v => v === 1 ? 0 : v === 2 ? 1 : -1);
+    },
+
+    // Полный разбор кроссворда: решаемость логикой, число проходов, метрики для
+    // расчёта сложности. Не угадывает — только то, что выводится однозначно.
+    analyze(solution) {
+      const n = solution.length;
+      const rowHints = solution.map(row => this.lineHints(row));
+      const colHints = [];
+      for (let c = 0; c < n; c++) colHints.push(this.lineHints(solution.map(row => row[c])));
+
+      const grid = Array.from({ length: n }, () => new Array(n).fill(-1));
+      let unknown = n * n, passes = 0, changed = true, contradiction = false;
+      while (changed && unknown > 0 && passes < 300 && !contradiction) {
+        changed = false; passes++;
+        for (let r = 0; r < n && !contradiction; r++) {
+          const res = this.solveLine(rowHints[r], grid[r]);
+          if (!res) { contradiction = true; break; }
+          for (let c = 0; c < n; c++) if (res[c] !== -1 && grid[r][c] === -1) { grid[r][c] = res[c]; unknown--; changed = true; }
+        }
+        for (let c = 0; c < n && !contradiction; c++) {
+          const col = grid.map(row => row[c]);
+          const res = this.solveLine(colHints[c], col);
+          if (!res) { contradiction = true; break; }
+          for (let r = 0; r < n; r++) if (res[r] !== -1 && grid[r][c] === -1) { grid[r][c] = res[r]; unknown--; changed = true; }
+        }
+      }
+
+      const allHints = [...rowHints, ...colHints];
+      const totalGroups = allHints.reduce((s, h) => s + h.length, 0);
+      const avgGroups = totalGroups / allHints.length;
+      const maxGroups = Math.max(...allHints.map(h => h.length));
+      const filled = solution.flat().filter(v => v === 1).length;
+      const solvable = !contradiction && unknown === 0;
+      const score = passes * 2 + avgGroups * 4 + maxGroups * 1.5 + n / 15;
+
+      return { solvable, unknown, passes, avgGroups, maxGroups, density: filled / (n * n), score };
+    },
+
+    // Пороги откалиброваны прогоном по всей текущей коллекции (см. разбор):
+    // размер поля не участвует напрямую — сложность целиком из формы фигуры.
+    difficulty(stats) {
+      if (stats.score < 13) return 'Легко';
+      if (stats.score < 16) return 'Средне';
+      return 'Сложно';
+    }
+  };
+
   // ===================== КОЛЛЕКЦИЯ =====================
   const PUZZLES = [
-    { name: "Сердце", size: 15, generator: () => PuzzleGenerator.heart(15), difficulty: "Легко" },
-    { name: "Звезда", size: 15, generator: () => PuzzleGenerator.star(15), difficulty: "Легко" },
-    { name: "Дом", size: 15, generator: () => PuzzleGenerator.house(15), difficulty: "Легко" },
-    { name: "Смайлик", size: 15, generator: () => PuzzleGenerator.smiley(15), difficulty: "Легко" },
-    { name: "Ёлка", size: 15, generator: () => PuzzleGenerator.tree(15), difficulty: "Легко" },
-    { name: "Рыбка", size: 20, generator: () => PuzzleGenerator.fish(20), difficulty: "Средне" },
-    { name: "Кот", size: 20, generator: () => PuzzleGenerator.cat(20), difficulty: "Средне" },
-    { name: "Гриб", size: 20, generator: () => PuzzleGenerator.mushroom(20), difficulty: "Средне" },
-    { name: "Парусник", size: 25, generator: () => PuzzleGenerator.sailboat(25), difficulty: "Сложно" },
-    { name: "Ракета", size: 25, generator: () => PuzzleGenerator.rocket(25), difficulty: "Сложно" },
-    { name: "Замок", size: 30, generator: () => PuzzleGenerator.castle(30), difficulty: "Сложно" }
+    { name: "Сердце", size: 15, generator: () => PuzzleGenerator.heart(15) },
+    { name: "Звезда", size: 15, generator: () => PuzzleGenerator.star(15) },
+    { name: "Дом", size: 15, generator: () => PuzzleGenerator.house(15) },
+    { name: "Смайлик", size: 15, generator: () => PuzzleGenerator.smiley(15) },
+    { name: "Ёлка", size: 15, generator: () => PuzzleGenerator.tree(15) },
+    { name: "Рыбка", size: 20, generator: () => PuzzleGenerator.fish(20) },
+    { name: "Кот", size: 20, generator: () => PuzzleGenerator.cat(20) },
+    { name: "Гриб", size: 20, generator: () => PuzzleGenerator.mushroom(20) },
+    { name: "Парусник", size: 25, generator: () => PuzzleGenerator.sailboat(25) },
+    { name: "Ракета", size: 25, generator: () => PuzzleGenerator.rocket(25) },
+    { name: "Замок", size: 30, generator: () => PuzzleGenerator.castle(30) }
   ];
   const puzzleSolutions = PUZZLES.map(p => p.generator());
+  // Сложность считается решателем по форме фигуры, а не берётся из руки —
+  // раньше она была жёстко привязана к размеру поля (15×15 всегда «Легко»,
+  // 30×30 всегда «Сложно»), хотя реальная сложность линий не коррелировала
+  // с размером почти никак (см. разбор). Заодно решатель проверяет, что
+  // каждый кроссворд решается логикой целиком — если нет, в консоль уйдёт
+  // предупреждение при следующем добавлении фигур.
+  const puzzleStats = puzzleSolutions.map(sol => Solver.analyze(sol));
+  PUZZLES.forEach((p, i) => {
+    p.difficulty = Solver.difficulty(puzzleStats[i]);
+    if (!puzzleStats[i].solvable && typeof console !== 'undefined') {
+      console.warn(`Кроссворд «${p.name}» не решается логикой построчного решателя — есть неоднозначные клетки.`);
+    }
+  });
 
   // ===================== ПАЛИТРА =====================
   // Цвета читаются из CSS один раз и перечитываются при смене темы.
@@ -688,6 +828,8 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
           elapsed: Number.isFinite(entry.elapsed) && entry.elapsed >= 0 ? Math.floor(entry.elapsed) : 0,
           sig: this.signature(solutions[index])
         };
+        if (Number.isInteger(entry.stars) && entry.stars >= 1 && entry.stars <= 3) out.stars = entry.stars;
+        if (Number.isFinite(entry.bestTime) && entry.bestTime >= 0) out.bestTime = Math.floor(entry.bestTime);
         if (entry.sig === undefined || entry.sig === out.sig) {
           if (this.isValidGrid(this.decodeGrid(entry.grid), size)) out.grid = entry.grid;
           if (this.isValidGrid(this.decodeGrid(entry.memoGrid), size)) out.memoGrid = entry.memoGrid;
@@ -721,6 +863,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.hintCells = new Set();
       this.solvedLines = { rows: new Set(), cols: new Set() };
       this.errors = 0;
+      this.hintsUsed = 0;
       this.history = [];
       this.redoStack = [];
       this.solved = false;
@@ -762,15 +905,18 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       return this.getLineHints(col);
     }
 
+    // Линия считается закрытой, если раскладка закрашенных клеток даёт те же
+    // числа-подсказки — а не если она побайтово совпадает с сохранённым
+    // решением. Разница не видна, пока у кроссворда одно решение (мы теперь
+    // проверяем это решателем при сборке коллекции), но так честнее: игрока
+    // не накажет альтернативная, но тоже верная раскладка.
     lineMatchesSolution(lineType, index) {
+      const hints = lineType === 'row' ? this.getRowHints(index) : this.getColHints(index);
       const playerLine = lineType === 'row' ? this.grid[index] : this.grid.map(row => row[index]);
-      const solutionLine = lineType === 'row' ? this.solution[index] : this.solution.map(row => row[index]);
-      for (let i = 0; i < this.size; i++) {
-        if (playerLine[i] === 1 && solutionLine[i] !== 1) return false;
-      }
-      const playerFilled = playerLine.filter(v => v === 1).length;
-      const solutionFilled = solutionLine.filter(v => v === 1).length;
-      return playerFilled === solutionFilled;
+      const playerHints = this.getLineHints(playerLine.map(v => v === 1 ? 1 : 0));
+      if (playerHints.length !== hints.length) return false;
+      for (let i = 0; i < hints.length; i++) if (playerHints[i] !== hints[i]) return false;
+      return true;
     }
 
     // ---------- изменения поля ----------
@@ -969,6 +1115,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.history = [];
       this.redoStack = [];
       this.errors = 0;
+      this.hintsUsed = 0;
       this.solved = false;
     }
 
@@ -1974,7 +2121,11 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       };
       document.getElementById('btn-restart').onclick = () => {
         this.hideModal('modal-win');
-        this.loadPuzzle(this.currentPuzzleIndex);
+        // Не loadPuzzle() — он подтянул бы из сохранения solved:true и полностью
+        // закрашенное поле, и повторная попытка была бы невозможна: открылась бы
+        // уже решённая головоломка, по которой нечего делать. clearPuzzle держит
+        // ту же партию в памяти и просто обнуляет её, включая часы и hintsUsed.
+        this.clearPuzzle();
       };
 
       document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -2163,18 +2314,42 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.timerInterval = setInterval(update, 1000);
     },
 
+    // 3 звезды за решение без ошибок и без подсказок, минус звезда за каждое,
+    // но не меньше одной — кроссворд один раз решён, это уже что-то.
+    computeStars() {
+      let stars = 3;
+      if (this.game.errors > 0) stars--;
+      if (this.game.hintsUsed > 0) stars--;
+      return Math.max(1, stars);
+    },
+
+    starsHtml(n) {
+      let out = '';
+      for (let i = 1; i <= 3; i++) out += i <= n ? '★' : '☆';
+      return out;
+    },
+
     winPuzzle() {
       this.game.solved = true;
       this.game.stopClock();
       SoundManager.win(); Haptics.win(); Confetti.spawn();
-      this.saveProgress(true);
+
       const elapsed = this.game.time();
+      const newStars = this.computeStars();
+      const progress = Storage.get('puzzleProgress', {});
+      const prev = progress[this.currentPuzzleIndex];
+      const stars = Math.max(newStars, (prev && prev.stars) || 0);
+      const isRecord = prev && Number.isFinite(prev.bestTime) && elapsed < prev.bestTime;
+      const bestTime = isRecord ? elapsed : (prev && prev.bestTime) || elapsed;
+      this.saveProgress(true, { stars, bestTime });
+
       document.getElementById('win-stats').innerHTML = `
         <p style="font-size: 16px; margin: 12px 0;">
           <strong>${this.game.puzzleName}</strong> · ${this.game.puzzleSize}×${this.game.puzzleSize}
         </p>
-        <p>⏱ Время: <strong>${this.formatTime(elapsed)}</strong></p>
-        <p>✕ Ошибки: <strong>${this.game.errors}</strong></p>
+        <p style="font-size: 22px; letter-spacing: 2px; color: #ffd700;">${this.starsHtml(newStars)}</p>
+        <p>⏱ Время: <strong>${this.formatTime(elapsed)}</strong>${isRecord ? ' · 🏆 новый рекорд' : ''}</p>
+        <p>✕ Ошибки: <strong>${this.game.errors}</strong>${this.game.hintsUsed ? ` · 💡 Подсказок: <strong>${this.game.hintsUsed}</strong>` : ''}</p>
       `;
       setTimeout(() => this.showModal('modal-win'), 500);
     },
@@ -2184,15 +2359,20 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
     },
 
-    saveProgress(solved = false) {
+    // extra позволяет явно задать stars/bestTime (при победе); в остальных
+    // случаях они переносятся из уже сохранённого прогресса без изменений.
+    saveProgress(solved = false, extra = {}) {
       const progress = Storage.get('puzzleProgress', {});
+      const prev = progress[this.currentPuzzleIndex] || {};
       progress[this.currentPuzzleIndex] = {
         solved: solved || this.game.solved,
         grid: Storage.encodeGrid(this.game.grid),
         memoGrid: Storage.encodeGrid(this.game.memoGrid),
         errors: this.game.errors,
         elapsed: this.game.time(),
-        sig: Storage.signature(this.game.solution)
+        sig: Storage.signature(this.game.solution),
+        stars: extra.stars !== undefined ? extra.stars : prev.stars,
+        bestTime: extra.bestTime !== undefined ? extra.bestTime : prev.bestTime
       };
       Storage.set('puzzleProgress', progress);
     },
@@ -2240,7 +2420,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     },
 
     giveHint() {
-      if (!this.game) return;
+      if (!this.game || this.game.solved) return;
       const unsolved = [];
       for (let r = 0; r < this.game.size; r++)
         for (let c = 0; c < this.game.size; c++)
@@ -2249,6 +2429,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       if (unsolved.length) {
         const [r, c] = unsolved[Math.floor(Math.random() * unsolved.length)];
         this.game.addHint(r, c);
+        this.game.hintsUsed++;
         this.renderer.draw();
         Haptics.tap(); SoundManager.tap();
       }
@@ -2267,11 +2448,22 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       const grid = document.getElementById('puzzles-grid');
       grid.innerHTML = '';
       const progress = Storage.get('puzzleProgress', {});
+
+      const solvedCount = PUZZLES.reduce((n, _, i) => n + (progress[i]?.solved ? 1 : 0), 0);
+      const totalStars = PUZZLES.reduce((n, _, i) => n + (progress[i]?.stars || 0), 0);
+      const progressEl = document.getElementById('collection-progress');
+      if (progressEl) {
+        progressEl.textContent = `Решено: ${solvedCount}/${PUZZLES.length} · ★ ${totalStars}/${PUZZLES.length * 3}`;
+      }
+
       PUZZLES.forEach((puzzle, index) => {
-        const isSolved = progress[index]?.solved || false;
+        const entry = progress[index];
+        const isSolved = entry?.solved || false;
         if (this.currentFilter === 'solved' && !isSolved) return;
         if (this.currentFilter === 'unsolved' && isSolved) return;
-        if (this.currentFilter !== 'all' && this.currentFilter !== 'solved' && this.currentFilter !== 'unsolved') {
+        if (this.currentFilter.startsWith('diff:')) {
+          if (puzzle.difficulty !== this.currentFilter.slice(5)) return;
+        } else if (this.currentFilter !== 'all' && this.currentFilter !== 'solved' && this.currentFilter !== 'unsolved') {
           if (puzzle.size !== parseInt(this.currentFilter)) return;
         }
         const card = document.createElement('div');
@@ -2288,8 +2480,15 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         card.appendChild(name);
         const meta = document.createElement('div');
         meta.className = 'meta';
-        meta.textContent = `${puzzle.size}×${puzzle.size} · ${puzzle.difficulty}${isSolved ? ' ✅' : ''}`;
+        meta.textContent = `${puzzle.size}×${puzzle.size} · ${puzzle.difficulty}`;
         card.appendChild(meta);
+        if (isSolved) {
+          const stats = document.createElement('div');
+          stats.className = 'meta';
+          const time = Number.isFinite(entry.bestTime) ? this.formatTime(entry.bestTime) : '';
+          stats.textContent = `${this.starsHtml(entry.stars || 0)}${time ? ' · ⏱ ' + time : ''}`;
+          card.appendChild(stats);
+        }
         card.onclick = () => {
           this.hideModal('modal-puzzles');
           this.loadPuzzle(index);
