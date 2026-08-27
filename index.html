@@ -101,10 +101,10 @@ canvas { display: block; touch-action: none; border-radius: 8px; cursor: crossha
 .bottom-btn.active { background: var(--color-void-violet); color: white; box-shadow: 0 0 12px var(--color-void-violet-glow); border-color: var(--color-void-violet); }
 .bottom-btn:active { transform: scale(0.95); }
 .bottom-btn.small { width: 44px; padding: 8px; font-size: 18px; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(5, 6, 15, 0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(5, 6, 15, 0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; touch-action: pan-y; }
 [data-theme="light"] .modal-overlay { background: rgba(245, 247, 251, 0.85); }
 .modal-overlay.show { opacity: 1; pointer-events: auto; }
-.modal { background: var(--color-midnight-canvas); width: 90%; max-width: 720px; max-height: 85%; overflow-y: auto; border-radius: var(--radius-modals); padding: 24px; box-shadow: var(--shadow-subtle-6); transform: translateY(30px); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2); border: 1px solid var(--color-glass-edge); }
+.modal { background: var(--color-midnight-canvas); width: 90%; max-width: 720px; max-height: 85%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; border-radius: var(--radius-modals); padding: 24px; box-shadow: var(--shadow-subtle-6); transform: translateY(30px); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2); border: 1px solid var(--color-glass-edge); }
 .modal-overlay.show .modal { transform: translateY(0); }
 .modal h2, .modal h3 { margin-bottom: 16px; color: var(--color-ice-highlight); font-weight: 500; letter-spacing: -0.01em; }
 .modal p { color: var(--color-moon-mist); line-height: 1.5; margin-bottom: 12px; }
@@ -243,6 +243,15 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     <div class="action-row">
       <button class="action-btn primary" id="confirm-yes">Да</button>
       <button class="action-btn" data-close="modal-confirm">Отмена</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-notice">
+  <div class="modal">
+    <h2 id="notice-title">Готово</h2>
+    <p id="notice-text"></p>
+    <div class="action-row">
+      <button class="action-btn primary" data-close="modal-notice">Понятно</button>
     </div>
   </div>
 </div>
@@ -569,11 +578,32 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
   ];
   const puzzleSolutions = PUZZLES.map(p => p.generator());
 
+  // ===================== ПАЛИТРА =====================
+  // Цвета читаются из CSS один раз и перечитываются при смене темы.
+  // Раньше getPropertyValue вызывался внутри цикла по клеткам — до девяти тысяч
+  // синхронных пересчётов стиля на кадр. Здесь же лечится и баг с чёрным
+  // перекрестием: значение переменной приходит с ведущим пробелом, и без trim()
+  // canvas молча отвергал присваивание fillStyle, оставляя прошлый цвет.
+  const Palette = {
+    keys: [
+      '--color-cell-bg', '--color-cell-border', '--color-grid-border', '--color-fill',
+      '--color-x', '--color-memo', '--color-hint', '--color-solved', '--color-solved-text',
+      '--color-highlight', '--color-frost-glow'
+    ],
+    values: {},
+    refresh() {
+      const styles = getComputedStyle(document.documentElement);
+      for (const key of this.keys) this.values[key] = styles.getPropertyValue(key).trim();
+    },
+    get(key) { return this.values[key] || '#000000'; }
+  };
+
   // ===================== STORAGE =====================
   const Storage = {
     get(key, def) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch (e) { return def; } },
     set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} },
     remove(key) { try { localStorage.removeItem(key); } catch (e) {} },
+
     encodeGrid(grid) {
       const flat = [];
       for (const row of grid) for (const v of row) flat.push(v);
@@ -586,21 +616,81 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       rle.push(count + ':' + cur);
       return { _rle: true, size: grid.length, data: rle.join(',') };
     },
+
+    // Возвращает поле или null. Раньше значение без флага _rle возвращалось
+    // как есть — число или строка из битого файла доезжали до отрисовки и
+    // роняли приложение при каждом запуске, пока не почистить localStorage.
     decodeGrid(encoded) {
-      if (!encoded || !encoded._rle) return encoded;
+      if (!encoded || encoded._rle !== true || typeof encoded.data !== 'string') return null;
+      const size = encoded.size;
+      if (!Number.isInteger(size) || size < 1 || size > 100) return null;
       const flat = [];
       for (const part of encoded.data.split(',')) {
-        const [count, val] = part.split(':');
-        for (let i = 0; i < parseInt(count); i++) flat.push(parseInt(val));
+        const pieces = part.split(':');
+        if (pieces.length !== 2) return null;
+        const count = parseInt(pieces[0], 10), val = parseInt(pieces[1], 10);
+        if (!Number.isInteger(count) || count < 1 || !Number.isInteger(val)) return null;
+        if (flat.length + count > size * size) return null;
+        for (let i = 0; i < count; i++) flat.push(val);
       }
+      if (flat.length !== size * size) return null;
       const grid = [];
-      let idx = 0;
-      for (let r = 0; r < encoded.size; r++) {
-        const row = [];
-        for (let c = 0; c < encoded.size; c++) row.push(flat[idx++]);
-        grid.push(row);
-      }
+      for (let r = 0; r < size; r++) grid.push(flat.slice(r * size, (r + 1) * size));
       return grid;
+    },
+
+    isValidGrid(grid, size) {
+      if (!Array.isArray(grid) || grid.length !== size) return false;
+      for (const row of grid) {
+        if (!Array.isArray(row) || row.length !== size) return false;
+        for (const v of row) if (v !== 0 && v !== 1 && v !== 2) return false;
+      }
+      return true;
+    },
+
+    // Подпись кроссворда: если картинку когда-нибудь поправить, старое
+    // сохранение перестанет подходить под новое поле и будет отброшено.
+    signature(solution) {
+      let filled = 0;
+      for (const row of solution) for (const v of row) if (v === 1) filled++;
+      return solution.length + ':' + filled;
+    },
+
+    // Оставляет от чужого объекта прогресса только то, что имеет смысл:
+    // известные номера кроссвордов, поля нужного размера, числа вместо чего угодно.
+    sanitizeProgress(raw, puzzles, solutions) {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+      const clean = {};
+      for (const key of Object.keys(raw)) {
+        const index = parseInt(key, 10);
+        if (!Number.isInteger(index) || index < 0 || index >= puzzles.length) continue;
+        const entry = raw[key];
+        if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+
+        const size = puzzles[index].size;
+        const out = {
+          solved: entry.solved === true,
+          errors: Number.isFinite(entry.errors) && entry.errors >= 0 ? Math.floor(entry.errors) : 0,
+          elapsed: Number.isFinite(entry.elapsed) && entry.elapsed >= 0 ? Math.floor(entry.elapsed) : 0,
+          sig: this.signature(solutions[index])
+        };
+        if (entry.sig === undefined || entry.sig === out.sig) {
+          if (this.isValidGrid(this.decodeGrid(entry.grid), size)) out.grid = entry.grid;
+          if (this.isValidGrid(this.decodeGrid(entry.memoGrid), size)) out.memoGrid = entry.memoGrid;
+        }
+        clean[index] = out;
+      }
+      return clean;
+    },
+
+    sanitizeSettings(raw) {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+      const clean = {};
+      if (raw.theme === 'dark' || raw.theme === 'light') clean.theme = raw.theme;
+      for (const key of ['soundEnabled', 'hapticEnabled', 'protectionEnabled']) {
+        if (typeof raw[key] === 'boolean') clean[key] = raw[key];
+      }
+      return clean;
     }
   };
 
@@ -611,15 +701,31 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.size = solution.length;
       this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
       this.memoGrid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+      // Отметка «этот крестик поставила игра, а не игрок»: только такие крестики
+      // можно снимать обратно, когда линия перестаёт быть решённой.
+      this.autoX = Array(this.size).fill().map(() => Array(this.size).fill(0));
       this.hintCells = new Set();
       this.solvedLines = { rows: new Set(), cols: new Set() };
       this.errors = 0;
       this.history = [];
       this.redoStack = [];
-      this.startTime = Date.now();
       this.solved = false;
       this.lineAnimations = [];
+      // Время копится в elapsed, а runningSince хранит момент запуска.
+      // Так таймер можно честно остановить на паузе.
+      this.elapsed = 0;
+      this.runningSince = null;
     }
+
+    // ---------- часы ----------
+    startClock() { if (this.runningSince === null && !this.solved) this.runningSince = Date.now(); }
+    stopClock() {
+      if (this.runningSince !== null) {
+        this.elapsed += Date.now() - this.runningSince;
+        this.runningSince = null;
+      }
+    }
+    time() { return this.elapsed + (this.runningSince === null ? 0 : Date.now() - this.runningSince); }
 
     getCell(r, c) { return this.grid[r][c]; }
     getMemo(r, c) { return this.memoGrid[r][c]; }
@@ -653,67 +759,60 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       return playerFilled === solutionFilled;
     }
 
-    setCell(r, c, val, record = true) {
-      const prev = this.grid[r][c];
-      if (prev === val) return false;
-      if (record) {
-        this.history.push({ type: 'single', r, c, prev, next: val });
-        if (this.history.length > 300) this.history.shift();
-        this.redoStack = [];
+    // ---------- изменения поля ----------
+    // Любая правка описывается записью {r, c, layer, prev, next}, ход в истории —
+    // массив таких записей. Раньше часть изменений (авто-крестики, сброс memo при
+    // постановке крестика) шла мимо истории, и отмена возвращала поле не полностью.
+
+    change(r, c, next, layer = 'grid') {
+      const prev = layer === 'memo' ? this.memoGrid[r][c] : this.grid[r][c];
+      return prev === next ? null : { r, c, layer, prev, next };
+    }
+
+    applyChanges(changes, direction) {
+      for (const ch of changes) {
+        const val = direction === 'next' ? ch.next : ch.prev;
+        if (ch.layer === 'memo') {
+          this.memoGrid[ch.r][ch.c] = val;
+        } else {
+          this.grid[ch.r][ch.c] = val;
+          this.autoX[ch.r][ch.c] = 0;
+          if (val === 1) this.hintCells.delete(`${ch.r},${ch.c}`);
+        }
       }
-      this.grid[r][c] = val;
-      if (val === 1) {
-        const hintKey = `${r},${c}`;
-        if (this.hintCells.has(hintKey)) this.hintCells.delete(hintKey);
-      }
+    }
+
+    commit(changes) {
+      const list = changes.filter(Boolean);
+      if (!list.length) return false;
+      this.applyChanges(list, 'next');
+      this.history.push(list);
+      if (this.history.length > 300) this.history.shift();
+      this.redoStack = [];
       this.checkSolvedLines();
       return true;
     }
 
-    setCellGroup(cells, record = true) {
+    setCell(r, c, val) { return this.commit([this.change(r, c, val)]); }
+
+    setCellGroup(cells) {
       const changes = [];
       for (const { r, c } of cells) {
-        const prev = this.grid[r][c];
-        if (prev !== 1) {
-          changes.push({ r, c, prev, next: 1 });
-          this.grid[r][c] = 1;
-          const hintKey = `${r},${c}`;
-          if (this.hintCells.has(hintKey)) this.hintCells.delete(hintKey);
-        }
+        const ch = this.change(r, c, 1);
+        if (ch) changes.push(ch);
       }
-      if (record && changes.length > 0) {
-        this.history.push({ type: 'group', cells: changes });
-        if (this.history.length > 300) this.history.shift();
-        this.redoStack = [];
-      }
-      this.checkSolvedLines();
+      this.commit(changes);
       return changes;
     }
 
-    setMemo(r, c, val, record = true) {
-      if (this.memoGrid[r][c] === val) return;
-      if (record) {
-        this.history.push({ type: 'memo', r, c, prev: this.memoGrid[r][c], next: val });
-        if (this.history.length > 300) this.history.shift();
-        this.redoStack = [];
-      }
-      this.memoGrid[r][c] = val;
-    }
+    setMemo(r, c, val) { return this.commit([this.change(r, c, val, 'memo')]); }
 
     clearAllMemos() {
       const changes = [];
-      for (let r = 0; r < this.size; r++) {
-        for (let c = 0; c < this.size; c++) {
-          if (this.memoGrid[r][c] !== 0) {
-            changes.push({ r, c, prev: this.memoGrid[r][c], next: 0 });
-            this.memoGrid[r][c] = 0;
-          }
-        }
-      }
-      if (changes.length > 0) {
-        this.history.push({ type: 'memoClear', cells: changes });
-        this.redoStack = [];
-      }
+      for (let r = 0; r < this.size; r++)
+        for (let c = 0; c < this.size; c++)
+          if (this.memoGrid[r][c] !== 0) changes.push(this.change(r, c, 0, 'memo'));
+      return this.commit(changes);
     }
 
     hasMemos() {
@@ -727,35 +826,36 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     hasHint(r, c) { return this.hintCells.has(`${r},${c}`); }
 
     checkSolvedLines() {
-      const prevRows = new Set(this.solvedLines.rows);
-      const prevCols = new Set(this.solvedLines.cols);
-
-      for (let r = 0; r < this.size; r++) {
-        if (this.lineMatchesSolution('row', r)) {
-          this.solvedLines.rows.add(r);
-          for (let c = 0; c < this.size; c++) {
-            if (this.grid[r][c] === 0 && this.solution[r][c] === 0) this.grid[r][c] = 2;
-          }
-          if (!prevRows.has(r)) this.lineAnimations.push({ type: 'row', index: r, start: Date.now() });
-        } else {
-          this.solvedLines.rows.delete(r);
-        }
-      }
-
-      for (let c = 0; c < this.size; c++) {
-        if (this.lineMatchesSolution('col', c)) {
-          this.solvedLines.cols.add(c);
-          for (let r = 0; r < this.size; r++) {
-            if (this.grid[r][c] === 0 && this.solution[r][c] === 0) this.grid[r][c] = 2;
-          }
-          if (!prevCols.has(c)) this.lineAnimations.push({ type: 'col', index: c, start: Date.now() });
-        } else {
-          this.solvedLines.cols.delete(c);
-        }
-      }
-
       const now = Date.now();
-      this.lineAnimations = this.lineAnimations.filter(a => now - a.start < 800);
+      for (let r = 0; r < this.size; r++) {
+        const solved = this.lineMatchesSolution('row', r);
+        if (solved && !this.solvedLines.rows.has(r)) this.lineAnimations.push({ type: 'row', index: r, start: now });
+        if (solved) this.solvedLines.rows.add(r); else this.solvedLines.rows.delete(r);
+      }
+      for (let c = 0; c < this.size; c++) {
+        const solved = this.lineMatchesSolution('col', c);
+        if (solved && !this.solvedLines.cols.has(c)) this.lineAnimations.push({ type: 'col', index: c, start: now });
+        if (solved) this.solvedLines.cols.add(c); else this.solvedLines.cols.delete(c);
+      }
+      this.syncAutoCross();
+    }
+
+    // Расставляет и снимает автоматические крестики. Снятие — новое:
+    // раньше крестики, поставленные закрытой линией, оставались на поле навсегда.
+    syncAutoCross() {
+      for (let r = 0; r < this.size; r++) {
+        const rowSolved = this.solvedLines.rows.has(r);
+        for (let c = 0; c < this.size; c++) {
+          const covered = rowSolved || this.solvedLines.cols.has(c);
+          if (covered && this.grid[r][c] === 0 && this.solution[r][c] === 0) {
+            this.grid[r][c] = 2;
+            this.autoX[r][c] = 1;
+          } else if (!covered && this.autoX[r][c]) {
+            if (this.grid[r][c] === 2) this.grid[r][c] = 0;
+            this.autoX[r][c] = 0;
+          }
+        }
+      }
     }
 
     getProgress() {
@@ -773,36 +873,34 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
 
     undo() {
       if (!this.history.length) return false;
-      const last = this.history.pop();
-      this.redoStack.push(last);
-      if (last.type === 'group') {
-        for (const { r, c, prev } of last.cells) this.grid[r][c] = prev;
-      } else if (last.type === 'memoClear') {
-        for (const { r, c, prev } of last.cells) this.memoGrid[r][c] = prev;
-      } else if (last.type === 'memo') {
-        this.memoGrid[last.r][last.c] = last.prev;
-      } else {
-        this.grid[last.r][last.c] = last.prev;
-      }
+      const changes = this.history.pop();
+      this.applyChanges(changes, 'prev');
+      this.redoStack.push(changes);
       this.checkSolvedLines();
       return true;
     }
 
     redo() {
       if (!this.redoStack.length) return false;
-      const last = this.redoStack.pop();
-      this.history.push(last);
-      if (last.type === 'group') {
-        for (const { r, c, next } of last.cells) this.grid[r][c] = next;
-      } else if (last.type === 'memoClear') {
-        for (const { r, c, next } of last.cells) this.memoGrid[r][c] = next;
-      } else if (last.type === 'memo') {
-        this.memoGrid[last.r][last.c] = last.next;
-      } else {
-        this.grid[last.r][last.c] = last.next;
-      }
+      const changes = this.redoStack.pop();
+      this.applyChanges(changes, 'next');
+      this.history.push(changes);
       this.checkSolvedLines();
       return true;
+    }
+
+    reset() {
+      this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+      this.memoGrid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+      this.autoX = Array(this.size).fill().map(() => Array(this.size).fill(0));
+      this.hintCells.clear();
+      this.solvedLines.rows.clear();
+      this.solvedLines.cols.clear();
+      this.lineAnimations = [];
+      this.history = [];
+      this.redoStack = [];
+      this.errors = 0;
+      this.solved = false;
     }
 
     isSolved() {
@@ -986,7 +1084,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.drawHints(ctx, cell, size, origin);
 
       if (this.hoverCell && this.hoverCell.r >= 0 && this.hoverCell.r < size && this.hoverCell.c >= 0 && this.hoverCell.c < size) {
-        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-highlight');
+        ctx.fillStyle = Palette.get('--color-highlight');
         ctx.fillRect(origin.x, origin.y + this.hoverCell.r * cell, size * cell, cell);
         ctx.fillRect(origin.x + this.hoverCell.c * cell, origin.y, cell, size * cell);
       }
@@ -1012,26 +1110,26 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
           const rowSolved = this.state.solvedLines.rows.has(r);
           const colSolved = this.state.solvedLines.cols.has(c);
 
-          ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-cell-bg').trim();
+          ctx.fillStyle = Palette.get('--color-cell-bg');
           ctx.fillRect(x, y, cell, cell);
 
           if (rowSolved || colSolved) {
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-solved').trim();
+            ctx.fillStyle = Palette.get('--color-solved');
             ctx.fillRect(x, y, cell, cell);
           }
 
           if (hasHint && val !== 1) {
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-hint').trim();
+            ctx.fillStyle = Palette.get('--color-hint');
             ctx.globalAlpha = 0.7 + 0.3 * Math.sin(now / 200);
             ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
             ctx.globalAlpha = 1;
           }
 
           if (val === 1) {
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-fill').trim();
+            ctx.fillStyle = Palette.get('--color-fill');
             ctx.fillRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
           } else if (val === 2) {
-            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-x').trim();
+            ctx.strokeStyle = Palette.get('--color-x');
             ctx.lineWidth = Math.max(1, cell / 6);
             ctx.lineCap = 'round';
             ctx.beginPath(); ctx.moveTo(x + cell*0.25, y + cell*0.25); ctx.lineTo(x + cell*0.75, y + cell*0.75); ctx.stroke();
@@ -1039,7 +1137,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
           }
 
           if (memoVal === 1 && val !== 1) {
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-memo').trim();
+            ctx.fillStyle = Palette.get('--color-memo');
             ctx.beginPath();
             ctx.moveTo(x + cell*0.5, y + cell*0.15);
             ctx.lineTo(x + cell*0.15, y + cell*0.85);
@@ -1048,12 +1146,12 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
           }
 
           if (cell > 4) {
-            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-cell-border').trim();
+            ctx.strokeStyle = Palette.get('--color-cell-border');
             ctx.lineWidth = 0.5;
             ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
           }
 
-          const gridBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-grid-border').trim();
+          const gridBorderColor = Palette.get('--color-grid-border');
           if ((c + 1) % 5 === 0 && c < size - 1) {
             ctx.strokeStyle = gridBorderColor; ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.moveTo(x + cell, y); ctx.lineTo(x + cell, y + cell); ctx.stroke();
@@ -1065,7 +1163,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         }
       }
 
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-grid-border').trim();
+      ctx.strokeStyle = Palette.get('--color-grid-border');
       ctx.lineWidth = 2;
       ctx.strokeRect(origin.x, origin.y, size * cell, size * cell);
     }
@@ -1116,8 +1214,8 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      const solvedTextColor = 'rgba(38, 150, 132, 0.7)';
-      const normalTextColor = '#d1e4fa';
+      const solvedTextColor = Palette.get('--color-solved-text');
+      const normalTextColor = Palette.get('--color-frost-glow');
 
       for (let r = 0; r < size; r++) {
         const hints = this.state.getRowHints(r);
@@ -1141,11 +1239,15 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     }
   }
 
-  // ===================== INPUT HANDLER (ИСПРАВЛЕНО) =====================
+  // ===================== INPUT HANDLER =====================
+  // Создаётся ровно один раз за сеанс. Раньше на каждый выбранный кроссворд
+  // создавался новый экземпляр, а слушатели вешались на тот же canvas и никогда
+  // не снимались: после второго кроссворда каждое касание обрабатывалось дважды,
+  // причём старые экземпляры продолжали править уже закрытую партию.
   class InputHandler {
-    constructor(renderer, game, callbacks) {
+    constructor(renderer, callbacks) {
       this.renderer = renderer;
-      this.game = game;
+      this.game = null;
       this.cb = callbacks;
       this.canvas = renderer.canvas;
       this.mode = 'paint';
@@ -1169,6 +1271,25 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     setMode(mode) { this.mode = mode; }
     setProtection(enabled) { this.protectionEnabled = enabled; }
 
+    // Переключение на другую партию: тот же экземпляр, новое состояние.
+    setGame(game) {
+      this.game = game;
+      this.resetStroke();
+      this.renderer.clearDrawingLine();
+      this.renderer.setHoverCell(null);
+    }
+
+    resetStroke() {
+      if (this.protectionTimer) { clearTimeout(this.protectionTimer); this.protectionTimer = null; }
+      this.pointerDown = false;
+      this.isDrawing = false;
+      this.hasMoved = false;
+      this.drawnCells = [];
+      this.drawingStartCell = null;
+      this.drawDirection = null;
+      this.protectionPassed = false;
+    }
+
     getCanvasCoords(e) {
       const rect = this.canvas.getBoundingClientRect();
       return {
@@ -1179,6 +1300,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
 
     onPointerDown(e) {
       e.preventDefault();
+      if (!this.game) return;
       this.canvas.setPointerCapture(e.pointerId);
       this.pointerDown = true;
       this.hasMoved = false;
@@ -1201,6 +1323,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     }
 
     onPointerMove(e) {
+      if (!this.game) return;
       if (!this.pointerDown) {
         const { x, y } = this.getCanvasCoords(e);
         this.renderer.setHoverCell(this.renderer.screenToCell(x, y));
@@ -1238,8 +1361,10 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
 
     onPointerUp(e) {
       e.preventDefault();
-      this.canvas.releasePointerCapture(e.pointerId);
+      // На pointercancel указатель уже отпущен — releasePointerCapture бросил бы NotFoundError.
+      if (this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId);
       if (this.protectionTimer) { clearTimeout(this.protectionTimer); this.protectionTimer = null; }
+      if (!this.game) { this.resetStroke(); return; }
 
       if (!this.hasMoved && this.pointerDown) {
         if (!this.protectionEnabled || this.protectionPassed) {
@@ -1251,7 +1376,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         }
       }
 
-      if (this.isDrawing && this.drawnCells.length > 0 && this.mode === 'paint' && this.protectionPassed) {
+      if (this.isDrawing && this.drawnCells.length > 0 && this.mode === 'paint' && this.protectionPassed && !this.game.solved) {
         const changes = this.game.setCellGroup(this.drawnCells);
         const errorCells = [];
         for (const { r, c } of changes) {
@@ -1270,12 +1395,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.renderer.clearDrawingLine();
       this.renderer.needsStaticRedraw = true;
       this.renderer.draw();
-      this.pointerDown = false;
-      this.isDrawing = false;
-      this.hasMoved = false;
-      this.drawnCells = [];
-      this.drawingStartCell = null;
-      this.drawDirection = null;
+      this.resetStroke();
     }
 
     applyAction(r, c) {
@@ -1298,10 +1418,11 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       } else if (this.mode === 'x') {
         const cur = this.game.getCell(r, c);
         const newVal = cur === 2 ? 0 : 2;
-        this.game.setCell(r, c, newVal);
-        if (newVal === 2) {
-          this.game.memoGrid[r][c] = 0;
-        }
+        // Крестик стирает memo — это одно изменение из двух частей, иначе отмена
+        // вернула бы крестик, но не вернула бы заметку.
+        const changes = [this.game.change(r, c, newVal)];
+        if (newVal === 2) changes.push(this.game.change(r, c, 0, 'memo'));
+        this.game.commit(changes);
         SoundManager.x(); Haptics.x();
         this.cb.onUpdate();
       } else if (this.mode === 'memo') {
@@ -1330,6 +1451,32 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         Confetti.init();
         this.renderer = new Renderer(document.getElementById('game-canvas'));
         this.loadSettings();
+        Palette.refresh();
+        // Обработчик ввода создаётся один раз на весь сеанс, дальше ему
+        // подсовывается новая партия через setGame.
+        this.inputHandler = new InputHandler(this.renderer, {
+          onUpdate: () => {
+            this.renderer.draw();
+            this.updateMemoButton();
+            this.updateProgress();
+            this.updateStats();
+            this.debouncedSave();
+          },
+          onError: () => {
+            this.updateStats();
+            this.debouncedSave();
+            const app = document.getElementById('app');
+            app.classList.remove('shake');
+            void app.offsetWidth;
+            app.classList.add('shake');
+          },
+          onWin: () => this.winPuzzle(),
+          onMemoChange: () => {
+            this.updateMemoButton();
+            this.debouncedSave();
+          }
+        });
+        this.inputHandler.setProtection(Storage.get('protectionEnabled', true));
         this.bindEvents();
         this.showPuzzleSelector();
         const seen = Storage.get('tutorialSeen', false);
@@ -1386,7 +1533,9 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         const isDark = sw.classList.contains('on');
         document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
         Storage.set('theme', isDark ? 'dark' : 'light');
+        Palette.refresh();
         if (this.renderer) { this.renderer.needsStaticRedraw = true; this.renderer.draw(); }
+        this.showPuzzleSelector();
       };
 
       document.getElementById('switch-sound').onclick = (e) => {
@@ -1468,13 +1617,30 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       });
 
       const animate = () => {
-        if (this.game && (this.game.hintCells.size > 0 || this.game.lineAnimations.length > 0)) {
-          this.renderer.needsStaticRedraw = true;
-          this.renderer.draw();
+        if (this.game) {
+          // Просроченные анимации убираются здесь, а не в обработчике хода.
+          // Раньше массив чистился только при изменении клетки — после последней
+          // закрытой линии он оставался непустым, и перерисовка шла вечно.
+          if (this.game.lineAnimations.length) {
+            const now = Date.now();
+            this.game.lineAnimations = this.game.lineAnimations.filter(a => now - a.start < 800);
+          }
+          if (this.game.hintCells.size > 0 || this.game.lineAnimations.length > 0) {
+            this.renderer.needsStaticRedraw = true;
+            this.renderer.draw();
+          }
         }
         requestAnimationFrame(animate);
       };
       requestAnimationFrame(animate);
+
+      // Таймер не должен идти, пока игру не видно.
+      document.addEventListener('visibilitychange', () => {
+        if (!this.game) return;
+        if (document.hidden) this.game.stopClock();
+        else if (!document.querySelector('.modal-overlay.show')) this.game.startClock();
+        this.debouncedSave();
+      });
 
       document.body.addEventListener('pointerdown', () => SoundManager.resume(), { once: true });
     },
@@ -1491,8 +1657,22 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     showModal(id) {
       if (id === 'modal-puzzles') this.showPuzzleSelector();
       document.getElementById(id).classList.add('show');
+      if (this.game) { this.game.stopClock(); this.debouncedSave(); }
     },
-    hideModal(id) { document.getElementById(id).classList.remove('show'); },
+
+    hideModal(id) {
+      document.getElementById(id).classList.remove('show');
+      // Часы возобновляются, только когда закрылось последнее окно.
+      if (this.game && !document.querySelector('.modal-overlay.show') && !document.hidden) {
+        this.game.startClock();
+      }
+    },
+
+    notify(title, text) {
+      document.getElementById('notice-title').textContent = title;
+      document.getElementById('notice-text').textContent = text;
+      this.showModal('modal-notice');
+    },
 
     loadPuzzle(index) {
       this.currentPuzzleIndex = index;
@@ -1503,43 +1683,26 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.game.puzzleSize = PUZZLES[index].size;
 
       const progress = Storage.get('puzzleProgress', {});
-      const saved = progress[index];
-      if (saved) {
-        const grid = Storage.decodeGrid(saved.grid);
-        if (grid) this.game.grid = grid;
-        const memo = Storage.decodeGrid(saved.memoGrid);
-        if (memo) this.game.memoGrid = memo;
-        this.game.errors = saved.errors || 0;
-        if (saved.elapsed) this.game.startTime = Date.now() - saved.elapsed;
-        if (saved.solved) this.game.solved = true;
+      const saved = progress && typeof progress === 'object' ? progress[index] : null;
+      if (saved && typeof saved === 'object') {
+        // Сохранение принимается, только если оно подходит этому кроссворду.
+        // Иначе битый или устаревший файл ронял отрисовку при каждом запуске.
+        const sig = Storage.signature(solution);
+        if (saved.sig === undefined || saved.sig === sig) {
+          const grid = Storage.decodeGrid(saved.grid);
+          if (Storage.isValidGrid(grid, this.game.size)) this.game.grid = grid;
+          const memo = Storage.decodeGrid(saved.memoGrid);
+          if (Storage.isValidGrid(memo, this.game.size)) this.game.memoGrid = memo;
+        }
+        if (Number.isFinite(saved.errors) && saved.errors >= 0) this.game.errors = Math.floor(saved.errors);
+        if (Number.isFinite(saved.elapsed) && saved.elapsed >= 0) this.game.elapsed = Math.floor(saved.elapsed);
+        if (saved.solved === true) this.game.solved = true;
         this.game.checkSolvedLines();
       }
 
       this.renderer.setState(this.game);
-      const protection = Storage.get('protectionEnabled', true);
-      this.inputHandler = new InputHandler(this.renderer, this.game, {
-        onUpdate: () => {
-          this.renderer.draw();
-          this.updateMemoButton();
-          this.updateProgress();
-          this.updateStats();
-          this.debouncedSave();
-        },
-        onError: () => {
-          this.updateStats();
-          this.debouncedSave();
-          const app = document.getElementById('app');
-          app.classList.remove('shake');
-          void app.offsetWidth;
-          app.classList.add('shake');
-        },
-        onWin: () => this.winPuzzle(),
-        onMemoChange: () => {
-          this.updateMemoButton();
-          this.debouncedSave();
-        }
-      });
-      this.inputHandler.setProtection(protection);
+      this.inputHandler.setGame(this.game);
+      this.inputHandler.setProtection(Storage.get('protectionEnabled', true));
 
       this.renderer.draw();
       this.updateTitle();
@@ -1570,12 +1733,12 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
 
     startTimer() {
       if (this.timerInterval) clearInterval(this.timerInterval);
+      if (this.game && !document.querySelector('.modal-overlay.show') && !document.hidden) {
+        this.game.startClock();
+      }
       const update = () => {
-        if (!this.game || this.game.solved) return;
-        const elapsed = Date.now() - this.game.startTime;
-        const s = Math.floor(elapsed / 1000);
-        document.getElementById('timer').textContent =
-          `⏱ ${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+        if (!this.game) return;
+        document.getElementById('timer').textContent = '⏱ ' + this.formatTime(this.game.time());
       };
       update();
       this.timerInterval = setInterval(update, 1000);
@@ -1583,9 +1746,10 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
 
     winPuzzle() {
       this.game.solved = true;
+      this.game.stopClock();
       SoundManager.win(); Haptics.win(); Confetti.spawn();
       this.saveProgress(true);
-      const elapsed = Date.now() - this.game.startTime;
+      const elapsed = this.game.time();
       document.getElementById('win-stats').innerHTML = `
         <p style="font-size: 16px; margin: 12px 0;">
           <strong>${this.game.puzzleName}</strong> · ${this.game.puzzleSize}×${this.game.puzzleSize}
@@ -1608,29 +1772,25 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         grid: Storage.encodeGrid(this.game.grid),
         memoGrid: Storage.encodeGrid(this.game.memoGrid),
         errors: this.game.errors,
-        elapsed: Date.now() - this.game.startTime
+        elapsed: this.game.time(),
+        sig: Storage.signature(this.game.solution)
       };
       Storage.set('puzzleProgress', progress);
     },
 
-    undo() {
-      if (this.game && this.game.undo()) {
-        this.renderer.needsStaticRedraw = true;
-        this.renderer.draw();
-        this.updateMemoButton(); this.updateProgress(); this.updateStats();
-        this.debouncedSave();
-        SoundManager.mode();
-      }
-    },
+    undo() { this.afterHistoryStep(this.game && this.game.undo()); },
+    redo() { this.afterHistoryStep(this.game && this.game.redo()); },
 
-    redo() {
-      if (this.game && this.game.redo()) {
-        this.renderer.needsStaticRedraw = true;
-        this.renderer.draw();
-        this.updateMemoButton(); this.updateProgress(); this.updateStats();
-        this.debouncedSave();
-        SoundManager.mode();
-      }
+    afterHistoryStep(changed) {
+      if (!changed) return;
+      this.renderer.needsStaticRedraw = true;
+      this.renderer.draw();
+      this.updateMemoButton(); this.updateProgress(); this.updateStats();
+      this.debouncedSave();
+      SoundManager.mode();
+      // Повтор хода может оказаться последним — победу надо засчитать сразу,
+      // а не ждать, пока игрок ещё раз тронет поле.
+      if (!this.game.solved && this.game.isSolved()) this.winPuzzle();
     },
 
     confirmClear() {
@@ -1642,19 +1802,15 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     },
 
     clearPuzzle() {
-      if (this.game) {
-        this.game.grid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
-        this.game.memoGrid = Array(this.game.size).fill().map(() => Array(this.game.size).fill(0));
-        this.game.hintCells.clear();
-        this.game.solvedLines.rows.clear();
-        this.game.solvedLines.cols.clear();
-        this.game.history = [];
-        this.game.redoStack = [];
-        this.renderer.needsStaticRedraw = true;
-        this.renderer.draw();
-        this.updateMemoButton(); this.updateProgress();
-        this.debouncedSave();
-      }
+      if (!this.game) return;
+      // Сбрасывается и счётчик ошибок, и признак решённости — раньше они
+      // оставались от прошлой попытки на пустом поле.
+      this.game.reset();
+      this.renderer.needsStaticRedraw = true;
+      this.renderer.draw();
+      this.updateMemoButton(); this.updateProgress(); this.updateStats();
+      this.startTimer();
+      this.debouncedSave();
     },
 
     clearMemos() {
@@ -1731,9 +1887,9 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       const ctx = canvas.getContext('2d');
       const size = solution.length;
       const cell = canvas.width / size;
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-cell-bg').trim();
+      ctx.fillStyle = Palette.get('--color-cell-bg');
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-fill').trim();
+      ctx.fillStyle = Palette.get('--color-fill');
       for (let r = 0; r < size; r++)
         for (let c = 0; c < size; c++)
           if (solution[r][c] === 1) ctx.fillRect(c * cell, r * cell, cell + 0.5, cell + 0.5);
@@ -1770,16 +1926,30 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         try {
           const text = await file.text();
           const data = JSON.parse(text);
-          if (!data || !data.puzzleProgress) { alert('Неверный формат файла'); return; }
-          Storage.set('puzzleProgress', data.puzzleProgress);
-          if (data.settings) {
-            for (const key in data.settings) Storage.set(key, data.settings[key]);
-            this.loadSettings();
+          // Из файла берётся только то, что подходит текущей коллекции:
+          // раньше содержимое клалось в хранилище как есть и могло сломать игру
+          // так, что она падала при каждом следующем запуске.
+          const progress = Storage.sanitizeProgress(data && data.puzzleProgress, PUZZLES, puzzleSolutions);
+          if (!progress) {
+            this.notify('Не подошло', 'Это не файл прогресса Nanogram — в нём нет данных о кроссвордах.');
+            return;
           }
-          alert('Прогресс импортирован!');
+          Storage.set('puzzleProgress', progress);
+          const settings = Storage.sanitizeSettings(data.settings);
+          if (settings) {
+            for (const key of Object.keys(settings)) Storage.set(key, settings[key]);
+            this.loadSettings();
+            Palette.refresh();
+          }
+          const restored = Object.keys(progress).length;
           this.hideModal('modal-settings');
           this.showPuzzleSelector();
-        } catch (err) { alert('Ошибка импорта: ' + err.message); }
+          this.loadPuzzle(this.currentPuzzleIndex);
+          this.notify('Прогресс импортирован',
+            restored ? `Восстановлено кроссвордов: ${restored}.` : 'В файле не оказалось подходящих сохранений.');
+        } catch (err) {
+          this.notify('Ошибка импорта', 'Файл не удалось прочитать: ' + err.message);
+        }
       };
       input.click();
     },
@@ -1792,12 +1962,18 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     },
 
     resetAll() {
-      Storage.remove('puzzleProgress');
-      Storage.remove('lastPuzzleIndex');
-      Storage.remove('tutorialSeen');
+      // Окно обещает удалить и настройки — теперь оно не врёт.
+      for (const key of ['puzzleProgress', 'lastPuzzleIndex', 'tutorialSeen',
+                         'theme', 'soundEnabled', 'hapticEnabled', 'protectionEnabled']) {
+        Storage.remove(key);
+      }
       this.hideModal('modal-settings');
+      this.loadSettings();
+      Palette.refresh();
+      this.renderer.needsStaticRedraw = true;
       this.loadPuzzle(0);
-      alert('Прогресс сброшен');
+      this.showPuzzleSelector();
+      this.notify('Готово', 'Прогресс и настройки сброшены.');
     }
   };
 
