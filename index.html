@@ -95,6 +95,11 @@ body { display: flex; flex-direction: column; align-items: center; justify-conte
 #progress-bar { height: 100%; background: linear-gradient(90deg, var(--color-void-violet), var(--color-blueprint-blue)); width: 0%; transition: width 0.3s ease; box-shadow: 0 0 8px var(--color-void-violet-glow); }
 #canvas-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: var(--radius-cards); background: var(--color-luminous-fill); box-shadow: var(--shadow-subtle-6); margin-bottom: 8px; touch-action: none; min-height: 0; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--color-glass-edge); }
 canvas { display: block; touch-action: none; border-radius: 8px; cursor: crosshair; }
+#zoom-controls { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
+.zoom-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--color-glass-edge); background: var(--color-luminous-fill); color: var(--color-frost-glow); font-size: 17px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--shadow-sm); transition: all 0.15s; }
+.zoom-btn:hover { background: var(--color-steel-plate); }
+.zoom-btn:active { transform: scale(0.92); }
+@media (hover: none) { .zoom-btn:hover { background: var(--color-luminous-fill); } }
 #bottom-bar { display: flex; gap: 6px; padding: 8px 0; flex-shrink: 0; flex-wrap: wrap; justify-content: center; align-items: center; }
 .bottom-btn { background: var(--color-luminous-fill); border: 1px solid var(--color-glass-edge); border-radius: var(--radius-buttons); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; color: var(--color-frost-glow); transition: all 0.2s; font-weight: 500; padding: 8px 12px; height: 44px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .bottom-btn:hover { background: var(--color-steel-plate); transform: translateY(-1px); }
@@ -166,7 +171,14 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     </div>
   </div>
   <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
-  <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
+  <div id="canvas-wrap">
+    <canvas id="game-canvas"></canvas>
+    <div id="zoom-controls">
+      <button class="zoom-btn" id="btn-zoom-in" aria-label="Приблизить">＋</button>
+      <button class="zoom-btn" id="btn-zoom-out" aria-label="Отдалить">－</button>
+      <button class="zoom-btn" id="btn-zoom-fit" aria-label="Вписать поле">⤢</button>
+    </div>
+  </div>
   <div id="bottom-bar">
     <button class="bottom-btn active" data-mode="paint">⬛ Закрасить</button>
     <button class="bottom-btn" data-mode="x">✕ Крестик</button>
@@ -203,7 +215,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     <div class="settings-row"><label>🌙 Тёмная тема</label><div class="switch on" id="switch-theme"></div></div>
     <div class="settings-row"><label>🔊 Звук</label><div class="switch on" id="switch-sound"></div></div>
     <div class="settings-row"><label>📳 Вибрация</label><div class="switch on" id="switch-haptic"></div></div>
-    <div class="settings-row"><label>🛡 Защита от случайных касаний (150мс)</label><div class="switch on" id="switch-protection"></div></div>
+    <div class="settings-row"><label>👆 Долгое нажатие ставит крестик</label><div class="switch on" id="switch-longpress"></div></div>
     <div class="action-row">
       <button class="action-btn" id="btn-tutorial">📖 Обучение</button>
       <button class="action-btn" id="btn-export">📤 Экспорт прогресса</button>
@@ -217,10 +229,12 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     <button class="modal-close" data-close="modal-tutorial">×</button>
     <h2>📖 Как играть</h2>
     <div class="tutorial-step"><h4>🎯 Цель</h4><p>Закрасьте клетки так, чтобы в каждой строке и каждом столбце группы закрашенных клеток соответствовали числам-подсказкам.</p></div>
-    <div class="tutorial-step"><h4>⬛ Режим «Закрасить»</h4><p>Нажмите на клетку, чтобы закрасить её чёрным. Можно вести линию — зажмите и проведите по клеткам горизонтально или вертикально. Номера на линии показывают порядок.</p></div>
-    <div class="tutorial-step"><h4>✕ Режим «Крестик»</h4><p>Отмечайте клетки, которые точно не нужно закрашивать. Крестики рисуются серым цветом.</p></div>
+    <div class="tutorial-step"><h4>⬛ Режим «Закрасить»</h4><p>Нажмите на клетку, чтобы закрасить её. Можно вести линию — зажмите и проведите по клеткам горизонтально или вертикально: если начали с пустой клетки, вся линия закрашивается, если с закрашенной — стирается.</p></div>
+    <div class="tutorial-step"><h4>✕ Режим «Крестик»</h4><p>Отмечайте клетки, которые точно не нужно закрашивать. Тоже работает свайпом. Ошибочная попытка закрасить неверную клетку сама превращается в крестик — искать и стирать её вручную не нужно.</p></div>
     <div class="tutorial-step"><h4>🔺 Режим «Memo»</h4><p>Ставьте красные треугольники-заметки для пометок. Кнопка 🗑 удаляет все memo сразу.</p></div>
-    <div class="tutorial-step"><h4>✨ Автозаполнение</h4><p>Когда все правильные клетки в строке или столбце закрашены, остальные автоматически заполняются крестиками.</p></div>
+    <div class="tutorial-step"><h4>✨ Автозаполнение</h4><p>Когда все правильные клетки в строке или столбце закрашены, остальные автоматически заполняются крестиками — и снимаются обратно, если вы отмените ход.</p></div>
+    <div class="tutorial-step"><h4>🔍 Масштаб</h4><p>Разводите два пальца или крутите колесо мыши, чтобы приблизить поле — на больших кроссвордах так проще попадать по клеткам. Двойной тап переключает между приближением и целым полем, кнопки ＋ / － / ⤢ в углу поля делают то же самое без жестов.</p></div>
+    <div class="tutorial-step"><h4>👆 Долгое нажатие</h4><p>Задержите палец на клетке примерно на треть секунды, чтобы поставить крестик, не переключая режим — удобно для одиночных клеток посреди закраски. Отключается в настройках.</p></div>
     <div class="tutorial-step"><h4>💡 Подсказки</h4><p>Нажмите 💡, чтобы открыть одну случайную клетку. Она подсветится голубым и исчезнет после закрашивания.</p></div>
     <div class="action-row"><button class="action-btn primary" data-close="modal-tutorial">Понятно</button></div>
   </div>
@@ -687,7 +701,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
       const clean = {};
       if (raw.theme === 'dark' || raw.theme === 'light') clean.theme = raw.theme;
-      for (const key of ['soundEnabled', 'hapticEnabled', 'protectionEnabled']) {
+      for (const key of ['soundEnabled', 'hapticEnabled', 'longPressEnabled']) {
         if (typeof raw[key] === 'boolean') clean[key] = raw[key];
       }
       return clean;
@@ -794,18 +808,73 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     }
 
     setCell(r, c, val) { return this.commit([this.change(r, c, val)]); }
+    setMemo(r, c, val) { return this.commit([this.change(r, c, val, 'memo')]); }
 
-    setCellGroup(cells) {
-      const changes = [];
-      for (const { r, c } of cells) {
-        const ch = this.change(r, c, 1);
-        if (ch) changes.push(ch);
-      }
-      this.commit(changes);
-      return changes;
+    // ---------- штрих: действие определяется один раз по первой клетке ----------
+    // Свайп ведёт себя как один ход, а не как N независимых тапов: тап по первой
+    // клетке решает, закрашиваем мы линию или стираем (в режиме крестика — ставим
+    // или снимаем, в режиме memo — пишем или стираем), и это решение не меняется
+    // до конца штриха, даже если палец проедет по уже закрашенным клеткам.
+    resolveStrokeAction(mode, r, c) {
+      if (mode === 'paint') return this.grid[r][c] === 1 ? 'erase' : 'fill';
+      if (mode === 'x') return this.grid[r][c] === 2 ? 'removeX' : 'setX';
+      if (mode === 'memo') return this.memoGrid[r][c] > 0 ? 'removeMemo' : 'setMemo';
+      return null;
     }
 
-    setMemo(r, c, val) { return this.commit([this.change(r, c, val, 'memo')]); }
+    // Изменения для одной клетки под уже выбранное действие. Неверная клетка при
+    // закраске не остаётся чёрной — сразу становится крестиком: поле всегда
+    // согласовано с тем, что показывает счётчик ошибок, и кроссворд всегда можно
+    // дорешать до конца, не разыскивая на поле свою же ошибку.
+    resolveCellForAction(action, r, c) {
+      const changes = [];
+      let isError = false;
+      if (action === 'fill') {
+        const correct = this.solution[r][c] === 1;
+        const ch = this.change(r, c, correct ? 1 : 2);
+        if (ch) { changes.push(ch); isError = !correct; }
+      } else if (action === 'erase') {
+        if (this.grid[r][c] === 1) { const ch = this.change(r, c, 0); if (ch) changes.push(ch); }
+      } else if (action === 'setX') {
+        const ch = this.change(r, c, 2);
+        if (ch) changes.push(ch);
+        if (this.memoGrid[r][c] !== 0) { const m = this.change(r, c, 0, 'memo'); if (m) changes.push(m); }
+      } else if (action === 'removeX') {
+        if (this.grid[r][c] === 2) { const ch = this.change(r, c, 0); if (ch) changes.push(ch); }
+      } else if (action === 'setMemo') {
+        const ch = this.change(r, c, 1, 'memo');
+        if (ch) changes.push(ch);
+      } else if (action === 'removeMemo') {
+        const ch = this.change(r, c, 0, 'memo');
+        if (ch) changes.push(ch);
+      }
+      return { changes, isError };
+    }
+
+    // Применяет изменение сразу (для живой отрисовки штриха под пальцем), не трогая
+    // историю — весь штрих ложится в историю одной записью через finalizeStroke.
+    applyLive(ch) {
+      this.applyChanges([ch], 'next');
+      this.checkSolvedLines();
+    }
+
+    // Откатывает ещё не зафиксированный штрих — например, когда во время рисования
+    // опустился второй палец и жест распознан как зум/панорама, а не как рисование.
+    revertLive(changes) {
+      if (!changes.length) return;
+      this.applyChanges(changes, 'prev');
+      this.checkSolvedLines();
+    }
+
+    // Кладёт уже применённые через applyLive изменения в историю одной записью —
+    // отмена уберёт весь штрих целиком, а не по клетке за раз.
+    finalizeStroke(changes) {
+      if (!changes.length) return false;
+      this.history.push(changes);
+      if (this.history.length > 300) this.history.shift();
+      this.redoStack = [];
+      return true;
+    }
 
     clearAllMemos() {
       const changes = [];
@@ -991,119 +1060,235 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
   };
 
   // ===================== RENDERER =====================
+  // Полосы подсказок «приклеены» к краям канвы и не участвуют в зуме/панораме —
+  // едет только само поле под ними, как заголовки в таблице. Отрисовывается
+  // только видимая часть поля, кадр рисуется по флагу «что-то изменилось»,
+  // а не непрерывно. Прежнее разделение на статический/динамический слои
+  // не работало (флаг взводился почти отовсюду) и просто убрано.
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM_CAP = 10;
+  const MAX_CELL_PX = 92;
+
   class Renderer {
     constructor(canvas) {
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
+      this.dpr = 1;
+      this.cssW = 0; this.cssH = 0;
+      this.baseCellSize = 20;
+      this.maxZoom = MAX_ZOOM_CAP;
       this.zoom = 1;
       this.panX = 0;
       this.panY = 0;
-      this.cellSize = 20;
       this.state = null;
       this.drawingLine = null;
       this.hoverCell = null;
+      this.cursorCell = null;
       this.errorFlash = null;
-      this.staticCanvas = document.createElement('canvas');
-      this.staticCtx = this.staticCanvas.getContext('2d');
-      this.needsStaticRedraw = true;
+      this.dirty = true;
     }
 
     setState(state) {
       this.state = state;
       this.zoom = 1; this.panX = 0; this.panY = 0;
+      this.hoverCell = null; this.cursorCell = null; this.errorFlash = null;
       this.computeSizes();
-      this.needsStaticRedraw = true;
-      this.draw();
+      this.markDirty();
+    }
+
+    markDirty() { this.dirty = true; }
+
+    // Размер шрифта подсказок и ширина полосы под них считаются одной и той же
+    // формулой и при раскладке, и при отрисовке — раньше формулы расходились,
+    // и на некоторых пропорциях экрана числа вылезали за свою полосу.
+    hintFontSize(cell) { return Math.max(9, Math.min(cell * 0.55, 22)); }
+    gutterSize(maxHints, cell) { return Math.max(26, this.hintFontSize(cell) * 1.15 * Math.max(1, maxHints) + 10); }
+
+    getMaxHints(kind) {
+      if (!this.state) return 1;
+      let max = 1;
+      const n = this.state.size;
+      for (let i = 0; i < n; i++) {
+        const len = (kind === 'row' ? this.state.getRowHints(i) : this.state.getColHints(i)).length;
+        if (len > max) max = len;
+      }
+      return max;
     }
 
     computeSizes() {
       const wrap = document.getElementById('canvas-wrap');
-      const w = wrap.clientWidth - 16;
-      const h = wrap.clientHeight - 16;
+      const cssW = Math.max(1, wrap.clientWidth - 16);
+      const cssH = Math.max(1, wrap.clientHeight - 16);
+      this.cssW = cssW; this.cssH = cssH;
+      this.dpr = window.devicePixelRatio || 1;
+      this.canvas.width = Math.round(cssW * this.dpr);
+      this.canvas.height = Math.round(cssH * this.dpr);
+      this.canvas.style.width = cssW + 'px';
+      this.canvas.style.height = cssH + 'px';
+      this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+      if (!this.state) { this.baseCellSize = 20; return; }
       const size = this.state.size;
-      const maxHints = this.getMaxHints();
-      const hintSpace = Math.max(30, maxHints * 12 + 10);
-      const availableW = w - hintSpace;
-      const availableH = h - hintSpace;
-      this.cellSize = Math.min(availableW / size, availableH / size);
-      this.cellSize = Math.max(4, Math.min(40, this.cellSize));
-      this.canvas.width = w; this.canvas.height = h;
-      this.staticCanvas.width = w; this.staticCanvas.height = h;
+      const maxRowHints = this.getMaxHints('row');
+      const maxColHints = this.getMaxHints('col');
+
+      // Ширина полос зависит от размера клетки, а размер клетки — от того, сколько
+      // места останется после полос. Три шага фиксированной точки сходятся с
+      // избытком: полосы почти не меняются между итерациями.
+      let cell = Math.max(4, Math.min(40, Math.min(cssW, cssH) / size));
+      for (let i = 0; i < 3; i++) {
+        const rowGutter = this.gutterSize(maxColHints, cell); // полоса СВЕРХУ — от числа групп в столбцах
+        const colGutter = this.gutterSize(maxRowHints, cell); // полоса СЛЕВА — от числа групп в строках
+        cell = Math.max(4, Math.min(40, Math.min((cssW - colGutter) / size, (cssH - rowGutter) / size)));
+      }
+      this.baseCellSize = cell;
+      this.maxZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM_CAP, MAX_CELL_PX / cell));
+      this.zoom = Math.min(this.zoom, this.maxZoom);
+      this.clampPan();
     }
 
-    getMaxHints() {
-      if (!this.state) return 5;
-      let max = 0;
-      for (let r = 0; r < this.state.size; r++) max = Math.max(max, this.state.getRowHints(r).length);
-      for (let c = 0; c < this.state.size; c++) max = Math.max(max, this.state.getColHints(c).length);
-      return max;
+    effectiveCell() { return this.baseCellSize * this.zoom; }
+
+    // Полосы: слева — по числу групп в строках, сверху — по числу групп в столбцах.
+    gutters() {
+      const cell = this.effectiveCell();
+      return {
+        left: this.gutterSize(this.getMaxHints('row'), cell),
+        top: this.gutterSize(this.getMaxHints('col'), cell)
+      };
+    }
+
+    // Прямоугольник, где рисуется само поле — весь canvas за вычетом полос.
+    boardViewport() {
+      const g = this.gutters();
+      return { x: g.left, y: g.top, w: this.cssW - g.left, h: this.cssH - g.top, gLeft: g.left, gTop: g.top };
+    }
+
+    clampPan() {
+      if (!this.state) return;
+      const vp = this.boardViewport();
+      const cell = this.effectiveCell();
+      const boardW = this.state.size * cell, boardH = this.state.size * cell;
+      const clampAxis = (pan, boardLen, viewLen) => {
+        if (boardLen <= viewLen) return (viewLen - boardLen) / 2;
+        const minPan = viewLen - boardLen, maxPan = 0;
+        return Math.max(minPan, Math.min(maxPan, pan));
+      };
+      this.panX = clampAxis(this.panX, boardW, vp.w);
+      this.panY = clampAxis(this.panY, boardH, vp.h);
     }
 
     getBoardOrigin() {
-      const size = this.state.size;
-      const maxHints = this.getMaxHints();
-      const hintSpace = Math.max(30, maxHints * 12 + 10);
-      const boardW = size * this.cellSize * this.zoom;
-      const boardH = size * this.cellSize * this.zoom;
-      return {
-        x: (this.canvas.width - boardW) / 2 + hintSpace / 2 + this.panX,
-        y: (this.canvas.height - boardH) / 2 + hintSpace / 2 + this.panY
-      };
+      const vp = this.boardViewport();
+      return { x: vp.x + this.panX, y: vp.y + this.panY };
     }
 
     screenToCell(x, y) {
       const origin = this.getBoardOrigin();
-      const cell = this.cellSize * this.zoom;
+      const cell = this.effectiveCell();
       return { r: Math.floor((y - origin.y) / cell), c: Math.floor((x - origin.x) / cell) };
     }
 
-    setDrawingLine(cells) { this.drawingLine = cells; this.draw(); }
-    clearDrawingLine() { this.drawingLine = null; this.draw(); }
-    setHoverCell(cell) { this.hoverCell = cell; this.needsStaticRedraw = true; this.draw(); }
-    setErrorFlash(cells) { this.errorFlash = { cells, start: Date.now() }; this.draw(); }
+    inBounds(cell) {
+      return !!this.state && cell.r >= 0 && cell.c >= 0 && cell.r < this.state.size && cell.c < this.state.size;
+    }
+
+    // Зум к точке экрана: точка под пальцем/курсором остаётся на месте.
+    zoomAt(screenX, screenY, newZoom) {
+      const clamped = Math.max(MIN_ZOOM, Math.min(this.maxZoom, newZoom));
+      const cellBefore = this.effectiveCell();
+      const originBefore = this.getBoardOrigin();
+      const br = (screenX - originBefore.x) / cellBefore;
+      const bc = (screenY - originBefore.y) / cellBefore;
+      this.zoom = clamped;
+      const cellAfter = this.effectiveCell();
+      const vp = this.boardViewport();
+      this.panX = screenX - br * cellAfter - vp.x;
+      this.panY = screenY - bc * cellAfter - vp.y;
+      this.clampPan();
+      this.markDirty();
+    }
+
+    zoomBy(factor, screenX, screenY) { this.zoomAt(screenX, screenY, this.zoom * factor); }
+
+    panBy(dx, dy) {
+      this.panX += dx; this.panY += dy;
+      this.clampPan();
+      this.markDirty();
+    }
+
+    zoomFit() { this.zoom = MIN_ZOOM; this.panX = 0; this.panY = 0; this.clampPan(); this.markDirty(); }
+
+    isFit() { return Math.abs(this.zoom - MIN_ZOOM) < 0.01; }
+
+    setDrawingLine(cells) { this.drawingLine = cells; this.markDirty(); }
+    clearDrawingLine() { if (this.drawingLine) { this.drawingLine = null; this.markDirty(); } }
+    setHoverCell(cell) { this.hoverCell = cell; this.markDirty(); }
+    setCursorCell(cell) { this.cursorCell = cell; this.markDirty(); }
+    setErrorFlash(cells) { this.errorFlash = { cells, start: Date.now() }; this.markDirty(); }
+
+    hasLiveAnimation() {
+      if (this.errorFlash && Date.now() - this.errorFlash.start < 400) return true;
+      if (this.state && this.state.lineAnimations.length) return true;
+      if (this.state && this.state.hintCells.size) return true;
+      return false;
+    }
 
     draw() {
       if (!this.state) return;
-      if (this.needsStaticRedraw) {
-        this.drawStatic();
-        this.needsStaticRedraw = false;
-      }
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.drawImage(this.staticCanvas, 0, 0);
-      this.drawDynamic();
+      this.dirty = false;
+      const ctx = this.ctx;
+      ctx.clearRect(0, 0, this.cssW, this.cssH);
+      this.drawBoard();
+      this.drawHints();
+      this.drawStrokePreview();
     }
 
-    drawStatic() {
-      const ctx = this.staticCtx;
-      const w = this.canvas.width, h = this.canvas.height;
-      ctx.clearRect(0, 0, w, h);
-      const cell = this.cellSize * this.zoom;
+    // Диапазон клеток, реально попадающих в видимую область поля — рисовать
+    // остальные незачем, особенно при зуме на большом кроссворде.
+    visibleRange() {
+      const origin = this.getBoardOrigin();
+      const cell = this.effectiveCell();
+      const vp = this.boardViewport();
+      const size = this.state.size;
+      const r0 = Math.max(0, Math.floor((vp.y - origin.y) / cell));
+      const r1 = Math.min(size - 1, Math.ceil((vp.y + vp.h - origin.y) / cell));
+      const c0 = Math.max(0, Math.floor((vp.x - origin.x) / cell));
+      const c1 = Math.min(size - 1, Math.ceil((vp.x + vp.w - origin.x) / cell));
+      return { r0, r1, c0, c1 };
+    }
+
+    drawBoard() {
+      const ctx = this.ctx;
+      const cell = this.effectiveCell();
       const size = this.state.size;
       const origin = this.getBoardOrigin();
+      const vp = this.boardViewport();
+      const now = Date.now();
 
-      this.drawHints(ctx, cell, size, origin);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(vp.x, vp.y, vp.w, vp.h);
+      ctx.clip();
 
-      if (this.hoverCell && this.hoverCell.r >= 0 && this.hoverCell.r < size && this.hoverCell.c >= 0 && this.hoverCell.c < size) {
+      if (this.hoverCell && this.inBounds(this.hoverCell)) {
         ctx.fillStyle = Palette.get('--color-highlight');
-        ctx.fillRect(origin.x, origin.y + this.hoverCell.r * cell, size * cell, cell);
-        ctx.fillRect(origin.x + this.hoverCell.c * cell, origin.y, cell, size * cell);
+        ctx.fillRect(vp.x, origin.y + this.hoverCell.r * cell, vp.w, cell);
+        ctx.fillRect(origin.x + this.hoverCell.c * cell, vp.y, cell, vp.h);
       }
 
-      const now = Date.now();
       for (const anim of this.state.lineAnimations) {
         const progress = Math.min(1, (now - anim.start) / 800);
         const alpha = 0.4 * (1 - progress);
         ctx.fillStyle = `rgba(38, 150, 132, ${alpha})`;
-        if (anim.type === 'row') ctx.fillRect(origin.x, origin.y + anim.index * cell, size * cell * progress, cell);
-        else ctx.fillRect(origin.x + anim.index * cell, origin.y, cell, size * cell * progress);
+        if (anim.type === 'row') ctx.fillRect(vp.x, origin.y + anim.index * cell, vp.w * progress, cell);
+        else ctx.fillRect(origin.x + anim.index * cell, vp.y, cell, vp.h * progress);
       }
 
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          const x = origin.x + c * cell;
-          const y = origin.y + r * cell;
-          if (x + cell < 0 || x > w || y + cell < 0 || y > h) continue;
-
+      const { r0, r1, c0, c1 } = this.visibleRange();
+      for (let r = r0; r <= r1; r++) {
+        for (let c = c0; c <= c1; c++) {
+          const x = origin.x + c * cell, y = origin.y + r * cell;
           const val = this.state.grid[r][c];
           const memoVal = this.state.memoGrid[r][c];
           const hasHint = this.state.hasHint(r, c);
@@ -1132,16 +1317,16 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
             ctx.strokeStyle = Palette.get('--color-x');
             ctx.lineWidth = Math.max(1, cell / 6);
             ctx.lineCap = 'round';
-            ctx.beginPath(); ctx.moveTo(x + cell*0.25, y + cell*0.25); ctx.lineTo(x + cell*0.75, y + cell*0.75); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x + cell*0.75, y + cell*0.25); ctx.lineTo(x + cell*0.25, y + cell*0.75); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x + cell * 0.25, y + cell * 0.25); ctx.lineTo(x + cell * 0.75, y + cell * 0.75); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x + cell * 0.75, y + cell * 0.25); ctx.lineTo(x + cell * 0.25, y + cell * 0.75); ctx.stroke();
           }
 
           if (memoVal === 1 && val !== 1) {
             ctx.fillStyle = Palette.get('--color-memo');
             ctx.beginPath();
-            ctx.moveTo(x + cell*0.5, y + cell*0.15);
-            ctx.lineTo(x + cell*0.15, y + cell*0.85);
-            ctx.lineTo(x + cell*0.85, y + cell*0.85);
+            ctx.moveTo(x + cell * 0.5, y + cell * 0.15);
+            ctx.lineTo(x + cell * 0.15, y + cell * 0.85);
+            ctx.lineTo(x + cell * 0.85, y + cell * 0.85);
             ctx.closePath(); ctx.fill();
           }
 
@@ -1150,100 +1335,133 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
             ctx.lineWidth = 0.5;
             ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
           }
-
-          const gridBorderColor = Palette.get('--color-grid-border');
-          if ((c + 1) % 5 === 0 && c < size - 1) {
-            ctx.strokeStyle = gridBorderColor; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(x + cell, y); ctx.lineTo(x + cell, y + cell); ctx.stroke();
-          }
-          if ((r + 1) % 5 === 0 && r < size - 1) {
-            ctx.strokeStyle = gridBorderColor; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(x, y + cell); ctx.lineTo(x + cell, y + cell); ctx.stroke();
-          }
         }
+      }
+
+      // Толстые линии сетки — насквозь через всё поле, а не по периметру
+      // каждой клетки: и быстрее, и не даёт двойной толщины на стыках.
+      ctx.strokeStyle = Palette.get('--color-grid-border');
+      ctx.lineWidth = 1.5;
+      for (let c = 5; c < size; c += 5) {
+        const x = origin.x + c * cell;
+        if (x < vp.x - 2 || x > vp.x + vp.w + 2) continue;
+        ctx.beginPath(); ctx.moveTo(x, Math.max(vp.y, origin.y)); ctx.lineTo(x, Math.min(vp.y + vp.h, origin.y + size * cell)); ctx.stroke();
+      }
+      for (let r = 5; r < size; r += 5) {
+        const y = origin.y + r * cell;
+        if (y < vp.y - 2 || y > vp.y + vp.h + 2) continue;
+        ctx.beginPath(); ctx.moveTo(Math.max(vp.x, origin.x), y); ctx.lineTo(Math.min(vp.x + vp.w, origin.x + size * cell), y); ctx.stroke();
+      }
+
+      if (this.cursorCell && this.inBounds(this.cursorCell)) {
+        const x = origin.x + this.cursorCell.c * cell, y = origin.y + this.cursorCell.r * cell;
+        ctx.strokeStyle = Palette.get('--color-hint');
+        ctx.lineWidth = Math.max(2, cell / 10);
+        ctx.setLineDash([Math.max(3, cell / 6), Math.max(2, cell / 10)]);
+        ctx.strokeRect(x + 1.5, y + 1.5, cell - 3, cell - 3);
+        ctx.setLineDash([]);
       }
 
       ctx.strokeStyle = Palette.get('--color-grid-border');
       ctx.lineWidth = 2;
       ctx.strokeRect(origin.x, origin.y, size * cell, size * cell);
-    }
-
-    drawDynamic() {
-      const ctx = this.ctx;
-      const cell = this.cellSize * this.zoom;
-      const origin = this.getBoardOrigin();
-
-      if (this.drawingLine && this.drawingLine.length > 0) {
-        this.drawingLine.forEach(({ r, c, num }) => {
-          const x = origin.x + c * cell;
-          const y = origin.y + r * cell;
-          ctx.fillStyle = 'rgba(102, 58, 243, 0.3)';
-          ctx.fillRect(x, y, cell, cell);
-          if (cell > 8) {
-            ctx.fillStyle = '#ffffff';
-            ctx.font = `bold ${Math.max(8, cell * 0.5)}px system-ui`;
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(num, x + cell / 2, y + cell / 2);
-          }
-        });
-      }
 
       if (this.errorFlash) {
-        const elapsed = Date.now() - this.errorFlash.start;
+        const elapsed = now - this.errorFlash.start;
         if (elapsed < 400) {
           const alpha = 0.5 * (1 - elapsed / 400);
           ctx.fillStyle = `rgba(255, 71, 87, ${alpha})`;
-          for (const [r, c] of this.errorFlash.cells) {
-            const x = origin.x + c * cell;
-            const y = origin.y + r * cell;
-            ctx.fillRect(x, y, cell, cell);
-          }
+          for (const [r, c] of this.errorFlash.cells) ctx.fillRect(origin.x + c * cell, origin.y + r * cell, cell, cell);
         } else {
           this.errorFlash = null;
         }
       }
+
+      ctx.restore();
     }
 
-    drawHints(ctx, cell, size, origin) {
-      const maxRowHints = Math.max(...Array.from({ length: size }, (_, r) => this.state.getRowHints(r).length));
-      const maxColHints = Math.max(...Array.from({ length: size }, (_, c) => this.state.getColHints(c).length));
-      const maxHints = Math.max(maxRowHints, maxColHints);
-      const hintFontSize = Math.max(7, Math.min(cell * 0.55, 22 / Math.max(1, maxHints / 3)));
+    // Штрих ещё не применённых клеток при рисовании мышью показывается поверх поля
+    // (реальные ходы уже применяются в GameState live — это только курсорный хвост).
+    drawStrokePreview() {
+      if (!this.drawingLine || !this.drawingLine.length) return;
+      const ctx = this.ctx;
+      const cell = this.effectiveCell();
+      const origin = this.getBoardOrigin();
+      ctx.strokeStyle = Palette.get('--color-hint');
+      ctx.lineWidth = Math.max(1.5, cell / 12);
+      for (const { r, c } of this.drawingLine) {
+        const x = origin.x + c * cell, y = origin.y + r * cell;
+        ctx.strokeRect(x + 1, y + 1, cell - 2, cell - 2);
+      }
+    }
 
-      ctx.font = `${hintFontSize}px system-ui`;
+    // Полосы подсказок рисуются последними и поверх поля — они не участвуют
+    // в зуме/панораме и всегда остаются у левого и верхнего края canvas.
+    drawHints() {
+      const ctx = this.ctx;
+      const cell = this.effectiveCell();
+      const origin = this.getBoardOrigin();
+      const vp = this.boardViewport();
+      const fontSize = this.hintFontSize(cell);
+      const size = this.state.size;
+
+      ctx.fillStyle = Palette.get('--color-cell-bg');
+      ctx.fillRect(0, 0, this.cssW, vp.y);
+      ctx.fillRect(0, 0, vp.x, this.cssH);
+
+      ctx.font = `${fontSize}px system-ui`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      const solvedColor = Palette.get('--color-solved-text');
+      const normalColor = Palette.get('--color-frost-glow');
+      const hoverColor = Palette.get('--color-hint');
 
-      const solvedTextColor = Palette.get('--color-solved-text');
-      const normalTextColor = Palette.get('--color-frost-glow');
+      const { r0, r1, c0, c1 } = this.visibleRange();
 
-      for (let r = 0; r < size; r++) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, vp.y, vp.x, vp.h); ctx.clip();
+      for (let r = r0; r <= r1; r++) {
         const hints = this.state.getRowHints(r);
         const y = origin.y + r * cell + cell / 2;
-        ctx.fillStyle = this.state.solvedLines.rows.has(r) ? solvedTextColor : normalTextColor;
+        const isCursor = (this.hoverCell && this.hoverCell.r === r) || (this.cursorCell && this.cursorCell.r === r);
+        ctx.fillStyle = this.state.solvedLines.rows.has(r) ? solvedColor : (isCursor ? hoverColor : normalColor);
         for (let i = 0; i < hints.length; i++) {
-          const hintX = origin.x - 6 - (hints.length - 1 - i) * (hintFontSize * 1.15);
+          const hintX = vp.x - 8 - (hints.length - 1 - i) * (fontSize * 1.15);
           ctx.fillText(hints[i], hintX, y);
         }
       }
+      ctx.restore();
 
-      for (let c = 0; c < size; c++) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(vp.x, 0, vp.w, vp.y); ctx.clip();
+      for (let c = c0; c <= c1; c++) {
         const hints = this.state.getColHints(c);
         const x = origin.x + c * cell + cell / 2;
-        ctx.fillStyle = this.state.solvedLines.cols.has(c) ? solvedTextColor : normalTextColor;
+        const isCursor = (this.hoverCell && this.hoverCell.c === c) || (this.cursorCell && this.cursorCell.c === c);
+        ctx.fillStyle = this.state.solvedLines.cols.has(c) ? solvedColor : (isCursor ? hoverColor : normalColor);
         for (let i = 0; i < hints.length; i++) {
-          const hintY = origin.y - 6 - (hints.length - 1 - i) * (hintFontSize * 1.15);
+          const hintY = vp.y - 8 - (hints.length - 1 - i) * (fontSize * 1.15);
           ctx.fillText(hints[i], x, hintY);
         }
       }
+      ctx.restore();
+
+      ctx.strokeStyle = Palette.get('--color-grid-border');
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(vp.x - 0.5, 0); ctx.lineTo(vp.x - 0.5, this.cssH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, vp.y - 0.5); ctx.lineTo(this.cssW, vp.y - 0.5); ctx.stroke();
     }
   }
 
   // ===================== INPUT HANDLER =====================
-  // Создаётся ровно один раз за сеанс. Раньше на каждый выбранный кроссворд
-  // создавался новый экземпляр, а слушатели вешались на тот же canvas и никогда
-  // не снимались: после второго кроссворда каждое касание обрабатывалось дважды,
-  // причём старые экземпляры продолжали править уже закрытую партию.
+  // Создаётся ровно один раз за сеанс — партия подключается через setGame().
+  //
+  // Один палец рисует: действие определяется один раз по первой клетке штриха
+  // и не меняется до отпускания. Два пальца — зум и панорама; как только
+  // опускается второй палец, начатый штрих откатывается (revertLive), сколько бы
+  // клеток он уже успел живьём закрасить. Долгое нажатие ставит крестик, не
+  // выходя из режима закраски — это то, для чего раньше служила бесполезная
+  // «защита от случайных касаний» (пропадавшие быстрые тапы и свайпы).
   class InputHandler {
     constructor(renderer, callbacks) {
       this.renderer = renderer;
@@ -1251,191 +1469,365 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       this.cb = callbacks;
       this.canvas = renderer.canvas;
       this.mode = 'paint';
-      this.protectionEnabled = true;
-      this.pointerDown = false;
-      this.startX = 0; this.startY = 0; this.startTime = 0;
-      this.isDrawing = false; this.hasMoved = false;
-      this.drawnCells = []; this.drawingStartCell = null;
-      this.drawDirection = null;
-      this.protectionTimer = null;
-      this.protectionPassed = false;
+      this.longPressEnabled = true;
+
+      this.pointers = new Map();
+
+      this.strokeActive = false;
+      this.strokePointerId = null;
+      this.strokeAction = null;
+      this.strokeStartCell = null;
+      this.strokeLastCell = null;
+      this.strokeAxis = null;
+      this.strokeChanges = [];
+      this.strokeTouched = new Set();
+      this.strokeHasMoved = false;
+      this.strokeStartX = 0; this.strokeStartY = 0;
+      this.strokeStartCanvasX = 0; this.strokeStartCanvasY = 0;
+      this.longPressTimer = null;
+      this.longPressFired = false;
+
+      this.gestureActive = false;
+      this.gestureIds = [];
+      this.gestureStart = null;
+
+      this.lastTapTime = 0;
+      this.lastTapCell = null;
 
       this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
       this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
       this.canvas.addEventListener('pointerup', this.onPointerUp.bind(this));
-      this.canvas.addEventListener('pointercancel', this.onPointerUp.bind(this));
+      this.canvas.addEventListener('pointercancel', this.onPointerCancel.bind(this));
+      this.canvas.addEventListener('pointerleave', e => { if (!this.pointers.has(e.pointerId)) this.renderer.setHoverCell(null); });
+      this.canvas.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
       this.canvas.addEventListener('dblclick', e => e.preventDefault());
       this.canvas.addEventListener('contextmenu', e => e.preventDefault());
     }
 
     setMode(mode) { this.mode = mode; }
-    setProtection(enabled) { this.protectionEnabled = enabled; }
+    setLongPress(enabled) { this.longPressEnabled = enabled; }
 
     // Переключение на другую партию: тот же экземпляр, новое состояние.
     setGame(game) {
       this.game = game;
-      this.resetStroke();
+      this.pointers.clear();
+      this.strokeActive = false;
+      this.gestureActive = false;
+      this.gestureIds = [];
+      this.cancelLongPress();
+      this.strokeChanges = [];
       this.renderer.clearDrawingLine();
       this.renderer.setHoverCell(null);
-    }
-
-    resetStroke() {
-      if (this.protectionTimer) { clearTimeout(this.protectionTimer); this.protectionTimer = null; }
-      this.pointerDown = false;
-      this.isDrawing = false;
-      this.hasMoved = false;
-      this.drawnCells = [];
-      this.drawingStartCell = null;
-      this.drawDirection = null;
-      this.protectionPassed = false;
+      this.renderer.setCursorCell(null);
     }
 
     getCanvasCoords(e) {
       const rect = this.canvas.getBoundingClientRect();
-      return {
-        x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
-        y: (e.clientY - rect.top) * (this.canvas.height / rect.height)
-      };
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
+
+    cancelLongPress() { if (this.longPressTimer) { clearTimeout(this.longPressTimer); this.longPressTimer = null; } }
+
+    // ---------- указатели ----------
 
     onPointerDown(e) {
       e.preventDefault();
       if (!this.game) return;
       this.canvas.setPointerCapture(e.pointerId);
-      this.pointerDown = true;
-      this.hasMoved = false;
-      this.isDrawing = false;
-      this.drawnCells = [];
-      this.drawingStartCell = null;
-      this.drawDirection = null;
-      this.startX = e.clientX;
-      this.startY = e.clientY;
-      this.startTime = Date.now();
+      const p = this.getCanvasCoords(e);
+      this.pointers.set(e.pointerId, p);
 
-      this.protectionPassed = !this.protectionEnabled;
-      if (this.protectionEnabled) {
-        this.protectionTimer = setTimeout(() => { this.protectionPassed = true; }, 150);
+      if (this.pointers.size === 2) { this.beginGesture(); return; }
+      if (this.pointers.size > 2) return;
+
+      this.strokeActive = true;
+      this.strokePointerId = e.pointerId;
+      this.strokeAction = null;
+      this.strokeStartCell = this.renderer.screenToCell(p.x, p.y);
+      this.strokeLastCell = null;
+      this.strokeAxis = null;
+      this.strokeChanges = [];
+      this.strokeTouched = new Set();
+      this.strokeHasMoved = false;
+      this.strokeStartX = e.clientX; this.strokeStartY = e.clientY;
+      this.strokeStartCanvasX = p.x; this.strokeStartCanvasY = p.y;
+      this.longPressFired = false;
+      this.renderer.setHoverCell(this.strokeStartCell);
+
+      if (this.longPressEnabled && this.mode === 'paint' && this.renderer.inBounds(this.strokeStartCell)) {
+        this.longPressTimer = setTimeout(() => this.fireLongPress(), 420);
       }
-
-      const { x, y } = this.getCanvasCoords(e);
-      this.drawingStartCell = this.renderer.screenToCell(x, y);
-      this.renderer.setHoverCell(this.drawingStartCell);
     }
 
     onPointerMove(e) {
       if (!this.game) return;
-      if (!this.pointerDown) {
-        const { x, y } = this.getCanvasCoords(e);
-        this.renderer.setHoverCell(this.renderer.screenToCell(x, y));
+      if (!this.pointers.has(e.pointerId)) {
+        const p = this.getCanvasCoords(e);
+        this.renderer.setHoverCell(this.renderer.screenToCell(p.x, p.y));
         return;
       }
+      const p = this.getCanvasCoords(e);
+      this.pointers.set(e.pointerId, p);
       e.preventDefault();
-      const movDx = e.clientX - this.startX;
-      const movDy = e.clientY - this.startY;
-      if (Math.abs(movDx) > 4 || Math.abs(movDy) > 4) {
-        this.hasMoved = true;
-        this.isDrawing = true;
-      }
 
-      if (this.isDrawing && this.mode === 'paint') {
-        const { x, y } = this.getCanvasCoords(e);
-        const cell = this.renderer.screenToCell(x, y);
-        if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-          if (!this.drawDirection && this.drawingStartCell) {
-            const dr = cell.r - this.drawingStartCell.r;
-            const dc = cell.c - this.drawingStartCell.c;
-            if (Math.abs(dr) > Math.abs(dc)) this.drawDirection = 'vertical';
-            else if (Math.abs(dc) > Math.abs(dr)) this.drawDirection = 'horizontal';
-          }
-          if (this.drawDirection === 'vertical' && cell.c !== this.drawingStartCell.c) return;
-          if (this.drawDirection === 'horizontal' && cell.r !== this.drawingStartCell.r) return;
+      if (this.gestureActive) { this.updateGesture(); return; }
+      if (!this.strokeActive || e.pointerId !== this.strokePointerId) return;
 
-          const exists = this.drawnCells.some(d => d.r === cell.r && d.c === cell.c);
-          if (!exists) {
-            this.drawnCells.push({ r: cell.r, c: cell.c, num: this.drawnCells.length + 1 });
-            this.renderer.setDrawingLine(this.drawnCells);
-          }
-        }
+      const movDx = e.clientX - this.strokeStartX, movDy = e.clientY - this.strokeStartY;
+      if (!this.strokeHasMoved && Math.hypot(movDx, movDy) > 8) {
+        this.strokeHasMoved = true;
+        this.cancelLongPress();
       }
+      if (!this.strokeHasMoved || this.longPressFired) return;
+
+      const cell = this.renderer.screenToCell(p.x, p.y);
+      if (!this.renderer.inBounds(cell)) return;
+
+      // Ось фиксируется по первому смещению больше одной клетки и дальше не меняется.
+      if (!this.strokeAxis) {
+        const dr = cell.r - this.strokeStartCell.r, dc = cell.c - this.strokeStartCell.c;
+        if (dr || dc) this.strokeAxis = Math.abs(dr) >= Math.abs(dc) ? 'v' : 'h';
+      }
+      if (this.strokeAxis === 'v') cell.c = this.strokeStartCell.c;
+      else if (this.strokeAxis === 'h') cell.r = this.strokeStartCell.r;
+
+      this.extendStroke(cell);
+      this.renderer.setHoverCell(cell);
     }
 
     onPointerUp(e) {
       e.preventDefault();
-      // На pointercancel указатель уже отпущен — releasePointerCapture бросил бы NotFoundError.
       if (this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId);
-      if (this.protectionTimer) { clearTimeout(this.protectionTimer); this.protectionTimer = null; }
-      if (!this.game) { this.resetStroke(); return; }
+      this.pointers.delete(e.pointerId);
 
-      if (!this.hasMoved && this.pointerDown) {
-        if (!this.protectionEnabled || this.protectionPassed) {
-          const { x, y } = this.getCanvasCoords(e);
-          const cell = this.renderer.screenToCell(x, y);
-          if (cell && cell.r >= 0 && cell.c >= 0 && cell.r < this.game.size && cell.c < this.game.size) {
-            this.applyAction(cell.r, cell.c);
-          }
-        }
+      if (this.gestureActive) {
+        if (this.gestureIds.includes(e.pointerId)) { this.gestureActive = false; this.gestureIds = []; }
+        return;
       }
+      if (!this.strokeActive || e.pointerId !== this.strokePointerId) return;
 
-      if (this.isDrawing && this.drawnCells.length > 0 && this.mode === 'paint' && this.protectionPassed && !this.game.solved) {
-        const changes = this.game.setCellGroup(this.drawnCells);
-        const errorCells = [];
-        for (const { r, c } of changes) {
-          if (this.game.solution[r][c] !== 1) {
-            this.game.errors++;
-            errorCells.push([r, c]);
-          }
-        }
-        if (errorCells.length > 0) {
-          this.renderer.setErrorFlash(errorCells);
-          this.cb.onError();
-        }
-        if (this.game.isSolved()) { this.cb.onWin(); } else { this.cb.onUpdate(); }
-      }
-
+      this.cancelLongPress();
+      this.strokeActive = false;
       this.renderer.clearDrawingLine();
-      this.renderer.needsStaticRedraw = true;
-      this.renderer.draw();
-      this.resetStroke();
+
+      if (!this.game) { this.strokeChanges = []; return; }
+
+      if (!this.longPressFired) {
+        if (!this.strokeHasMoved) {
+          // Тап — штрих из одной клетки. Двойной тап по той же клетке переключает
+          // зум и не красит её второй раз (иначе два тапа гасили бы друг друга).
+          const cell = this.strokeStartCell;
+          if (this.renderer.inBounds(cell) && !this.game.solved) {
+            const now = Date.now();
+            const isDoubleTap = this.lastTapCell && this.lastTapCell.r === cell.r && this.lastTapCell.c === cell.c
+              && now - this.lastTapTime < 300;
+            if (isDoubleTap) {
+              this.lastTapTime = 0; this.lastTapCell = null;
+              this.toggleZoom(this.strokeStartCanvasX, this.strokeStartCanvasY);
+            } else {
+              this.processCells([cell]);
+              this.lastTapTime = now; this.lastTapCell = cell;
+            }
+          }
+        } else {
+          this.lastTapTime = 0; this.lastTapCell = null;
+        }
+      }
+
+      if (this.strokeChanges.length) this.game.finalizeStroke(this.strokeChanges);
+      this.strokeChanges = [];
+      this.strokeAction = null;
     }
 
-    applyAction(r, c) {
-      if (this.game.solved) return;
+    // На отличие от onPointerUp: жест прерван (OS-жест, потеря указателя), а не
+    // завершён игроком — незафиксированный штрих откатывается, а не засчитывается.
+    onPointerCancel(e) {
+      if (this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId);
+      this.pointers.delete(e.pointerId);
 
-      if (this.mode === 'paint') {
-        const cur = this.game.getCell(r, c);
-        const newVal = cur === 1 ? 0 : 1;
-        this.game.setCell(r, c, newVal);
-        SoundManager.paint(); Haptics.paint();
-
-        if (newVal === 1 && this.game.solution[r][c] !== 1) {
-          this.game.errors++;
-          this.renderer.setErrorFlash([[r, c]]);
-          this.cb.onError();
-        } else {
+      if (this.gestureActive && this.gestureIds.includes(e.pointerId)) {
+        this.gestureActive = false; this.gestureIds = [];
+        return;
+      }
+      if (this.strokeActive && e.pointerId === this.strokePointerId) {
+        this.cancelLongPress();
+        this.strokeActive = false;
+        this.renderer.clearDrawingLine();
+        if (this.strokeChanges.length && this.game) {
+          this.game.revertLive(this.strokeChanges);
           this.cb.onUpdate();
         }
-        if (this.game.isSolved()) this.cb.onWin();
-      } else if (this.mode === 'x') {
-        const cur = this.game.getCell(r, c);
-        const newVal = cur === 2 ? 0 : 2;
-        // Крестик стирает memo — это одно изменение из двух частей, иначе отмена
-        // вернула бы крестик, но не вернула бы заметку.
-        const changes = [this.game.change(r, c, newVal)];
-        if (newVal === 2) changes.push(this.game.change(r, c, 0, 'memo'));
-        this.game.commit(changes);
+        this.strokeChanges = [];
+        this.strokeAction = null;
+      }
+    }
+
+    fireLongPress() {
+      this.longPressTimer = null;
+      if (!this.strokeActive || !this.game || this.game.solved) return;
+      const cell = this.strokeStartCell;
+      if (!this.renderer.inBounds(cell)) return;
+      this.longPressFired = true;
+      const { changes } = this.game.resolveCellForAction('setX', cell.r, cell.c);
+      for (const ch of changes) this.game.applyLive(ch);
+      if (changes.length) {
+        this.game.finalizeStroke(changes);
         SoundManager.x(); Haptics.x();
         this.cb.onUpdate();
-      } else if (this.mode === 'memo') {
-        const cur = this.game.getMemo(r, c);
-        const newVal = cur > 0 ? 0 : 1;
-        this.game.setMemo(r, c, newVal);
-        SoundManager.memo(); Haptics.memo();
-        this.cb.onUpdate();
-        this.cb.onMemoChange();
+        if (!this.game.solved && this.game.isSolved()) this.cb.onWin();
+      }
+    }
+
+    // ---------- штрих ----------
+
+    extendStroke(toCell) {
+      const from = this.strokeLastCell || this.strokeStartCell;
+      const cells = [];
+      if (from.r === toCell.r) {
+        const step = toCell.c >= from.c ? 1 : -1;
+        for (let c = from.c; ; c += step) { cells.push({ r: from.r, c }); if (c === toCell.c) break; }
+      } else if (from.c === toCell.c) {
+        const step = toCell.r >= from.r ? 1 : -1;
+        for (let r = from.r; ; r += step) { cells.push({ r, c: from.c }); if (r === toCell.r) break; }
+      } else {
+        cells.push(toCell);
+      }
+      this.strokeLastCell = toCell;
+      this.processCells(cells);
+    }
+
+    // Применяет действие к новым клеткам штриха. Действие резолвится один раз —
+    // по самой первой клетке — и переиспользуется до конца штриха.
+    processCells(cells) {
+      if (!this.game || this.game.solved) return;
+      const newly = [];
+      for (const { r, c } of cells) {
+        const key = r + ',' + c;
+        if (this.strokeTouched.has(key)) continue;
+        this.strokeTouched.add(key);
+        newly.push({ r, c });
+      }
+      if (!newly.length) return;
+
+      if (this.strokeAction === null) {
+        this.strokeAction = this.game.resolveStrokeAction(this.mode, newly[0].r, newly[0].c);
+      }
+      if (!this.strokeAction) return;
+
+      const errorCells = [];
+      for (const { r, c } of newly) {
+        const { changes, isError } = this.game.resolveCellForAction(this.strokeAction, r, c);
+        for (const ch of changes) { this.game.applyLive(ch); this.strokeChanges.push(ch); }
+        if (isError) errorCells.push([r, c]);
       }
 
-      this.renderer.needsStaticRedraw = true;
-      this.renderer.draw();
+      this.renderer.setDrawingLine(newly);
+      this.playStrokeSound();
+      if (errorCells.length) {
+        this.game.errors += errorCells.length;
+        this.renderer.setErrorFlash(errorCells);
+        this.cb.onError();
+      } else {
+        this.cb.onUpdate();
+      }
+
+      if (!this.game.solved && this.game.isSolved()) {
+        this.game.finalizeStroke(this.strokeChanges);
+        this.strokeChanges = [];
+        this.strokeActive = false;
+        this.cb.onWin();
+      }
+    }
+
+    playStrokeSound() {
+      if (this.strokeAction === 'fill' || this.strokeAction === 'erase') { SoundManager.paint(); Haptics.paint(); }
+      else if (this.strokeAction === 'setX' || this.strokeAction === 'removeX') { SoundManager.x(); Haptics.x(); }
+      else if (this.strokeAction === 'setMemo' || this.strokeAction === 'removeMemo') { SoundManager.memo(); Haptics.memo(); }
+    }
+
+    // ---------- зум / панорама ----------
+
+    beginGesture() {
+      this.cancelLongPress();
+      if (this.strokeActive && this.strokeChanges.length) {
+        this.game.revertLive(this.strokeChanges);
+        this.cb.onUpdate();
+      }
+      this.strokeActive = false;
+      this.strokeChanges = [];
+      this.renderer.clearDrawingLine();
+
+      const ids = [...this.pointers.keys()].slice(0, 2);
+      const p1 = this.pointers.get(ids[0]), p2 = this.pointers.get(ids[1]);
+      this.gestureActive = true;
+      this.gestureIds = ids;
+      this.gestureStart = {
+        dist: Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1,
+        center: { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 },
+        zoom: this.renderer.zoom, panX: this.renderer.panX, panY: this.renderer.panY
+      };
+    }
+
+    updateGesture() {
+      const p1 = this.pointers.get(this.gestureIds[0]), p2 = this.pointers.get(this.gestureIds[1]);
+      if (!p1 || !p2) return;
+      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1;
+      const center = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+      const newZoom = this.gestureStart.zoom * (dist / this.gestureStart.dist);
+
+      this.renderer.zoom = this.gestureStart.zoom;
+      this.renderer.panX = this.gestureStart.panX;
+      this.renderer.panY = this.gestureStart.panY;
+      this.renderer.zoomAt(this.gestureStart.center.x, this.gestureStart.center.y, newZoom);
+      this.renderer.panBy(center.x - this.gestureStart.center.x, center.y - this.gestureStart.center.y);
+    }
+
+    onWheel(e) {
+      if (!this.game) return;
+      e.preventDefault();
+      const p = this.getCanvasCoords(e);
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      this.renderer.zoomBy(factor, p.x, p.y);
+    }
+
+    toggleZoom(x, y) {
+      if (this.renderer.isFit()) this.renderer.zoomAt(x, y, Math.min(2.5, this.renderer.maxZoom));
+      else this.renderer.zoomFit();
+    }
+
+    // ---------- клавиатура ----------
+
+    moveCursor(dr, dc) {
+      if (!this.game) return;
+      const size = this.game.size;
+      const cur = this.renderer.cursorCell || this.renderer.hoverCell || { r: (size / 2) | 0, c: (size / 2) | 0 };
+      const next = { r: Math.max(0, Math.min(size - 1, cur.r + dr)), c: Math.max(0, Math.min(size - 1, cur.c + dc)) };
+      this.renderer.setCursorCell(next);
+      this.ensureCellVisible(next);
+    }
+
+    activateCursor() {
+      if (!this.game || !this.renderer.cursorCell || this.game.solved) return;
+      this.strokeAction = null;
+      this.strokeTouched = new Set();
+      this.strokeChanges = [];
+      this.processCells([this.renderer.cursorCell]);
+      if (this.strokeChanges.length) this.game.finalizeStroke(this.strokeChanges);
+      this.strokeChanges = [];
+    }
+
+    ensureCellVisible(cell) {
+      if (this.renderer.isFit()) return;
+      const cellPx = this.renderer.effectiveCell();
+      const origin = this.renderer.getBoardOrigin();
+      const vp = this.renderer.boardViewport();
+      const x = origin.x + cell.c * cellPx, y = origin.y + cell.r * cellPx;
+      let dx = 0, dy = 0;
+      if (x < vp.x) dx = vp.x - x;
+      else if (x + cellPx > vp.x + vp.w) dx = (vp.x + vp.w) - (x + cellPx);
+      if (y < vp.y) dy = vp.y - y;
+      else if (y + cellPx > vp.y + vp.h) dy = (vp.y + vp.h) - (y + cellPx);
+      if (dx || dy) this.renderer.panBy(dx, dy);
     }
   }
 
@@ -1476,7 +1868,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
             this.debouncedSave();
           }
         });
-        this.inputHandler.setProtection(Storage.get('protectionEnabled', true));
+        this.inputHandler.setLongPress(Storage.get('longPressEnabled', true));
         this.bindEvents();
         this.showPuzzleSelector();
         const seen = Storage.get('tutorialSeen', false);
@@ -1494,8 +1886,8 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       document.getElementById('switch-sound').classList.toggle('on', SoundManager.enabled);
       Haptics.enabled = Storage.get('hapticEnabled', true);
       document.getElementById('switch-haptic').classList.toggle('on', Haptics.enabled);
-      const protection = Storage.get('protectionEnabled', true);
-      document.getElementById('switch-protection').classList.toggle('on', protection);
+      const longPress = Storage.get('longPressEnabled', true);
+      document.getElementById('switch-longpress').classList.toggle('on', longPress);
     },
 
     bindEvents() {
@@ -1504,6 +1896,9 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       document.getElementById('btn-settings').onclick = () => this.showModal('modal-settings');
       document.getElementById('btn-undo').onclick = () => this.undo();
       document.getElementById('btn-redo').onclick = () => this.redo();
+      document.getElementById('btn-zoom-in').onclick = () => this.zoomStep(1.4);
+      document.getElementById('btn-zoom-out').onclick = () => this.zoomStep(1 / 1.4);
+      document.getElementById('btn-zoom-fit').onclick = () => this.zoomFit();
       document.getElementById('btn-clear').onclick = () => this.confirmClear();
       document.getElementById('btn-clear-memo').onclick = () => this.clearMemos();
       document.getElementById('btn-hint').onclick = () => this.giveHint();
@@ -1534,7 +1929,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
         Storage.set('theme', isDark ? 'dark' : 'light');
         Palette.refresh();
-        if (this.renderer) { this.renderer.needsStaticRedraw = true; this.renderer.draw(); }
+        if (this.renderer) this.renderer.draw();
         this.showPuzzleSelector();
       };
 
@@ -1552,12 +1947,12 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         Storage.set('hapticEnabled', Haptics.enabled);
       };
 
-      document.getElementById('switch-protection').onclick = (e) => {
+      document.getElementById('switch-longpress').onclick = (e) => {
         const sw = e.currentTarget;
         sw.classList.toggle('on');
         const enabled = sw.classList.contains('on');
-        Storage.set('protectionEnabled', enabled);
-        if (this.inputHandler) this.inputHandler.setProtection(enabled);
+        Storage.set('longPressEnabled', enabled);
+        if (this.inputHandler) this.inputHandler.setLongPress(enabled);
       };
 
       document.getElementById('btn-tutorial').onclick = () => {
@@ -1605,19 +2000,29 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         else if (e.key === 'z' || e.key === 'Z') this.undo();
         else if (e.key === 'y' || e.key === 'Y') this.redo();
         else if (e.key === 'h' || e.key === 'H') this.giveHint();
+        else if (e.key === '+' || e.key === '=') this.zoomStep(1.3);
+        else if (e.key === '-' || e.key === '_') this.zoomStep(1 / 1.3);
+        else if (e.key === '0') this.zoomFit();
+        else if (!this.inputHandler) return;
+        else if (e.key === 'ArrowUp') { e.preventDefault(); this.inputHandler.moveCursor(-1, 0); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); this.inputHandler.moveCursor(1, 0); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); this.inputHandler.moveCursor(0, -1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); this.inputHandler.moveCursor(0, 1); }
+        else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); this.inputHandler.activateCursor(); }
+        else return;
+        this.renderer.draw();
       });
 
       window.addEventListener('resize', () => {
         if (this.renderer && this.game) {
           this.renderer.computeSizes();
-          this.renderer.needsStaticRedraw = true;
           this.renderer.draw();
         }
         Confetti.resize();
       });
 
       const animate = () => {
-        if (this.game) {
+        if (this.game && this.renderer) {
           // Просроченные анимации убираются здесь, а не в обработчике хода.
           // Раньше массив чистился только при изменении клетки — после последней
           // закрытой линии он оставался непустым, и перерисовка шла вечно.
@@ -1625,10 +2030,10 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
             const now = Date.now();
             this.game.lineAnimations = this.game.lineAnimations.filter(a => now - a.start < 800);
           }
-          if (this.game.hintCells.size > 0 || this.game.lineAnimations.length > 0) {
-            this.renderer.needsStaticRedraw = true;
-            this.renderer.draw();
-          }
+          // Кадр перерисовывается по флагу «что-то изменилось» (жест зума/панорамы,
+          // мигание ошибки, подсказка, закрытие линии), а не непрерывно.
+          if (this.renderer.hasLiveAnimation()) this.renderer.markDirty();
+          if (this.renderer.dirty) this.renderer.draw();
         }
         requestAnimationFrame(animate);
       };
@@ -1643,6 +2048,20 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       });
 
       document.body.addEventListener('pointerdown', () => SoundManager.resume(), { once: true });
+    },
+
+    // Зум к центру видимой области поля — используется кнопками и клавишами +/-.
+    zoomStep(factor) {
+      if (!this.renderer || !this.renderer.state) return;
+      const vp = this.renderer.boardViewport();
+      this.renderer.zoomBy(factor, vp.x + vp.w / 2, vp.y + vp.h / 2);
+      this.renderer.draw();
+    },
+
+    zoomFit() {
+      if (!this.renderer) return;
+      this.renderer.zoomFit();
+      this.renderer.draw();
     },
 
     setMode(mode) {
@@ -1702,7 +2121,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
 
       this.renderer.setState(this.game);
       this.inputHandler.setGame(this.game);
-      this.inputHandler.setProtection(Storage.get('protectionEnabled', true));
+      this.inputHandler.setLongPress(Storage.get('longPressEnabled', true));
 
       this.renderer.draw();
       this.updateTitle();
@@ -1783,7 +2202,6 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
 
     afterHistoryStep(changed) {
       if (!changed) return;
-      this.renderer.needsStaticRedraw = true;
       this.renderer.draw();
       this.updateMemoButton(); this.updateProgress(); this.updateStats();
       this.debouncedSave();
@@ -1806,7 +2224,6 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       // Сбрасывается и счётчик ошибок, и признак решённости — раньше они
       // оставались от прошлой попытки на пустом поле.
       this.game.reset();
-      this.renderer.needsStaticRedraw = true;
       this.renderer.draw();
       this.updateMemoButton(); this.updateProgress(); this.updateStats();
       this.startTimer();
@@ -1816,7 +2233,6 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     clearMemos() {
       if (this.game) {
         this.game.clearAllMemos();
-        this.renderer.needsStaticRedraw = true;
         this.renderer.draw();
         this.updateMemoButton();
         this.debouncedSave();
@@ -1833,7 +2249,6 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       if (unsolved.length) {
         const [r, c] = unsolved[Math.floor(Math.random() * unsolved.length)];
         this.game.addHint(r, c);
-        this.renderer.needsStaticRedraw = true;
         this.renderer.draw();
         Haptics.tap(); SoundManager.tap();
       }
@@ -1904,7 +2319,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
           theme: Storage.get('theme', 'dark'),
           soundEnabled: Storage.get('soundEnabled', true),
           hapticEnabled: Storage.get('hapticEnabled', true),
-          protectionEnabled: Storage.get('protectionEnabled', true)
+          longPressEnabled: Storage.get('longPressEnabled', true)
         }
       };
       const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
@@ -1964,13 +2379,12 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
     resetAll() {
       // Окно обещает удалить и настройки — теперь оно не врёт.
       for (const key of ['puzzleProgress', 'lastPuzzleIndex', 'tutorialSeen',
-                         'theme', 'soundEnabled', 'hapticEnabled', 'protectionEnabled']) {
+                         'theme', 'soundEnabled', 'hapticEnabled', 'longPressEnabled']) {
         Storage.remove(key);
       }
       this.hideModal('modal-settings');
       this.loadSettings();
       Palette.refresh();
-      this.renderer.needsStaticRedraw = true;
       this.loadPuzzle(0);
       this.showPuzzleSelector();
       this.notify('Готово', 'Прогресс и настройки сброшены.');
