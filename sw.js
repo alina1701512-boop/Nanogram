@@ -9,14 +9,28 @@
 //
 // CACHE_NAME нужно поднимать на единицу при заметных изменениях в списке
 // файлов ниже — activate() сам вычистит всё старое.
-const CACHE_NAME = 'nanogram-v1';
+const CACHE_NAME = 'nanogram-v2';
 const APP_SHELL = [
   './',
   './index.html',
+  './styles.css',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './icon-512-maskable.png'
+  './icon-512-maskable.png',
+  './js/main.js',
+  './js/ui.js',
+  './js/renderer.js',
+  './js/input-handler.js',
+  './js/game-state.js',
+  './js/puzzles.js',
+  './js/puzzle-generator.js',
+  './js/solver.js',
+  './js/storage.js',
+  './js/palette.js',
+  './js/sound.js',
+  './js/haptics.js',
+  './js/confetti.js'
 ];
 
 self.addEventListener('install', event => {
