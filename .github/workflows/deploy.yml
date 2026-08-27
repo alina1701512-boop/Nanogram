@@ -23,10 +23,17 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # path: '.' раньше публиковал вообще всё в репозитории, включая .git и
+      # .github — собираем в _site только то, что действительно нужно сайту.
+      - name: Stage site files
+        run: |
+          mkdir _site
+          cp index.html manifest.json sw.js icon-192.png icon-512.png icon-512-maskable.png apple-touch-icon.png _site/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

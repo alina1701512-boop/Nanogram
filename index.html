@@ -4,7 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#05060f">
+<meta name="description" content="Коллекция японских кроссвордов (нонограмм) с зумом, честной сложностью и звёздами за решение — работает офлайн.">
 <title>Японские кроссворды — Коллекция</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Нонограммы">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
 :root {
   --color-midnight-canvas: #05060f;
@@ -122,6 +130,8 @@ canvas { display: block; touch-action: none; border-radius: 8px; cursor: crossha
 .action-btn.danger { color: var(--color-error); }
 .action-btn:active { transform: scale(0.95); }
 .puzzles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+.pack-header { grid-column: 1 / -1; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--color-moon-mist); text-transform: uppercase; margin: 8px 0 -4px; padding-top: 8px; border-top: 1px solid var(--color-glass-edge); }
+.pack-header:first-child { border-top: none; padding-top: 0; margin-top: 0; }
 .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .filter-btn { background: var(--color-luminous-fill); border: 1px solid var(--color-glass-edge); padding: 6px 12px; border-radius: var(--radius-buttons); font-size: 13px; cursor: pointer; color: var(--color-frost-glow); transition: all 0.2s; }
 .filter-btn.active { background: var(--color-void-violet); color: white; border-color: var(--color-void-violet); }
@@ -202,10 +212,9 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       <button class="filter-btn" data-filter="diff:Легко">Легко</button>
       <button class="filter-btn" data-filter="diff:Средне">Средне</button>
       <button class="filter-btn" data-filter="diff:Сложно">Сложно</button>
-      <button class="filter-btn" data-filter="15">15×15</button>
-      <button class="filter-btn" data-filter="20">20×20</button>
-      <button class="filter-btn" data-filter="25">25×25</button>
-      <button class="filter-btn" data-filter="30">30×30</button>
+      <button class="filter-btn" data-filter="pack:Фигуры">🔷 Фигуры</button>
+      <button class="filter-btn" data-filter="pack:Природа">🌿 Природа</button>
+      <button class="filter-btn" data-filter="pack:Приключения">⚓ Приключения</button>
       <button class="filter-btn" data-filter="solved">✅ Решённые</button>
       <button class="filter-btn" data-filter="unsolved">🎯 Нерешённые</button>
     </div>
@@ -581,6 +590,43 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         grid.push(row);
       }
       return grid;
+    },
+
+    // Кроссворд прямо строками из символов — картинку видно в самом коде,
+    // добавить новую фигуру можно за пять минут, не изобретая формулу.
+    // '#' и любой другой не-пробельный символ — закрашенная клетка, '.' и
+    // пробел — пустая.
+    fromArt(rows) {
+      return rows.map(row => [...row].map(ch => (ch === '.' || ch === ' ') ? 0 : 1));
+    },
+
+    // Формульные фигуры рисуются на фиксированном квадратном холсте, но сама
+    // фигура часто занимает от него меньше половины (см. разбор) — кроссворд
+    // 20×20 наполовину состоит из пустой рамки, которую играющий крестит
+    // машинально в первые полминуты. Обрезка по границам фигуры плюс отступ
+    // в одну клетку с каждой стороны решает это, не трогая формулу; если
+    // обрезка не даёт выигрыша (фигура и так плотная), холст не меняется.
+    tighten(grid, margin = 1) {
+      const n = grid.length;
+      let r0 = n, r1 = -1, c0 = n, c1 = -1;
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          if (grid[r][c]) {
+            if (r < r0) r0 = r;
+            if (r > r1) r1 = r;
+            if (c < c0) c0 = c;
+            if (c > c1) c1 = c;
+          }
+        }
+      }
+      if (r1 < 0) return grid; // пустая картинка — оставить как есть
+      const bh = r1 - r0 + 1, bw = c1 - c0 + 1;
+      const size = Math.max(bh, bw) + margin * 2;
+      if (size >= n) return grid;
+      const out = Array.from({ length: size }, () => Array(size).fill(0));
+      const offY = Math.floor((size - bh) / 2), offX = Math.floor((size - bw) / 2);
+      for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (grid[r][c]) out[r - r0 + offY][c - c0 + offX] = 1;
+      return out;
     }
   };
 
@@ -704,18 +750,35 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
   };
 
   // ===================== КОЛЛЕКЦИЯ =====================
+  // pack группирует кроссворды в главы для списка. size больше не указывается
+  // руками — он определяется по факту сгенерированной картинки (см. ниже),
+  // поэтому обрезка формульных фигур (tighten) меняет его автоматически.
   const PUZZLES = [
-    { name: "Сердце", size: 15, generator: () => PuzzleGenerator.heart(15) },
-    { name: "Звезда", size: 15, generator: () => PuzzleGenerator.star(15) },
-    { name: "Дом", size: 15, generator: () => PuzzleGenerator.house(15) },
-    { name: "Смайлик", size: 15, generator: () => PuzzleGenerator.smiley(15) },
-    { name: "Ёлка", size: 15, generator: () => PuzzleGenerator.tree(15) },
-    { name: "Рыбка", size: 20, generator: () => PuzzleGenerator.fish(20) },
-    { name: "Кот", size: 20, generator: () => PuzzleGenerator.cat(20) },
-    { name: "Гриб", size: 20, generator: () => PuzzleGenerator.mushroom(20) },
-    { name: "Парусник", size: 25, generator: () => PuzzleGenerator.sailboat(25) },
-    { name: "Ракета", size: 25, generator: () => PuzzleGenerator.rocket(25) },
-    { name: "Замок", size: 30, generator: () => PuzzleGenerator.castle(30) }
+    { name: "Сердце", pack: "Фигуры", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.heart(15)) },
+    { name: "Звезда", pack: "Фигуры", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.star(15)) },
+    { name: "Дом", pack: "Фигуры", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.house(15)) },
+    { name: "Смайлик", pack: "Фигуры", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.smiley(15)) },
+    // Чашка нарисована прямо строками символов (PuzzleGenerator.fromArt), а не
+    // формулой — самый маленький кроссворд в коллекции, для быстрой партии.
+    { name: "Чашка", pack: "Фигуры", generator: () => PuzzleGenerator.fromArt([
+      "..........",
+      ".########.",
+      ".#......#.",
+      ".#......##",
+      ".#......#.",
+      ".#......##",
+      ".#......#.",
+      ".#......#.",
+      ".########.",
+      ".........."
+    ]) },
+    { name: "Ёлка", pack: "Природа", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.tree(15)) },
+    { name: "Гриб", pack: "Природа", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.mushroom(20)) },
+    { name: "Кот", pack: "Природа", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.cat(20)) },
+    { name: "Рыбка", pack: "Природа", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.fish(20)) },
+    { name: "Парусник", pack: "Приключения", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.sailboat(25)) },
+    { name: "Ракета", pack: "Приключения", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.rocket(25)) },
+    { name: "Замок", pack: "Приключения", generator: () => PuzzleGenerator.tighten(PuzzleGenerator.castle(30)) }
   ];
   const puzzleSolutions = PUZZLES.map(p => p.generator());
   // Сложность считается решателем по форме фигуры, а не берётся из руки —
@@ -726,6 +789,7 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
   // предупреждение при следующем добавлении фигур.
   const puzzleStats = puzzleSolutions.map(sol => Solver.analyze(sol));
   PUZZLES.forEach((p, i) => {
+    p.size = puzzleSolutions[i].length;
     p.difficulty = Solver.difficulty(puzzleStats[i]);
     if (!puzzleStats[i].solvable && typeof console !== 'undefined') {
       console.warn(`Кроссворд «${p.name}» не решается логикой построчного решателя — есть неоднозначные клетки.`);
@@ -2444,6 +2508,46 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
       return (this.currentPuzzleIndex + 1) % PUZZLES.length;
     },
 
+    buildPuzzleCard(puzzle, index, entry) {
+      const isSolved = entry?.solved || false;
+      const card = document.createElement('div');
+      card.className = 'puzzle-card' + (isSolved ? ' solved' : '');
+      const preview = document.createElement('canvas');
+      const previewSize = 120;
+      preview.width = previewSize;
+      preview.height = previewSize;
+      this.drawPreview(preview, puzzleSolutions[index]);
+      card.appendChild(preview);
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = puzzle.name;
+      card.appendChild(name);
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = `${puzzle.size}×${puzzle.size} · ${puzzle.difficulty}`;
+      card.appendChild(meta);
+      if (isSolved) {
+        const stats = document.createElement('div');
+        stats.className = 'meta';
+        const time = Number.isFinite(entry.bestTime) ? this.formatTime(entry.bestTime) : '';
+        stats.textContent = `${this.starsHtml(entry.stars || 0)}${time ? ' · ⏱ ' + time : ''}`;
+        card.appendChild(stats);
+      }
+      card.onclick = () => {
+        this.hideModal('modal-puzzles');
+        this.loadPuzzle(index);
+      };
+      return card;
+    },
+
+    puzzleMatchesFilter(puzzle, isSolved) {
+      if (this.currentFilter === 'solved') return isSolved;
+      if (this.currentFilter === 'unsolved') return !isSolved;
+      if (this.currentFilter.startsWith('diff:')) return puzzle.difficulty === this.currentFilter.slice(5);
+      if (this.currentFilter.startsWith('pack:')) return puzzle.pack === this.currentFilter.slice(5);
+      return true; // 'all'
+    },
+
     showPuzzleSelector() {
       const grid = document.getElementById('puzzles-grid');
       grid.innerHTML = '';
@@ -2456,44 +2560,29 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
         progressEl.textContent = `Решено: ${solvedCount}/${PUZZLES.length} · ★ ${totalStars}/${PUZZLES.length * 3}`;
       }
 
+      // На «Все» кроссворды показываются главами по пакам — так же, как их
+      // задумывали собирать; любой другой фильтр даёт обычную плоскую сетку.
+      if (this.currentFilter === 'all') {
+        const packs = [...new Set(PUZZLES.map(p => p.pack))];
+        for (const pack of packs) {
+          const items = PUZZLES.map((p, i) => [p, i]).filter(([p]) => p.pack === pack);
+          if (!items.length) continue;
+          const header = document.createElement('div');
+          header.className = 'pack-header';
+          header.textContent = pack;
+          grid.appendChild(header);
+          for (const [puzzle, index] of items) {
+            grid.appendChild(this.buildPuzzleCard(puzzle, index, progress[index]));
+          }
+        }
+        return;
+      }
+
       PUZZLES.forEach((puzzle, index) => {
         const entry = progress[index];
         const isSolved = entry?.solved || false;
-        if (this.currentFilter === 'solved' && !isSolved) return;
-        if (this.currentFilter === 'unsolved' && isSolved) return;
-        if (this.currentFilter.startsWith('diff:')) {
-          if (puzzle.difficulty !== this.currentFilter.slice(5)) return;
-        } else if (this.currentFilter !== 'all' && this.currentFilter !== 'solved' && this.currentFilter !== 'unsolved') {
-          if (puzzle.size !== parseInt(this.currentFilter)) return;
-        }
-        const card = document.createElement('div');
-        card.className = 'puzzle-card' + (isSolved ? ' solved' : '');
-        const preview = document.createElement('canvas');
-        const previewSize = 120;
-        preview.width = previewSize;
-        preview.height = previewSize;
-        this.drawPreview(preview, puzzleSolutions[index]);
-        card.appendChild(preview);
-        const name = document.createElement('div');
-        name.className = 'name';
-        name.textContent = puzzle.name;
-        card.appendChild(name);
-        const meta = document.createElement('div');
-        meta.className = 'meta';
-        meta.textContent = `${puzzle.size}×${puzzle.size} · ${puzzle.difficulty}`;
-        card.appendChild(meta);
-        if (isSolved) {
-          const stats = document.createElement('div');
-          stats.className = 'meta';
-          const time = Number.isFinite(entry.bestTime) ? this.formatTime(entry.bestTime) : '';
-          stats.textContent = `${this.starsHtml(entry.stars || 0)}${time ? ' · ⏱ ' + time : ''}`;
-          card.appendChild(stats);
-        }
-        card.onclick = () => {
-          this.hideModal('modal-puzzles');
-          this.loadPuzzle(index);
-        };
-        grid.appendChild(card);
+        if (!this.puzzleMatchesFilter(puzzle, isSolved)) return;
+        grid.appendChild(this.buildPuzzleCard(puzzle, index, entry));
       });
     },
 
@@ -2591,6 +2680,14 @@ kbd { background: var(--color-steel-plate); padding: 2px 6px; border-radius: 4px
   };
 
   window.addEventListener('DOMContentLoaded', () => UI.init());
+
+  // PWA: регистрация не должна мешать игре, если офлайн-кэш не нужен или
+  // не поддерживается (например, при открытии файла напрямую с диска).
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 })();
 </script>
 </body>
